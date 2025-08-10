@@ -37,7 +37,37 @@ class Hand(object):
         )
         self.nn.restore()
 
-    def write(self, filename, lines, biases=None, styles=None, stroke_colors=None, stroke_widths=None):
+    def write(
+        self,
+        filename,
+        lines,
+        biases=None,
+        styles=None,
+        stroke_colors=None,
+        stroke_widths=None,
+        page_size='A4',
+        units='mm',
+        margins=20,
+        line_height=None,
+        align='left',
+        background='white',
+        global_scale=1.0,
+        orientation='portrait',
+    ):
+        def _normalize_seq(value, desired_len, cast_fn=None, name='param'):
+            if value is None:
+                return None
+            # Accept scalar -> broadcast
+            if not isinstance(value, (list, tuple, np.ndarray)):
+                return [cast_fn(value) if cast_fn else value] * desired_len
+            seq = list(value)
+            if len(seq) == 1 and desired_len > 1:
+                return [cast_fn(seq[0]) if cast_fn else seq[0]] * desired_len
+            if len(seq) != desired_len:
+                raise ValueError(
+                    f"Length of {name} ({len(seq)}) must be 1 or equal to number of lines ({desired_len})"
+                )
+            return [cast_fn(v) if cast_fn else v for v in seq]
         valid_char_set = set(drawing.alphabet)
         for line_num, line in enumerate(lines):
             if len(line) > 75:
@@ -57,8 +87,29 @@ class Hand(object):
                         ).format(char, line_num, valid_char_set)
                     )
 
+        # Normalize optional sequences to match number of lines
+        num_lines = len(lines)
+        biases = _normalize_seq(biases, num_lines, float, 'biases')
+        styles = _normalize_seq(styles, num_lines, int, 'styles')
+        stroke_colors = _normalize_seq(stroke_colors, num_lines, str, 'stroke_colors')
+        stroke_widths = _normalize_seq(stroke_widths, num_lines, float, 'stroke_widths')
+
         strokes = self._sample(lines, biases=biases, styles=styles)
-        _draw(strokes, lines, filename, stroke_colors=stroke_colors, stroke_widths=stroke_widths)
+        _draw(
+            strokes,
+            lines,
+            filename,
+            stroke_colors=stroke_colors,
+            stroke_widths=stroke_widths,
+            page_size=page_size,
+            units=units,
+            margins=margins,
+            line_height=line_height,
+            align=align,
+            background=background,
+            global_scale=global_scale,
+            orientation=orientation,
+        )
 
     def _sample(self, lines, biases=None, styles=None):
         num_samples = len(lines)

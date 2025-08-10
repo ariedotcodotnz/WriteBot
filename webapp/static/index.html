@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WriteBot - Handwriting Synthesis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/carbon-components/css/carbon-components.min.css" />
+  <style>
+    body { font-family: 'IBM Plex Sans', system-ui, Arial, sans-serif; }
+    .section-title { margin: 1rem 0 .5rem; font-weight: 600; }
+    .preview-tile { min-height: 280px; overflow: auto; }
+    .code-tile { max-height: 420px; overflow: auto; }
+    #preview svg { width: 100%; height: auto; }
+    .actions { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+    .helper { margin-top: .25rem; }
+    .custom-size { display: none; }
+    .toolbar { display:flex; align-items:center; gap:.5rem; margin:.5rem 0; }
+    .zoom-label { width: 80px; }
+    .overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.25); z-index: 999; }
+    .visible { display: flex !important; }
+  </style>
+</head>
+<body>
+  <!-- UI Shell Header -->
+  <header class="bx--header" role="banner" aria-label="WriteBot">
+    <a class="bx--header__name" href="#" title="WriteBot">
+      <span class="bx--header__name--prefix">WriteBot</span>
+      Handwriting Synthesis
+    </a>
+  </header>
+
+  <main class="bx--content">
+    <div class="bx--grid">
+      <div class="bx--row">
+        <!-- Left Column: Inputs -->
+        <div class="bx--col-lg-8 bx--col-md-8 bx--col-sm-4">
+          <h3 class="section-title">Text & Style</h3>
+          <div class="bx--form">
+            <div class="bx--form-item">
+              <label for="text" class="bx--label">Text (multi-line)</label>
+              <div class="bx--text-area__wrapper">
+                <textarea id="text" class="bx--text-area" rows="8" placeholder="Enter text... One line per paragraph."></textarea>
+              </div>
+              <div class="bx--form__helper-text helper">Use \\ on a line by itself to insert a blank spacer line.</div>
+            </div>
+
+            <div class="bx--grid" style="padding-left:0;">
+              <div class="bx--row">
+                <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
+                  <div class="bx--form-item">
+                    <label class="bx--label" for="biases">Biases (optional)</label>
+                    <input id="biases" class="bx--text-input" type="text" placeholder="0.75|0.75|0.6" />
+                  </div>
+                </div>
+                <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
+                  <div class="bx--form-item">
+                    <label class="bx--label" for="styles">Styles (optional)</label>
+                    <input id="styles" class="bx--text-input" type="text" placeholder="1|1|2" />
+                  </div>
+                </div>
+              </div>
+              <div class="bx--row">
+                <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
+                  <div class="bx--form-item">
+                    <label class="bx--label" for="strokeColors">Stroke colors (optional)</label>
+                    <input id="strokeColors" class="bx--text-input" type="text" placeholder="black|#333|red" />
+                  </div>
+                </div>
+                <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
+                  <div class="bx--form-item">
+                    <label class="bx--label" for="strokeWidths">Stroke widths (optional)</label>
+                    <input id="strokeWidths" class="bx--text-input" type="text" placeholder="2|2|2" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h3 class="section-title">Page settings</h3>
+          <div class="bx--form">
+            <div class="bx--grid" style="padding-left:0;">
+              <div class="bx--row">
+                <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
+                  <div class="bx--form-item">
+                    <label for="pageSize" class="bx--label">Page size</label>
+                    <div class="bx--select">
+                      <select id="pageSize" class="bx--select-input">
+                        <option value="A4">A4 (210 x 297 mm)</option>
+                        <option value="A5">A5 (148 x 210 mm)</option>
+                        <option value="Letter">Letter (215.9 x 279.4 mm)</option>
+                        <option value="Legal">Legal (215.9 x 355.6 mm)</option>
+                        <option value="custom">Custom</option>
+                      </select>
+                      <div class="bx--select__arrow" aria-hidden="true"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
+                  <div class="bx--form-item">
+                    <label for="units" class="bx--label">Units</label>
+                    <div class="bx--select">
+                      <select id="units" class="bx--select-input">
+                        <option value="mm">mm</option>
+                        <option value="px">px</option>
+                      </select>
+                      <div class="bx--select__arrow" aria-hidden="true"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4"></div>
+              </div>
+            </div>
+
+            <div id="customSizeFields" class="custom-size">
+              <div class="bx--grid" style="padding-left:0;">
+                <div class="bx--row">
+                  <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
+                    <div class="bx--form-item">
+                      <label class="bx--label" for="pageWidth">Custom width</label>
+                      <input id="pageWidth" class="bx--text-input" type="number" step="any" placeholder="e.g., 210" />
+                    </div>
+                  </div>
+                  <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
+                    <div class="bx--form-item">
+                      <label class="bx--label" for="pageHeight">Custom height</label>
+                      <input id="pageHeight" class="bx--text-input" type="number" step="any" placeholder="e.g., 297" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bx--form-item">
+              <label class="bx--label">Margins</label>
+              <div class="bx--grid" style="padding-left:0;">
+                <div class="bx--row">
+                  <div class="bx--col-sm-2 bx--col-md-2 bx--col-lg-2">
+                    <label class="bx--label" for="marginTop">Top</label>
+                    <input id="marginTop" class="bx--text-input" type="number" step="any" placeholder="20" />
+                  </div>
+                  <div class="bx--col-sm-2 bx--col-md-2 bx--col-lg-2">
+                    <label class="bx--label" for="marginRight">Right</label>
+                    <input id="marginRight" class="bx--text-input" type="number" step="any" placeholder="20" />
+                  </div>
+                  <div class="bx--col-sm-2 bx--col-md-2 bx--col-lg-2">
+                    <label class="bx--label" for="marginBottom">Bottom</label>
+                    <input id="marginBottom" class="bx--text-input" type="number" step="any" placeholder="20" />
+                  </div>
+                  <div class="bx--col-sm-2 bx--col-md-2 bx--col-lg-2">
+                    <label class="bx--label" for="marginLeft">Left</label>
+                    <input id="marginLeft" class="bx--text-input" type="number" step="any" placeholder="20" />
+                  </div>
+                </div>
+              </div>
+              <div class="bx--form__helper-text helper">Units respect the selection above (mm or px). Leave blank to use defaults.</div>
+            </div>
+
+            <div class="bx--grid" style="padding-left:0;">
+              <div class="bx--row">
+                <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
+                  <div class="bx--form-item">
+                    <label class="bx--label" for="lineHeight">Line height</label>
+                    <input id="lineHeight" class="bx--text-input" type="number" placeholder="auto" />
+                  </div>
+                </div>
+                <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
+                  <div class="bx--form-item">
+                    <label for="align" class="bx--label">Alignment</label>
+                    <div class="bx--select">
+                      <select id="align" class="bx--select-input">
+                        <option value="left">Left</option>
+                        <option value="center">Center</option>
+                        <option value="right">Right</option>
+                      </select>
+                      <div class="bx--select__arrow" aria-hidden="true"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bx--form-item">
+              <label for="orientation" class="bx--label">Orientation</label>
+              <div class="bx--select">
+                <select id="orientation" class="bx--select-input">
+                  <option value="portrait">Portrait</option>
+                  <option value="landscape">Landscape</option>
+                </select>
+                <div class="bx--select__arrow" aria-hidden="true"></div>
+              </div>
+            </div>
+
+            <div class="bx--grid" style="padding-left:0;">
+              <div class="bx--row">
+                <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
+                  <div class="bx--form-item">
+                    <label class="bx--label" for="background">Background</label>
+                    <input id="background" class="bx--text-input" type="text" value="white" />
+                  </div>
+                </div>
+                <div class="bx--col-sm-6 bx--col-md-6 bx--col-lg-6">
+                  <div class="bx--form-item">
+                    <label class="bx--label" for="filename">File name</label>
+                    <input id="filename" class="bx--text-input" type="text" placeholder="handwriting.svg" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="actions" style="margin: .5rem 0 1rem;">
+              <button class="bx--btn bx--btn--primary" onclick="generate()">Generate</button>
+              <button class="bx--btn bx--btn--secondary" onclick="downloadSVG()">Download SVG</button>
+              <a href="/api/template-csv" class="bx--btn bx--btn--tertiary">Download CSV template</a>
+            </div>
+
+            <div class="toolbar">
+              <span class="zoom-label">Zoom</span>
+              <input id="zoom" class="bx--text-input" type="range" min="25" max="200" step="5" value="100" style="width:200px" />
+              <span id="zoomVal">100%</span>
+              <div style="flex:1"></div>
+              <button class="bx--btn bx--btn--tertiary" onclick="applyPreset('A4','portrait',20)">Preset: A4 Portrait</button>
+              <button class="bx--btn bx--btn--tertiary" onclick="applyPreset('Letter','landscape',15)">Preset: Letter Landscape</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Preview & Source -->
+        <div class="bx--col-lg-8 bx--col-md-8 bx--col-sm-4">
+          <h3 class="section-title">SVG Preview</h3>
+          <div class="bx--tile preview-tile" id="preview"></div>
+
+          <h3 class="section-title">SVG Source</h3>
+          <div class="bx--tile code-tile">
+            <div class="actions" style="justify-content: flex-end;">
+              <button class="bx--btn bx--btn--secondary" onclick="copySvg()">Copy SVG</button>
+            </div>
+            <pre id="output" class="bx--snippet bx--snippet--multi" tabindex="0" aria-label="Code Snippet"><code></code></pre>
+          </div>
+
+          <h3 class="section-title">Batch CSV</h3>
+          <div class="bx--form">
+            <div class="bx--file">
+              <label for="csv" class="bx--file-browse-btn">Choose CSV file</label>
+              <input id="csv" class="bx--file-input" type="file" accept=".csv" style="display:none" />
+              <button class="bx--btn bx--btn--secondary" style="margin-left:.5rem" onclick="batchGenerateStream()">Start Batch</button>
+              <a class="bx--btn bx--btn--tertiary" href="/api/template-csv">Template</a>
+            </div>
+            <div class="bx--form__helper-text helper">CSV columns: filename, text, biases, styles, stroke_colors, stroke_widths, page_size, units, page_width, page_height, margins, line_height, align, background, global_scale, orientation, wrap_ratio, wrap_char_px</div>
+
+            <div class="bx--tile" style="margin-top: .75rem;">
+              <div class="bx--progress bx--progress--vertical" style="min-height: 140px;">
+                <div class="bx--progress-step bx--progress-step--current" id="batchStepStart" aria-label="Start"></div>
+                <div class="bx--progress-step bx--progress-step--incomplete" id="batchStepProcessing" aria-label="Processing"></div>
+                <div class="bx--progress-step bx--progress-step--incomplete" id="batchStepDone" aria-label="Done"></div>
+              </div>
+              <div style="margin-top:.5rem;">
+                <div><strong>Progress:</strong> <span id="batchProg">0</span>/<span id="batchTotal">0</span></div>
+                <div><strong>Success:</strong> <span id="batchOk">0</span> &nbsp; <strong>Errors:</strong> <span id="batchErr">0</span></div>
+                <div id="batchLog" style="margin-top:.5rem; max-height:160px; overflow:auto; font-family:monospace; font-size:12px; background:#f4f4f4; padding:.5rem; border-radius:4px;"></div>
+                <div class="actions" style="margin-top:.5rem;">
+                  <a id="batchDownload" class="bx--btn bx--btn--primary" style="display:none">Download Results</a>
+                  <button class="bx--btn bx--btn--tertiary" onclick="clearBatchUI()">Clear</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="overlay" class="overlay">
+    <div data-loading class="bx--loading bx--loading--small">
+      <svg class="bx--loading__svg" viewBox="-75 -75 150 150">
+        <circle cx="0" cy="0" r="37.5" />
+      </svg>
+    </div>
+  </div>
+
+  <div id="notif" style="position:fixed; top:70px; right:12px; z-index:1000;"></div>
+
+  <script src="https://unpkg.com/carbon-components/scripts/carbon-components.min.js"></script>
+  <script>
+    let lastSvgText = '';
+    const overlay = document.getElementById('overlay');
+
+    function setLoading(v) {
+      if (!overlay) return;
+      overlay.classList.toggle('visible', !!v);
+    }
+
+    function toastError(msg) {
+      const c = document.getElementById('notif');
+      const id = 'n' + Date.now();
+      const html = `
+      <div id="${id}" data-notification class="bx--inline-notification bx--inline-notification--error" role="alert" style="margin-bottom:.5rem">
+        <div class="bx--inline-notification__details">
+          <div class="bx--inline-notification__text-wrapper">
+            <p class="bx--inline-notification__title">Error</p>
+            <p class="bx--inline-notification__subtitle">${msg}</p>
+          </div>
+        </div>
+        <button class="bx--inline-notification__close-button" type="button" aria-label="close notification" onclick="this.parentElement.remove()">
+          <svg focusable="false" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="16" height="16" viewBox="0 0 32 32" aria-hidden="true"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"></path></svg>
+        </button>
+      </div>`;
+      c.insertAdjacentHTML('beforeend', html);
+      setTimeout(() => { const el = document.getElementById(id); if (el) el.remove(); }, 5000);
+    }
+
+    function syncCustomSizeVisibility() {
+      const ps = document.getElementById('pageSize').value;
+      const block = document.getElementById('customSizeFields');
+      block.style.display = (ps === 'custom') ? 'block' : 'none';
+    }
+
+    function syncCustomSizeVisibility() {
+      const ps = document.getElementById('pageSize').value;
+      const block = document.getElementById('customSizeFields');
+      block.style.display = (ps === 'custom') ? 'block' : 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      syncCustomSizeVisibility();
+      document.getElementById('pageSize').addEventListener('change', syncCustomSizeVisibility);
+    });
+
+    function buildMargins() {
+      const mt = document.getElementById('marginTop').value;
+      const mr = document.getElementById('marginRight').value;
+      const mb = document.getElementById('marginBottom').value;
+      const ml = document.getElementById('marginLeft').value;
+      const toNum = v => (v === '' || v === null || v === undefined) ? null : Number(v);
+      const t = toNum(mt), r = toNum(mr), b = toNum(mb), l = toNum(ml);
+      if (t === null && r === null && b === null && l === null) return undefined; // let backend default
+      return { top: t ?? 20, right: r ?? 20, bottom: b ?? 20, left: l ?? 20 };
+    }
+
+    function applyPreset(size, orient, margin) {
+      document.getElementById('pageSize').value = size;
+      document.getElementById('orientation').value = orient;
+      document.getElementById('marginTop').value = margin;
+      document.getElementById('marginRight').value = margin;
+      document.getElementById('marginBottom').value = margin;
+      document.getElementById('marginLeft').value = margin;
+      syncCustomSizeVisibility();
+    }
+
+    function copySvg() {
+      if (!lastSvgText) { toastError('Nothing to copy. Generate first.'); return; }
+      navigator.clipboard.writeText(lastSvgText).catch(() => toastError('Clipboard copy failed'));
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      syncCustomSizeVisibility();
+      document.getElementById('pageSize').addEventListener('change', syncCustomSizeVisibility);
+      const zoom = document.getElementById('zoom');
+      const zv = document.getElementById('zoomVal');
+      zoom.addEventListener('input', () => {
+        const v = Number(zoom.value);
+        zv.textContent = v + '%';
+        const el = document.getElementById('preview');
+        el.style.transformOrigin = 'top left';
+        el.style.transform = `scale(${v/100})`;
+      });
+    });
+
+    async function generate() {
+      const text = document.getElementById('text').value;
+      const pageSize = document.getElementById('pageSize').value;
+      const units = document.getElementById('units').value;
+      const margins = buildMargins();
+      const lineHeight = document.getElementById('lineHeight').value;
+      const align = document.getElementById('align').value;
+      const background = document.getElementById('background').value;
+      const orientation = document.getElementById('orientation').value;
+      const biases = document.getElementById('biases').value;
+      const styles = document.getElementById('styles').value;
+      const strokeColors = document.getElementById('strokeColors').value;
+      const strokeWidths = document.getElementById('strokeWidths').value;
+      const pageWidth = document.getElementById('pageWidth') ? document.getElementById('pageWidth').value : '';
+      const pageHeight = document.getElementById('pageHeight') ? document.getElementById('pageHeight').value : '';
+
+      const parseList = (s, cast) => s ? s.split('|').map(v => cast(v.trim())) : undefined;
+      const payload = {
+        text,
+        page_size: pageSize,
+        units,
+        margins,
+        line_height: lineHeight ? Number(lineHeight) : undefined,
+        align,
+        background,
+        orientation,
+        page_width: pageWidth ? Number(pageWidth) : undefined,
+        page_height: pageHeight ? Number(pageHeight) : undefined,
+        biases: parseList(biases, Number),
+        styles: parseList(styles, Number),
+        stroke_colors: parseList(strokeColors, String),
+        stroke_widths: parseList(strokeWidths, Number),
+      };
+
+      setLoading(true);
+      const res = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toastError(err.error || res.statusText);
+        setLoading(false);
+        return;
+      }
+      const svgText = await res.text();
+      lastSvgText = svgText;
+      const out = document.getElementById('output').querySelector('code');
+      out.textContent = svgText;
+      document.getElementById('preview').innerHTML = svgText;
+      setLoading(false);
+    }
+
+    function downloadSVG() {
+      if (!lastSvgText) { alert('Generate a preview first.'); return; }
+      let filename = document.getElementById('filename').value.trim();
+      if (!filename) filename = 'handwriting.svg';
+      if (!filename.toLowerCase().endsWith('.svg')) filename += '.svg';
+      const blob = new Blob([lastSvgText], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 0);
+    }
+
+    async function batchGenerate() {
+      const fileInput = document.getElementById('csv');
+      if (!fileInput.files.length) { alert('Please choose a CSV file'); return; }
+      const form = new FormData();
+      form.append('file', fileInput.files[0]);
+
+      setLoading(true);
+      const res = await fetch('/api/batch', { method: 'POST', body: form });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toastError(err.error || res.statusText);
+        setLoading(false);
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'writebot_batch.zip';
+      a.click();
+      URL.revokeObjectURL(url);
+      setLoading(false);
+    }
+
+    function setStep(elId, state) {
+      const el = document.getElementById(elId);
+      el.classList.remove('bx--progress-step--incomplete', 'bx--progress-step--current', 'bx--progress-step--complete');
+      el.classList.add(state);
+    }
+
+    function clearBatchUI() {
+      document.getElementById('batchProg').textContent = '0';
+      document.getElementById('batchTotal').textContent = '0';
+      document.getElementById('batchOk').textContent = '0';
+      document.getElementById('batchErr').textContent = '0';
+      document.getElementById('batchLog').innerHTML = '';
+      const dl = document.getElementById('batchDownload');
+      dl.style.display = 'none';
+      dl.removeAttribute('href');
+      setStep('batchStepStart','bx--progress-step--incomplete');
+      setStep('batchStepProcessing','bx--progress-step--incomplete');
+      setStep('batchStepDone','bx--progress-step--incomplete');
+    }
+
+    async function batchGenerateStream() {
+      const fileInput = document.getElementById('csv');
+      if (!fileInput.files.length) { toastError('Please choose a CSV file'); return; }
+      clearBatchUI();
+      setStep('batchStepStart','bx--progress-step--current');
+
+      const form = new FormData();
+      form.append('file', fileInput.files[0]);
+      setLoading(true);
+
+      const res = await fetch('/api/batch/stream', { method: 'POST', body: form });
+      if (!res.ok || !res.body) {
+        toastError('Failed to start batch');
+        setLoading(false);
+        return;
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      setStep('batchStepStart','bx--progress-step--complete');
+      setStep('batchStepProcessing','bx--progress-step--current');
+
+      let ok = 0, err = 0, total = 0;
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split('\n\n');
+        buffer = parts.pop();
+        for (const chunk of parts) {
+          if (!chunk.startsWith('data:')) continue;
+          try {
+            const payload = JSON.parse(chunk.replace(/^data:\s*/, ''));
+            if (payload.type === 'start') {
+              total = payload.total || 0;
+              document.getElementById('batchTotal').textContent = String(total);
+            } else if (payload.type === 'row') {
+              const log = document.getElementById('batchLog');
+              if (payload.status === 'ok') {
+                ok += 1;
+                log.insertAdjacentHTML('beforeend', `<div>row ${payload.row}: ✓ ${payload.file}</div>`);
+                document.getElementById('batchOk').textContent = String(ok);
+              } else {
+                err += 1;
+                log.insertAdjacentHTML('beforeend', `<div>row ${payload.row}: ✗ ${payload.error}</div>`);
+                document.getElementById('batchErr').textContent = String(err);
+              }
+              log.scrollTop = log.scrollHeight;
+            } else if (payload.type === 'progress') {
+              document.getElementById('batchProg').textContent = String(payload.completed || 0);
+            } else if (payload.type === 'done') {
+              setStep('batchStepProcessing','bx--progress-step--complete');
+              setStep('batchStepDone','bx--progress-step--current');
+              const dl = document.getElementById('batchDownload');
+              dl.href = payload.download;
+              dl.style.display = 'inline-flex';
+              setLoading(false);
+            }
+          } catch (e) {
+            // ignore parse errors on keepalives
+          }
+        }
+      }
+    }
+  </script>
+</body>
+</html>
+
+

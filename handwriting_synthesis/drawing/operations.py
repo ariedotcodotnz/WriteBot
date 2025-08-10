@@ -81,28 +81,33 @@ def denoise(coords):
     """
     smoothing filter to mitigate some artifacts of the data collection
     """
-    coords = np.split(coords, np.where(coords[:, 2] == 1)[0] + 1, axis=0)
+    coords_list = np.split(coords, np.where(coords[:, 2] == 1)[0] + 1, axis=0)
     new_coords = []
-    for stroke in coords:
-        if len(stroke) != 0:
+    for stroke in coords_list:
+        if len(stroke) == 0:
+            continue
+        # If stroke is shorter than window length, skip smoothing but keep it
+        if len(stroke) >= 7:
             x_new = savgol_filter(stroke[:, 0], 7, 3, mode='nearest')
             y_new = savgol_filter(stroke[:, 1], 7, 3, mode='nearest')
             xy_coords = np.hstack([x_new.reshape(-1, 1), y_new.reshape(-1, 1)])
-            stroke = np.concatenate([xy_coords, stroke[:, 2].reshape(-1, 1)], axis=1)
-            new_coords.append(stroke)
+        else:
+            xy_coords = stroke[:, :2]
+        stroke_out = np.concatenate([xy_coords, stroke[:, 2].reshape(-1, 1)], axis=1)
+        new_coords.append(stroke_out)
 
-    coords = np.vstack(new_coords)
-    return coords
+    if not new_coords:
+        return np.empty((0, 3), dtype=coords.dtype if hasattr(coords, 'dtype') else float)
+    return np.vstack(new_coords)
 
 
 def interpolate(coords, factor=2):
     """
     interpolates strokes using cubic spline
     """
-    coords = np.split(coords, np.where(coords[:, 2] == 1)[0] + 1, axis=0)
+    coords_list = np.split(coords, np.where(coords[:, 2] == 1)[0] + 1, axis=0)
     new_coords = []
-    for stroke in coords:
-
+    for stroke in coords_list:
         if len(stroke) == 0:
             continue
 
@@ -122,11 +127,12 @@ def interpolate(coords, factor=2):
 
         stroke_eos = np.zeros([len(xy_coords), 1])
         stroke_eos[-1] = 1.0
-        stroke = np.concatenate([xy_coords, stroke_eos], axis=1)
-        new_coords.append(stroke)
+        stroke_out = np.concatenate([xy_coords, stroke_eos], axis=1)
+        new_coords.append(stroke_out)
 
-    coords = np.vstack(new_coords)
-    return coords
+    if not new_coords:
+        return np.empty((0, 3), dtype=coords.dtype if hasattr(coords, 'dtype') else float)
+    return np.vstack(new_coords)
 
 
 def normalize(offsets):
