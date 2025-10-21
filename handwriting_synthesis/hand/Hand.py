@@ -174,11 +174,16 @@ class Hand(object):
 
     def _calculate_baseline_angle(self, stroke: np.ndarray, use_last_portion: float = 1.0) -> float:
         """
-        Calculate the baseline angle of a stroke with improved accuracy.
+        Calculate the baseline angle by comparing bottom Y coordinates at front and back ends.
+
+        This simpler approach directly measures the slant by:
+        1. Finding the lowest Y point at the start
+        2. Finding the lowest Y point at the end
+        3. Calculating angle = arctan((y_end - y_start) / (x_end - x_start))
 
         Args:
             stroke: Input stroke sequence (offsets)
-            use_last_portion: Fraction of stroke to use (1.0 = all, 0.4 = last 40%)
+            use_last_portion: Fraction of stroke to use (1.0 = all, 0.5 = last 50%)
 
         Returns:
             Baseline angle in radians
@@ -194,41 +199,40 @@ class Hand(object):
             start_idx = int(len(coords) * (1.0 - use_last_portion))
             coords = coords[start_idx:]
 
-        if len(coords) < 4:
+        if len(coords) < 10:
             return 0.0
 
-        y_values = coords[:, 1]
-        y_range = np.max(y_values) - np.min(y_values)
+        # Define front-end and back-end regions (first 20% and last 20%)
+        region_size = max(3, int(len(coords) * 0.2))
 
-        if y_range < 1.0:
+        front_coords = coords[:region_size]
+        back_coords = coords[-region_size:]
+
+        # Get the bottom (maximum Y, since Y increases downward in SVG) of each region
+        # Use the average of the lowest few points for robustness
+        num_bottom_points = max(2, region_size // 3)
+
+        front_y_sorted = np.sort(front_coords[:, 1])[-num_bottom_points:]
+        back_y_sorted = np.sort(back_coords[:, 1])[-num_bottom_points:]
+
+        front_bottom_y = np.mean(front_y_sorted)
+        back_bottom_y = np.mean(back_y_sorted)
+
+        # Get X positions at front and back
+        front_x = np.mean(front_coords[:, 0])
+        back_x = np.mean(back_coords[:, 0])
+
+        # Calculate the horizontal distance
+        x_distance = back_x - front_x
+
+        if abs(x_distance) < 1.0:
             return 0.0
 
-        # Focus on points between 60th-80th percentile (main baseline, excluding descenders)
-        y_lower = np.percentile(y_values, 60)
-        y_upper = np.percentile(y_values, 80)
-        baseline_mask = (y_values >= y_lower) & (y_values <= y_upper)
+        # Calculate Y difference (positive = slanting upward, negative = slanting downward)
+        y_difference = back_bottom_y - front_bottom_y
 
-        baseline_points = coords[baseline_mask]
-
-        if len(baseline_points) < 3:
-            y_threshold = np.percentile(y_values, 70)
-            baseline_mask = y_values >= y_threshold
-            baseline_points = coords[baseline_mask]
-
-        if len(baseline_points) < 2:
-            return 0.0
-
-        # Fit linear regression to baseline points: y = mx + b
-        x_baseline = baseline_points[:, 0]
-        y_baseline = baseline_points[:, 1]
-
-        # Use least squares to find slope with better conditioning
-        A = np.vstack([x_baseline, np.ones(len(x_baseline))]).T
-        result = np.linalg.lstsq(A, y_baseline, rcond=None)
-        m, b = result[0]
-
-        # Calculate rotation angle
-        angle = np.arctan(m)
+        # Calculate angle: arctan(rise/run)
+        angle = np.arctan(y_difference / x_distance)
 
         return angle
 
