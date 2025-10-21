@@ -1128,10 +1128,39 @@ Use \\ on its own line to insert blank space."></textarea>
                     </small>
                   </div>
                   <div class="form-group">
-                    <label for="wordsPerChunk" class="bx--label">Words Per Chunk</label>
-                    <input id="wordsPerChunk" class="bx--text-input" type="number" step="1" min="1" max="8" placeholder="2" />
+                    <label class="bx--checkbox-wrapper">
+                      <input id="adaptiveChunking" type="checkbox" class="bx--checkbox" checked />
+                      <label for="adaptiveChunking" class="bx--checkbox-label">
+                        <span class="bx--checkbox-label-text">Adaptive Chunking</span>
+                      </label>
+                    </label>
                     <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
-                      Smaller values (2-3) improve quality, larger values (4-6) are faster
+                      Intelligently adjust chunk sizes based on text content
+                    </small>
+                  </div>
+                  <div class="form-group">
+                    <label for="adaptiveStrategy" class="bx--label">Adaptive Strategy</label>
+                    <div class="bx--select">
+                      <select id="adaptiveStrategy" class="bx--select-input">
+                        <option value="balanced" selected>Balanced (Recommended)</option>
+                        <option value="word_length">Word Length</option>
+                        <option value="sentence">Sentence Boundaries</option>
+                        <option value="punctuation">Punctuation Aware</option>
+                        <option value="off">Fixed Size</option>
+                      </select>
+                      <svg class="bx--select__arrow" width="10" height="6" viewBox="0 0 10 6">
+                        <path d="M5 6L0 0h10z" />
+                      </svg>
+                    </div>
+                    <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
+                      How to split text into chunks (balanced combines multiple strategies)
+                    </small>
+                  </div>
+                  <div class="form-group">
+                    <label for="wordsPerChunk" class="bx--label">Words Per Chunk</label>
+                    <input id="wordsPerChunk" class="bx--text-input" type="number" step="1" min="1" max="8" placeholder="3" />
+                    <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
+                      Target words per chunk (adaptively adjusted)
                     </small>
                   </div>
                   <div class="form-group">
@@ -1584,6 +1613,8 @@ Use \\ on its own line to insert blank space."></textarea>
 
       // Chunked generation options
       const useChunked = document.getElementById('useChunked').checked;
+      const adaptiveChunking = document.getElementById('adaptiveChunking').checked;
+      const adaptiveStrategy = document.getElementById('adaptiveStrategy').value;
       const wordsPerChunk = document.getElementById('wordsPerChunk').value;
       const chunkSpacing = document.getElementById('chunkSpacing').value;
       const maxLineWidth = document.getElementById('maxLineWidth').value;
@@ -1615,6 +1646,8 @@ Use \\ on its own line to insert blank space."></textarea>
         denoise: denoise || undefined,
         // Chunked generation options
         use_chunked: useChunked,
+        adaptive_chunking: adaptiveChunking,
+        adaptive_strategy: adaptiveStrategy || undefined,
         words_per_chunk: wordsPerChunk ? Number(wordsPerChunk) : undefined,
         chunk_spacing: chunkSpacing ? Number(chunkSpacing) : undefined,
         max_line_width: maxLineWidth ? Number(maxLineWidth) : undefined,

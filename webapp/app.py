@@ -121,6 +121,8 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> Tuple[str, Dict[
     min_words_per_chunk = int(payload.get("min_words_per_chunk", 2))  # NEW: Minimum words per chunk
     max_words_per_chunk = int(payload.get("max_words_per_chunk", 8))  # NEW: Maximum words per chunk
     target_chars_per_chunk = int(payload.get("target_chars_per_chunk", 25))  # NEW: Target chars per chunk
+    adaptive_chunking = payload.get("adaptive_chunking", True)  # NEW: Enable adaptive chunking
+    adaptive_strategy = payload.get("adaptive_strategy", "balanced")  # NEW: Adaptive chunking strategy
 
     # Compute content width in px for wrapping
     w_px, h_px = _resolve_page_px(page_size, units, page_width, page_height, orientation)
@@ -179,6 +181,8 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> Tuple[str, Dict[
                 min_words_per_chunk=min_words_per_chunk,
                 max_words_per_chunk=max_words_per_chunk,
                 target_chars_per_chunk=target_chars_per_chunk,
+                adaptive_chunking=adaptive_chunking,
+                adaptive_strategy=adaptive_strategy,
                 biases=bias_val,
                 styles=style_val,
                 stroke_colors=color_val,

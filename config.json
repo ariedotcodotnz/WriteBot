@@ -23,9 +23,14 @@
         },
         "generation": {
             "use_chunked": true,
-            "words_per_chunk": 2,
+            "words_per_chunk": 3,
             "chunk_spacing": 8.0,
-            "max_line_width": 800.0
+            "max_line_width": 800.0,
+            "adaptive_chunking": true,
+            "adaptive_strategy": "balanced",
+            "min_words_per_chunk": 2,
+            "max_words_per_chunk": 8,
+            "target_chars_per_chunk": 25
         },
         "preview": {
             "zoom": 100,
