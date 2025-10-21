@@ -141,8 +141,8 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> Tuple[str, Dict[
 
     try:
         if use_chunked:
-            # Chunk-based generation: join all lines and let write_chunked handle line breaking
-            full_text = ' '.join(norm_lines_in)
+            # Chunk-based generation: preserve newlines for line breaks and blank lines
+            full_text = '\n'.join(norm_lines_in)
 
             # Calculate max_line_width in coordinate units
             # Estimate based on content width: roughly 600 units fits ~75 chars before scaling
