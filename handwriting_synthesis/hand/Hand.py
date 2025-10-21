@@ -171,6 +171,45 @@ class Hand(object):
         coords = drawing.offsets_to_coords(stroke)
         return float(np.max(coords[:, 0]) - np.min(coords[:, 0]))
 
+    def _calculate_baseline(self, coords: np.ndarray) -> Tuple[float, float]:
+        """
+        Calculate the baseline (slope and intercept) for a stroke sequence.
+
+        Uses the lower portion of Y values to estimate the baseline,
+        accounting for natural handwriting slant.
+
+        Args:
+            coords: Coordinate array (N, 3) with x, y, end_of_stroke
+
+        Returns:
+            Tuple of (slope, intercept) for baseline y = slope*x + intercept
+        """
+        if len(coords) < 3:
+            # Not enough points, return horizontal baseline at median Y
+            return 0.0, np.median(coords[:, 1]) if len(coords) > 0 else 0.0
+
+        # Use the lower 40% of Y values to find baseline (avoid ascenders)
+        y_values = coords[:, 1]
+        y_threshold = np.percentile(y_values, 60)
+        baseline_mask = y_values >= y_threshold
+
+        if np.sum(baseline_mask) < 2:
+            # Fallback to median if not enough baseline points
+            return 0.0, np.median(y_values)
+
+        baseline_coords = coords[baseline_mask]
+        x = baseline_coords[:, 0]
+        y = baseline_coords[:, 1]
+
+        # Fit a line using least squares: y = slope*x + intercept
+        # Using numpy polyfit for simple linear regression
+        try:
+            slope, intercept = np.polyfit(x, y, 1)
+            return float(slope), float(intercept)
+        except:
+            # Fallback to horizontal baseline at median
+            return 0.0, np.median(y_values)
+
     def _stitch_strokes(
         self,
         stroke1: np.ndarray,
@@ -178,7 +217,10 @@ class Hand(object):
         spacing: float = 0.0
     ) -> np.ndarray:
         """
-        Stitch two stroke sequences together horizontally with baseline alignment.
+        Stitch two stroke sequences together horizontally with angle-aware baseline alignment.
+
+        This method accounts for natural handwriting slant by calculating the baseline
+        slope of the existing line and aligning the new chunk to match that angle.
 
         Args:
             stroke1: First stroke sequence (offsets)
@@ -202,11 +244,49 @@ class Hand(object):
         min_x2 = np.min(coords2[:, 0])
         x_offset = max_x1 - min_x2 + spacing
 
-        # Calculate vertical offset to align baselines
-        # Use the median Y position as a proxy for baseline
-        baseline1 = np.median(coords1[:, 1])
-        baseline2 = np.median(coords2[:, 1])
-        y_offset = baseline1 - baseline2
+        # Calculate baselines for both strokes (slope and intercept)
+        slope1, intercept1 = self._calculate_baseline(coords1)
+        slope2, intercept2 = self._calculate_baseline(coords2)
+
+        # Calculate the expected baseline Y position for stroke1 at the connection point
+        connection_x = max_x1 + spacing
+        expected_y_at_connection = slope1 * connection_x + intercept1
+
+        # Calculate where stroke2's baseline will be after horizontal offset
+        stroke2_start_x = min_x2 + x_offset
+        stroke2_baseline_at_start = slope2 * min_x2 + intercept2
+
+        # Vertical offset needed to align stroke2's baseline to stroke1's baseline
+        y_offset = expected_y_at_connection - stroke2_baseline_at_start
+
+        # Optional: Rotate stroke2 to match stroke1's baseline angle
+        # This creates more natural flow by matching the slant
+        angle_diff = np.arctan(slope1) - np.arctan(slope2)
+
+        # Only rotate if the angle difference is significant (> 0.5 degrees)
+        # to avoid over-correction on nearly horizontal text
+        if abs(np.degrees(angle_diff)) > 0.5:
+            # Rotate coords2 around its center
+            center_x = np.mean(coords2[:, 0])
+            center_y = np.mean(coords2[:, 1])
+
+            # Translation to origin
+            coords2[:, 0] -= center_x
+            coords2[:, 1] -= center_y
+
+            # Rotation matrix
+            cos_a = np.cos(angle_diff)
+            sin_a = np.sin(angle_diff)
+            x_rot = coords2[:, 0] * cos_a - coords2[:, 1] * sin_a
+            y_rot = coords2[:, 0] * sin_a + coords2[:, 1] * cos_a
+
+            coords2[:, 0] = x_rot + center_x
+            coords2[:, 1] = y_rot + center_y
+
+            # Recalculate baseline after rotation
+            slope2, intercept2 = self._calculate_baseline(coords2)
+            stroke2_baseline_at_start = slope2 * min_x2 + intercept2
+            y_offset = expected_y_at_connection - stroke2_baseline_at_start
 
         # Apply offsets to stroke2
         coords2[:, 0] += x_offset
