@@ -365,6 +365,12 @@ class BaseModel(object):
         checkpoint_dir = self.checkpoint_dir_averaged if averaged else self.checkpoint_dir
         if not step:
             model_path = tf.train.latest_checkpoint(checkpoint_dir)
+            if model_path is None:
+                raise ValueError(
+                    f'No checkpoint found in directory: {checkpoint_dir}. '
+                    f'Please ensure the model files are present or train a new model. '
+                    f'Directory exists: {os.path.exists(checkpoint_dir)}'
+                )
             logging.info('restoring model parameters from {}'.format(model_path))
             saver.restore(self.session, model_path)
         else:
