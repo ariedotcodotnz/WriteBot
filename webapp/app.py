@@ -113,8 +113,8 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> Tuple[str, Dict[
     x_stretch = payload.get("x_stretch")
     denoise = payload.get("denoise")
 
-    # New chunk-based generation params
-    use_chunked = payload.get("use_chunked", False)
+    # New chunk-based generation params (enabled by default to solve long-range dependency)
+    use_chunked = payload.get("use_chunked", True)
     words_per_chunk = int(payload.get("words_per_chunk", 4))
     chunk_spacing = float(payload.get("chunk_spacing", 8.0))
 
