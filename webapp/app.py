@@ -113,9 +113,9 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> Tuple[str, Dict[
     x_stretch = payload.get("x_stretch")
     denoise = payload.get("denoise")
 
-    # New chunk-based generation params
-    use_chunked = payload.get("use_chunked", False)
-    words_per_chunk = int(payload.get("words_per_chunk", 4))
+    # New chunk-based generation params (now default for better long-range dependency handling)
+    use_chunked = payload.get("use_chunked", True)  # Changed default to True
+    words_per_chunk = int(payload.get("words_per_chunk", 2))  # Reduced from 4 to 2 for finer control
     chunk_spacing = float(payload.get("chunk_spacing", 8.0))
 
     # Compute content width in px for wrapping
@@ -152,9 +152,9 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> Tuple[str, Dict[
             if max_line_width_param is not None:
                 max_line_width = float(max_line_width_param)
             else:
-                # Default: 550 units works well for most cases
+                # Default: 800 units allows for longer lines (increased from 550)
                 # Can be adjusted based on content_width_px if needed
-                max_line_width = 550.0
+                max_line_width = 800.0
 
             # Use first bias/style if provided, otherwise None
             bias_val = biases[0] if biases and len(biases) > 0 else None

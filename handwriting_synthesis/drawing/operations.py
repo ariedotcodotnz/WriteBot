@@ -20,8 +20,8 @@ alphabet_ord = list(map(ord, alphabet))
 alpha_to_num = defaultdict(int, list(map(reversed, enumerate(alphabet))))
 num_to_alpha = dict(enumerate(alphabet_ord))
 
-MAX_STROKE_LEN = 1200
-MAX_CHAR_LEN = 75
+MAX_STROKE_LEN = 2400  # Increased from 1200 to allow longer sequences
+MAX_CHAR_LEN = 120  # Increased from 75 to allow longer lines (less conservative)
 
 
 def align(coords):

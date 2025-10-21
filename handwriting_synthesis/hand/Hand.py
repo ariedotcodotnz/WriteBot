@@ -74,12 +74,12 @@ class Hand(object):
             return [cast_fn(v) if cast_fn else v for v in seq]
         valid_char_set = set(drawing.alphabet)
         for line_num, line in enumerate(lines):
-            if len(line) > 75:
+            if len(line) > drawing.MAX_CHAR_LEN:
                 raise ValueError(
                     (
-                        "Each line must be at most 75 characters. "
+                        "Each line must be at most {} characters. "
                         "Line {} contains {}"
-                    ).format(line_num, len(line))
+                    ).format(drawing.MAX_CHAR_LEN, line_num, len(line))
                 )
 
             for char in line:
@@ -123,7 +123,7 @@ class Hand(object):
         max_tsteps = 40 * max([len(i) for i in lines])
         biases = biases if biases is not None else [0.5] * num_samples
 
-        x_prime = np.zeros([num_samples, 1200, 3])
+        x_prime = np.zeros([num_samples, drawing.MAX_STROKE_LEN, 3])
         x_prime_len = np.zeros([num_samples])
         chars = np.zeros([num_samples, 120])
         chars_len = np.zeros([num_samples])
@@ -241,8 +241,8 @@ class Hand(object):
         self,
         filename,
         text,
-        max_line_width=550.0,
-        words_per_chunk=4,
+        max_line_width=800.0,  # Increased from 550.0 for longer lines
+        words_per_chunk=2,  # Reduced from 4 for better long-range dependency handling
         chunk_spacing=8.0,
         biases=None,
         styles=None,

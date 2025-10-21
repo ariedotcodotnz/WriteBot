@@ -1109,6 +1109,47 @@ Use \\ on its own line to insert blank space."></textarea>
                   </div>
                 </div>
               </details>
+
+              <!-- Text Generation Options -->
+              <details class="mt-2" open>
+                <summary style="cursor: pointer; font-weight: 500; color: var(--interactive-01);">
+                  Text Generation Options (Advanced)
+                </summary>
+                <div class="form-grid mt-2">
+                  <div class="form-group">
+                    <label class="bx--checkbox-wrapper">
+                      <input id="useChunked" type="checkbox" class="bx--checkbox" checked />
+                      <label for="useChunked" class="bx--checkbox-label">
+                        <span class="bx--checkbox-label-text">Use Chunked Generation (Recommended)</span>
+                      </label>
+                    </label>
+                    <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
+                      Generate text in small chunks for better quality and longer lines
+                    </small>
+                  </div>
+                  <div class="form-group">
+                    <label for="wordsPerChunk" class="bx--label">Words Per Chunk</label>
+                    <input id="wordsPerChunk" class="bx--text-input" type="number" step="1" min="1" max="8" placeholder="2" />
+                    <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
+                      Smaller values (2-3) improve quality, larger values (4-6) are faster
+                    </small>
+                  </div>
+                  <div class="form-group">
+                    <label for="chunkSpacing" class="bx--label">Chunk Spacing</label>
+                    <input id="chunkSpacing" class="bx--text-input" type="number" step="0.5" min="0" placeholder="8.0" />
+                    <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
+                      Horizontal space between chunks (default: 8.0)
+                    </small>
+                  </div>
+                  <div class="form-group">
+                    <label for="maxLineWidth" class="bx--label">Max Line Width</label>
+                    <input id="maxLineWidth" class="bx--text-input" type="number" step="10" min="300" placeholder="800" />
+                    <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
+                      Maximum line width in coordinate units (default: 800)
+                    </small>
+                  </div>
+                </div>
+              </details>
             </div>
           </div>
 
@@ -1541,9 +1582,15 @@ Use \\ on its own line to insert blank space."></textarea>
       const denoise = document.getElementById('denoise').value;
       const globalScale = document.getElementById('globalScale').value;
 
+      // Chunked generation options
+      const useChunked = document.getElementById('useChunked').checked;
+      const wordsPerChunk = document.getElementById('wordsPerChunk').value;
+      const chunkSpacing = document.getElementById('chunkSpacing').value;
+      const maxLineWidth = document.getElementById('maxLineWidth').value;
+
       const parseList = (s, cast) => s ? s.split('|').map(v => cast(v.trim())) : undefined;
       const stylesList = stylesOverride ? parseList(stylesOverride, Number) : (globalStyle ? [Number(globalStyle)] : undefined);
-      
+
       const payload = {
         text,
         page_size: pageSize,
@@ -1566,6 +1613,11 @@ Use \\ on its own line to insert blank space."></textarea>
         wrap_utilization: wrapUtil ? Number(wrapUtil) : undefined,
         x_stretch: xStretch ? Number(xStretch) : undefined,
         denoise: denoise || undefined,
+        // Chunked generation options
+        use_chunked: useChunked,
+        words_per_chunk: wordsPerChunk ? Number(wordsPerChunk) : undefined,
+        chunk_spacing: chunkSpacing ? Number(chunkSpacing) : undefined,
+        max_line_width: maxLineWidth ? Number(maxLineWidth) : undefined,
       };
 
       setLoading(true);
