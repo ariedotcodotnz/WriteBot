@@ -135,6 +135,11 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> Tuple[str, Dict[
 
     norm_lines_in = ["" if ln.strip() == "\\" else _normalize_text_for_model(ln) for ln in lines_in]
 
+    # Initialize variables that may not be set depending on generation method
+    util = None
+    lines = []
+    max_line_width = None
+
     # Generate to temp file, then read text
     tmp_dir = tempfile.mkdtemp(prefix="writebot_api_")
     out_path = os.path.join(tmp_dir, "output.svg")
@@ -240,13 +245,20 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> Tuple[str, Dict[
             "orientation": orientation,
             "margins_px": [m_top, m_right, m_bottom, m_left],
         },
+        "generation": {
+            "method": "chunked" if use_chunked else "traditional",
+            "use_chunked": use_chunked,
+            "words_per_chunk": words_per_chunk if use_chunked else None,
+            "chunk_spacing": chunk_spacing if use_chunked else None,
+            "max_line_width": max_line_width if use_chunked else None,
+        },
         "wrap": {
             "approx_char_px": approx_char_px,
             "utilization": util,
         },
         "lines": {
             "input_count": len(lines_in),
-            "wrapped_count": len(lines),
+            "wrapped_count": len(lines) if lines else None,
         },
         "render": {
             "legibility": legibility,
