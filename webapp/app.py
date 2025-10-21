@@ -115,8 +115,12 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> Tuple[str, Dict[
 
     # New chunk-based generation params (now default for better long-range dependency handling)
     use_chunked = payload.get("use_chunked", True)  # Changed default to True
-    words_per_chunk = int(payload.get("words_per_chunk", 2))  # Reduced from 4 to 2 for finer control
+    words_per_chunk = int(payload.get("words_per_chunk", 3))  # Increased to 3 for better context with dynamic sizing
     chunk_spacing = float(payload.get("chunk_spacing", 8.0))
+    rotate_chunks = payload.get("rotate_chunks", True)  # NEW: Enable rotation correction
+    min_words_per_chunk = int(payload.get("min_words_per_chunk", 2))  # NEW: Minimum words per chunk
+    max_words_per_chunk = int(payload.get("max_words_per_chunk", 8))  # NEW: Maximum words per chunk
+    target_chars_per_chunk = int(payload.get("target_chars_per_chunk", 25))  # NEW: Target chars per chunk
 
     # Compute content width in px for wrapping
     w_px, h_px = _resolve_page_px(page_size, units, page_width, page_height, orientation)
@@ -168,6 +172,10 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> Tuple[str, Dict[
                 max_line_width=max_line_width,
                 words_per_chunk=words_per_chunk,
                 chunk_spacing=chunk_spacing,
+                rotate_chunks=rotate_chunks,
+                min_words_per_chunk=min_words_per_chunk,
+                max_words_per_chunk=max_words_per_chunk,
+                target_chars_per_chunk=target_chars_per_chunk,
                 biases=bias_val,
                 styles=style_val,
                 stroke_colors=color_val,
@@ -888,7 +896,7 @@ def batch_generate():
 @app.route("/api/template-csv", methods=["GET"])
 def template_csv():
     header = (
-        "filename,text,page_size,units,page_width,page_height,margins,line_height,align,background,global_scale,orientation,biases,styles,stroke_colors,stroke_widths,wrap_char_px,wrap_ratio,wrap_utilization,legibility,x_stretch,denoise\n"
+        "filename,text,page_size,units,page_width,page_height,margins,line_height,align,background,global_scale,orientation,biases,styles,stroke_colors,stroke_widths,wrap_char_px,wrap_ratio,wrap_utilization,legibility,x_stretch,denoise,use_chunked,words_per_chunk,chunk_spacing,rotate_chunks,min_words_per_chunk,max_words_per_chunk,target_chars_per_chunk\n"
     )
     return Response(header, mimetype="text/csv", headers={
         'Content-Disposition': 'attachment; filename=writebot_template.csv'
