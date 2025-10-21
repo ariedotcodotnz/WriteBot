@@ -245,7 +245,60 @@ def _wrap_by_canvas(
     approx_char_px: float = 13.0,
     utilization: float = 1.0,
 ) -> Tuple[List[str], List[int]]:
-    # Greedy word wrap so that character budget per line does not exceed width/char size
+    """
+    Enhanced text wrapping using improved text processor.
+
+    This function now uses the text_processor module for intelligent paragraph
+    handling, better word wrapping, and empty line preservation.
+    """
+    try:
+        # Try to use improved text processing
+        import sys
+        import os
+        # Add parent directory to path
+        parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        if parent_dir not in sys.path:
+            sys.path.insert(0, parent_dir)
+
+        from text_processor import TextProcessor, TextProcessingConfig, ParagraphStyle
+
+        # Calculate effective line length
+        util = max(0.5, float(utilization))
+        budget_chars = max(1, int((content_width_px * util) / max(1.0, approx_char_px)))
+        budget_chars = min(budget_chars, max_chars_per_line)
+
+        # Join raw lines into text
+        text = "\n".join(raw_lines)
+
+        # Configure improved text processor
+        config = TextProcessingConfig(
+            max_line_length=budget_chars,
+            lines_per_page=999999,  # Don't paginate
+            paragraph_style=ParagraphStyle.PRESERVE_BREAKS,
+            preserve_empty_lines=True,
+            hyphenate_long_words=False,
+            normalize_whitespace=True,
+        )
+
+        processor = TextProcessor(config)
+        lines_out, _ = processor.process_text(text, alphabet=None)
+
+        # Create src_index (track which original line each wrapped line came from)
+        src_index = []
+        current_source = 0
+        for line in lines_out:
+            src_index.append(current_source)
+            # Empty line might indicate paragraph break
+            if not line.strip():
+                current_source = min(current_source + 1, len(raw_lines) - 1)
+
+        return lines_out, src_index
+
+    except ImportError:
+        # Fallback to original implementation if text_processor not available
+        pass
+
+    # ORIGINAL IMPLEMENTATION (fallback)
     lines_out: List[str] = []
     src_index: List[int] = []
     for idx, raw in enumerate(raw_lines):
