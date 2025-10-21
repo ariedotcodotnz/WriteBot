@@ -21,6 +21,12 @@
             "background": "white",
             "units": "mm"
         },
+        "generation": {
+            "use_chunked": true,
+            "words_per_chunk": 2,
+            "chunk_spacing": 8.0,
+            "max_line_width": 800.0
+        },
         "preview": {
             "zoom": 100,
             "auto_generate": false
@@ -28,7 +34,7 @@
     },
     "limits": {
         "max_lines": 50,
-        "max_chars_per_line": 75,
+        "max_chars_per_line": 120,
         "max_file_size_mb": 10
     },
     "ui": {
