@@ -113,6 +113,11 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> Tuple[str, Dict[
     x_stretch = payload.get("x_stretch")
     denoise = payload.get("denoise")
 
+    # New chunk-based generation params
+    use_chunked = payload.get("use_chunked", False)
+    words_per_chunk = int(payload.get("words_per_chunk", 4))
+    chunk_spacing = float(payload.get("chunk_spacing", 8.0))
+
     # Compute content width in px for wrapping
     w_px, h_px = _resolve_page_px(page_size, units, page_width, page_height, orientation)
     m_top, m_right, m_bottom, m_left = _margins_to_px(margins, units)
@@ -129,48 +134,97 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> Tuple[str, Dict[
     )
 
     norm_lines_in = ["" if ln.strip() == "\\" else _normalize_text_for_model(ln) for ln in lines_in]
-    util = float(wrap_utilization) if wrap_utilization is not None else 1.35
-    lines, src_index = _wrap_by_canvas(
-        norm_lines_in,
-        content_width_px,
-        max_chars_per_line=75,
-        approx_char_px=approx_char_px,
-        utilization=util,
-    )
-    if not any(line.strip() for line in lines):
-        raise ValueError("No non-empty text lines provided")
-
-    # Map per-original-line sequences to wrapped
-    orig_len = len(norm_lines_in)
-    wrapped_len = len(lines)
-    biases_m = _map_sequence_to_wrapped(biases, src_index, orig_len, wrapped_len)
-    styles_m = _map_sequence_to_wrapped(styles, src_index, orig_len, wrapped_len)
-    stroke_colors_m = _map_sequence_to_wrapped(stroke_colors, src_index, orig_len, wrapped_len)
-    stroke_widths_m = _map_sequence_to_wrapped(stroke_widths, src_index, orig_len, wrapped_len)
 
     # Generate to temp file, then read text
     tmp_dir = tempfile.mkdtemp(prefix="writebot_api_")
     out_path = os.path.join(tmp_dir, "output.svg")
+
     try:
-        hand.write(
-            filename=out_path,
-            lines=lines,
-            biases=biases_m,
-            styles=styles_m,
-            stroke_colors=stroke_colors_m,
-            stroke_widths=stroke_widths_m,
-            page_size=page_size if not (page_width and page_height) else [float(page_width), float(page_height)],
-            units=units,
-            margins=margins,
-            line_height=line_height,
-            align=align,
-            background=background,
-            global_scale=global_scale,
-            orientation=orientation,
-            legibility=legibility,
-            x_stretch=float(x_stretch) if x_stretch is not None else 1.0,
-            denoise=False if (isinstance(denoise, str) and denoise.lower() == 'false') or denoise is False else True,
-        )
+        if use_chunked:
+            # Chunk-based generation: join all lines and let write_chunked handle line breaking
+            full_text = ' '.join(norm_lines_in)
+
+            # Calculate max_line_width in coordinate units
+            # Estimate based on content width: roughly 600 units fits ~75 chars before scaling
+            # So we scale proportionally: max_line_width = 600 * (content_width_px / expected_scaled_width)
+            # For simplicity, use a configurable default with adjustment for content width
+            max_line_width_param = payload.get("max_line_width")
+            if max_line_width_param is not None:
+                max_line_width = float(max_line_width_param)
+            else:
+                # Default: 550 units works well for most cases
+                # Can be adjusted based on content_width_px if needed
+                max_line_width = 550.0
+
+            # Use first bias/style if provided, otherwise None
+            bias_val = biases[0] if biases and len(biases) > 0 else None
+            style_val = styles[0] if styles and len(styles) > 0 else None
+            color_val = stroke_colors[0] if stroke_colors and len(stroke_colors) > 0 else None
+            width_val = stroke_widths[0] if stroke_widths and len(stroke_widths) > 0 else None
+
+            hand.write_chunked(
+                filename=out_path,
+                text=full_text,
+                max_line_width=max_line_width,
+                words_per_chunk=words_per_chunk,
+                chunk_spacing=chunk_spacing,
+                biases=bias_val,
+                styles=style_val,
+                stroke_colors=color_val,
+                stroke_widths=width_val,
+                page_size=page_size if not (page_width and page_height) else [float(page_width), float(page_height)],
+                units=units,
+                margins=margins,
+                line_height=line_height,
+                align=align,
+                background=background,
+                global_scale=global_scale,
+                orientation=orientation,
+                legibility=legibility,
+                x_stretch=float(x_stretch) if x_stretch is not None else 1.0,
+                denoise=False if (isinstance(denoise, str) and denoise.lower() == 'false') or denoise is False else True,
+            )
+        else:
+            # Traditional line-by-line generation
+            util = float(wrap_utilization) if wrap_utilization is not None else 1.35
+            lines, src_index = _wrap_by_canvas(
+                norm_lines_in,
+                content_width_px,
+                max_chars_per_line=75,
+                approx_char_px=approx_char_px,
+                utilization=util,
+            )
+            if not any(line.strip() for line in lines):
+                raise ValueError("No non-empty text lines provided")
+
+            # Map per-original-line sequences to wrapped
+            orig_len = len(norm_lines_in)
+            wrapped_len = len(lines)
+            biases_m = _map_sequence_to_wrapped(biases, src_index, orig_len, wrapped_len)
+            styles_m = _map_sequence_to_wrapped(styles, src_index, orig_len, wrapped_len)
+            stroke_colors_m = _map_sequence_to_wrapped(stroke_colors, src_index, orig_len, wrapped_len)
+            stroke_widths_m = _map_sequence_to_wrapped(stroke_widths, src_index, orig_len, wrapped_len)
+
+            hand.write(
+                filename=out_path,
+                lines=lines,
+                biases=biases_m,
+                styles=styles_m,
+                stroke_colors=stroke_colors_m,
+                stroke_widths=stroke_widths_m,
+                page_size=page_size if not (page_width and page_height) else [float(page_width), float(page_height)],
+                units=units,
+                margins=margins,
+                line_height=line_height,
+                align=align,
+                background=background,
+                global_scale=global_scale,
+                orientation=orientation,
+                legibility=legibility,
+                x_stretch=float(x_stretch) if x_stretch is not None else 1.0,
+                denoise=False if (isinstance(denoise, str) and denoise.lower() == 'false') or denoise is False else True,
+            )
+
         with open(out_path, "r", encoding="utf-8") as f:
             svg_text = f.read()
     finally:
