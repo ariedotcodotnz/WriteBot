@@ -178,7 +178,7 @@ class Hand(object):
         spacing: float = 0.0
     ) -> np.ndarray:
         """
-        Stitch two stroke sequences together horizontally.
+        Stitch two stroke sequences together horizontally with baseline alignment.
 
         Args:
             stroke1: First stroke sequence (offsets)
@@ -197,13 +197,20 @@ class Hand(object):
         coords1 = drawing.offsets_to_coords(stroke1)
         coords2 = drawing.offsets_to_coords(stroke2)
 
-        # Calculate offset needed for stroke2
+        # Calculate horizontal offset needed for stroke2
         max_x1 = np.max(coords1[:, 0])
         min_x2 = np.min(coords2[:, 0])
         x_offset = max_x1 - min_x2 + spacing
 
-        # Apply offset to stroke2
+        # Calculate vertical offset to align baselines
+        # Use the median Y position as a proxy for baseline
+        baseline1 = np.median(coords1[:, 1])
+        baseline2 = np.median(coords2[:, 1])
+        y_offset = baseline1 - baseline2
+
+        # Apply offsets to stroke2
         coords2[:, 0] += x_offset
+        coords2[:, 1] += y_offset
 
         # Combine coordinates
         combined_coords = np.vstack([coords1, coords2])
@@ -264,89 +271,109 @@ class Hand(object):
         Generate handwriting using chunk-based approach to overcome long-range dependency.
 
         Instead of generating line-by-line, this method:
-        1. Generates text in small chunks (a few words at a time)
-        2. Measures the actual width of each generated chunk
-        3. Stitches chunks together into lines based on actual measurements
+        1. Splits text by newlines to preserve line breaks
+        2. Generates text in small chunks (a few words at a time)
+        3. Measures the actual width of each generated chunk
+        4. Stitches chunks together into lines based on actual measurements
 
         This allows:
         - Better line filling (using actual widths, not predictions)
         - Shorter RNN sequences (fewer long-range dependencies)
         - More text per line
+        - Preserves blank lines and explicit line breaks
 
         Args:
             filename: Output file path
-            text: Full text to write (will be chunked automatically)
+            text: Full text to write (newlines preserved for line breaks)
             max_line_width: Maximum line width in coordinate units
             words_per_chunk: Number of words to generate per chunk
             chunk_spacing: Horizontal spacing between chunks
             ... (other params same as write())
         """
-        # Split text into chunks
-        chunks = self._split_text_into_chunks(text, words_per_chunk)
+        # Split text by newlines first to preserve line structure
+        input_lines = text.split('\n')
 
-        if not chunks:
-            return
+        # Process each input line separately
+        all_lines = []
+        all_line_texts = []
 
-        # Validate characters
-        valid_char_set = set(drawing.alphabet)
-        for chunk_num, chunk in enumerate(chunks):
-            for char in chunk:
-                if char not in valid_char_set:
-                    raise ValueError(
-                        f"Invalid character {char} detected in chunk {chunk_num}. "
-                        f"Valid character set is {valid_char_set}"
-                    )
+        for input_line in input_lines:
+            # Handle blank lines
+            if not input_line.strip():
+                all_lines.append(np.empty((0, 3)))
+                all_line_texts.append('')
+                continue
 
-        # Generate strokes for all chunks
-        chunk_strokes = self._sample(
-            chunks,
-            biases=[biases] * len(chunks) if biases is not None else None,
-            styles=[styles] * len(chunks) if styles is not None else None
-        )
+            # Split line into chunks
+            chunks = self._split_text_into_chunks(input_line, words_per_chunk)
 
-        # Stitch chunks into lines based on actual widths
-        lines = []
-        line_texts = []
-        current_line_stroke = np.empty((0, 3))
-        current_line_text = []
-        current_line_width = 0.0
+            if not chunks:
+                all_lines.append(np.empty((0, 3)))
+                all_line_texts.append('')
+                continue
 
-        for chunk_text, chunk_stroke in zip(chunks, chunk_strokes):
-            chunk_width = self._get_stroke_width(chunk_stroke)
+            # Validate characters
+            valid_char_set = set(drawing.alphabet)
+            for chunk_num, chunk in enumerate(chunks):
+                for char in chunk:
+                    if char not in valid_char_set:
+                        raise ValueError(
+                            f"Invalid character {char} detected in chunk {chunk_num}. "
+                            f"Valid character set is {valid_char_set}"
+                        )
 
-            # Check if chunk fits on current line
-            potential_width = current_line_width
-            if current_line_width > 0:
-                potential_width += chunk_spacing + chunk_width
-            else:
-                potential_width = chunk_width
+            # Generate strokes for all chunks
+            chunk_strokes = self._sample(
+                chunks,
+                biases=[biases] * len(chunks) if biases is not None else None,
+                styles=[styles] * len(chunks) if styles is not None else None
+            )
 
-            if potential_width <= max_line_width or current_line_width == 0:
-                # Chunk fits on current line
+            # Stitch chunks into lines based on actual widths
+            current_line_stroke = np.empty((0, 3))
+            current_line_text = []
+            current_line_width = 0.0
+
+            for chunk_text, chunk_stroke in zip(chunks, chunk_strokes):
+                chunk_width = self._get_stroke_width(chunk_stroke)
+
+                # Check if chunk fits on current line
+                potential_width = current_line_width
                 if current_line_width > 0:
-                    current_line_stroke = self._stitch_strokes(
-                        current_line_stroke,
-                        chunk_stroke,
-                        chunk_spacing
-                    )
-                    current_line_text.append(chunk_text)
+                    potential_width += chunk_spacing + chunk_width
                 else:
+                    potential_width = chunk_width
+
+                if potential_width <= max_line_width or current_line_width == 0:
+                    # Chunk fits on current line
+                    if current_line_width > 0:
+                        current_line_stroke = self._stitch_strokes(
+                            current_line_stroke,
+                            chunk_stroke,
+                            chunk_spacing
+                        )
+                        current_line_text.append(chunk_text)
+                    else:
+                        current_line_stroke = chunk_stroke
+                        current_line_text.append(chunk_text)
+                    current_line_width = potential_width
+                else:
+                    # Start new line (width exceeded)
+                    all_lines.append(current_line_stroke)
+                    all_line_texts.append(' '.join(current_line_text))
+
                     current_line_stroke = chunk_stroke
-                    current_line_text.append(chunk_text)
-                current_line_width = potential_width
-            else:
-                # Start new line
-                lines.append(current_line_stroke)
-                line_texts.append(' '.join(current_line_text))
+                    current_line_text = [chunk_text]
+                    current_line_width = chunk_width
 
-                current_line_stroke = chunk_stroke
-                current_line_text = [chunk_text]
-                current_line_width = chunk_width
+            # Add last line from this input line
+            if len(current_line_stroke) > 0 or len(current_line_text) > 0:
+                all_lines.append(current_line_stroke)
+                all_line_texts.append(' '.join(current_line_text))
 
-        # Add last line
-        if len(current_line_stroke) > 0:
-            lines.append(current_line_stroke)
-            line_texts.append(' '.join(current_line_text))
+        # Use the collected lines
+        lines = all_lines
+        line_texts = all_line_texts
 
         # Normalize optional sequences to match number of lines
         num_lines = len(lines)
