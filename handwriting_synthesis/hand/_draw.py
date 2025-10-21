@@ -72,9 +72,12 @@ def _draw(
     margins=20,
     line_height=None,
     align='left',
-    background='white',
+    background=None,
     global_scale=1.0,
     orientation='portrait',
+    legibility='normal',
+    x_stretch=1.0,
+    denoise=True,
 ):
     stroke_colors = stroke_colors or ['black'] * len(lines)
     stroke_widths = stroke_widths or [2] * len(lines)
@@ -98,65 +101,101 @@ def _draw(
 
     dwg = svgwrite.Drawing(filename=filename, size=svg_size)
     dwg.viewbox(0, 0, width_px, height_px)
-    if background:
+    # Only draw a background rectangle if explicitly requested and not 'none'/'transparent'
+    if background and str(background).strip().lower() not in ('none', 'transparent'):
         dwg.add(dwg.rect(insert=(0, 0), size=(width_px, height_px), fill=background))
 
-    # Baseline position for first line
-    cursor_y = m_top + (3.0 * line_height_px / 4.0)
+    # Normalize legibility string
+    legibility = (legibility or 'normal').lower()
 
+    # Configure naturalness jitter by legibility mode
+    if legibility == 'high':
+        indent_max_frac = 0.0
+        baseline_jitter_frac = 0.0
+        interpolate_factor = 2
+    elif legibility == 'normal':
+        indent_max_frac = 0.01
+        baseline_jitter_frac = 0.0025
+        interpolate_factor = 1
+    else:  # 'natural' (default styling)
+        indent_max_frac = 0.02
+        baseline_jitter_frac = 0.005
+        interpolate_factor = 1
+
+    # First pass: preprocess each line and compute per-line max allowed scale
+    preprocessed = []
+    scale_limits = []
+    target_h = 0.95 * line_height_px
     for offsets, line, color, width in zip(strokes, lines, stroke_colors, stroke_widths):
-        # Handle empty lines (line breaks)
         if not line:
-            cursor_y += line_height_px
+            preprocessed.append({'empty': True})
             continue
-
-        # Build stroke coordinates
-        offsets = offsets.copy()
-        offsets[:, :2] *= float(global_scale)
-        line_strokes = drawing.offsets_to_coords(offsets)
-        line_strokes = drawing.denoise(line_strokes)
-        if line_strokes.shape[0] == 0:
-            cursor_y += line_height_px
+        offsets_cp = offsets.copy()
+        offsets_cp[:, :2] *= float(global_scale)
+        ls = drawing.offsets_to_coords(offsets_cp)
+        if denoise:
+            ls = drawing.denoise(ls)
+        if interpolate_factor > 1:
+            try:
+                ls = drawing.interpolate(ls, factor=interpolate_factor)
+            except Exception:
+                pass
+        if ls.shape[0] == 0:
+            preprocessed.append({'empty': True})
             continue
-        line_strokes[:, :2] = drawing.align(line_strokes[:, :2])
-
-        # SVG coordinate system is y-down; flip
-        line_strokes[:, 1] *= -1
-
-        # Normalize to start at (0,0)
-        min_xy = line_strokes[:, :2].min(axis=0)
-        line_strokes[:, :2] -= min_xy
-
-        # Compute scale to fit within content box (both width and height)
-        raw_w = max(1e-6, line_strokes[:, 0].max())
-        raw_h = max(1e-6, line_strokes[:, 1].max())
-        target_h = 0.95 * line_height_px
+        ls[:, :2] = drawing.align(ls[:, :2])
+        ls[:, 1] *= -1
+        min_xy = ls[:, :2].min(axis=0)
+        ls[:, :2] -= min_xy
+        raw_w = max(1e-6, ls[:, 0].max())
+        raw_h = max(1e-6, ls[:, 1].max())
         s_w = content_width_px / raw_w
         s_h = target_h / raw_h
-        # Allow upscaling to fill width while respecting height
-        s = min(s_w, s_h)
-        line_strokes[:, :2] *= s
+        scale_limits.append(min(s_w, s_h))
+        preprocessed.append({'empty': False, 'strokes': ls, 'color': color, 'width': width})
 
-        # Horizontal alignment within content box
-        final_w = line_strokes[:, 0].max()
+    s_global = min(scale_limits) if scale_limits else 1.0
+
+    # Second pass: render with uniform scale across lines for consistent letter size
+    cursor_y = m_top + (3.0 * line_height_px / 4.0)
+    rng = np.random.RandomState(42)
+    x_stretch = float(x_stretch) if x_stretch is not None else 1.0
+    for item in preprocessed:
+        if item.get('empty'):
+            cursor_y += line_height_px
+            continue
+        ls = item['strokes'].copy()
+        ls[:, :2] *= s_global
+        if x_stretch != 1.0:
+            ls[:, 0] *= x_stretch
+
+        # Horizontal alignment within content box with subtle indent jitter for short lines
+        final_w = ls[:, 0].max()
         if align == 'center':
             offset_x = m_left + (content_width_px - final_w) / 2.0
         elif align == 'right':
             offset_x = m_left + (content_width_px - final_w)
-        else:  # left
+        else:
             offset_x = m_left
+        utilization_ratio = final_w / max(1.0, content_width_px)
+        if indent_max_frac > 0.0 and utilization_ratio < 0.6:
+            offset_x += float(rng.uniform(0.0, indent_max_frac) * content_width_px)
 
-        offset_y = cursor_y
-        line_strokes[:, 0] += offset_x
-        line_strokes[:, 1] += offset_y
+        if baseline_jitter_frac > 0.0:
+            offset_y = cursor_y + float(rng.uniform(-baseline_jitter_frac, baseline_jitter_frac) * line_height_px)
+        else:
+            offset_y = cursor_y
+        ls[:, 0] += offset_x
+        ls[:, 1] += offset_y
 
         prev_eos = 1.0
-        p = "M{},{} ".format(0, 0)
-        for x, y, eos in zip(*line_strokes.T):
-            p += '{}{},{} '.format('M' if prev_eos == 1.0 else 'L', x, y)
+        commands = []
+        for x, y, eos in zip(*ls.T):
+            commands.append('{}{},{}'.format('M' if prev_eos == 1.0 else 'L', x, y))
             prev_eos = eos
+        p = ' '.join(commands)
         path = svgwrite.path.Path(p)
-        path = path.stroke(color=color, width=width, linecap='round').fill('none')
+        path = path.stroke(color=item['color'], width=item['width'], linecap='round', linejoin='round', miterlimit=2).fill('none')
         dwg.add(path)
 
         cursor_y += line_height_px

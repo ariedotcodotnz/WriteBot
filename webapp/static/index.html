@@ -6,264 +6,1297 @@
   <title>WriteBot - Handwriting Synthesis</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/carbon-components/css/carbon-components.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/carbon-components@10.58.0/css/carbon-components.min.css" />
   <style>
-    body { font-family: 'IBM Plex Sans', system-ui, Arial, sans-serif; }
-    .section-title { margin: 1rem 0 .5rem; font-weight: 600; }
-    .preview-tile { min-height: 280px; overflow: auto; }
-    .code-tile { max-height: 420px; overflow: auto; }
-    #preview svg { width: 100%; height: auto; }
-    .actions { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
-    .helper { margin-top: .25rem; }
-    .custom-size { display: none; }
-    .toolbar { display:flex; align-items:center; gap:.5rem; margin:.5rem 0; }
-    .zoom-label { width: 80px; }
-    .overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.25); z-index: 999; }
-    .visible { display: flex !important; }
+    :root {
+      --ui-01: #f4f4f4;
+      --ui-02: #ffffff;
+      --ui-03: #e0e0e0;
+      --ui-04: #8d8d8d;
+      --ui-05: #161616;
+      --interactive-01: #0f62fe;
+      --interactive-02: #393939;
+      --interactive-03: #0f62fe;
+      --interactive-04: #0f62fe;
+      --hover-primary: #0353e9;
+      --text-01: #161616;
+      --text-02: #525252;
+      --text-03: #a8a8a8;
+      --support-01: #da1e28;
+      --support-02: #24a148;
+      --support-03: #f1c21b;
+      --support-04: #0043ce;
+      --inverse-01: #ffffff;
+      --inverse-02: #393939;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+      background: var(--ui-01);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bx--header {
+      background: var(--ui-05);
+      border-bottom: 1px solid var(--interactive-01);
+    }
+
+    .bx--header__name {
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .bx--header__name--prefix {
+      font-weight: 300;
+      opacity: 0.8;
+    }
+
+    .bx--content {
+      flex: 1;
+      padding-top: 3rem;
+      background: linear-gradient(180deg, var(--ui-02) 0%, var(--ui-01) 100%);
+    }
+
+    /* Enhanced Section Headers */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--ui-03);
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-01);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-badge {
+      background: var(--interactive-01);
+      color: var(--inverse-01);
+      padding: 0.125rem 0.5rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    /* Enhanced Cards */
+    .card {
+      background: var(--ui-02);
+      border: 1px solid var(--ui-03);
+      border-radius: 4px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      transition: box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--ui-03);
+    }
+
+    .card-title {
+      font-weight: 600;
+      color: var(--text-01);
+    }
+
+    /* Preview Container Enhancement */
+    .preview-container {
+      background: var(--ui-02);
+      border: 1px solid var(--ui-03);
+      border-radius: 4px;
+      min-height: 400px;
+      max-height: 600px;
+      overflow: auto;
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+
+    .preview-container::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    .preview-container::-webkit-scrollbar-track {
+      background: var(--ui-01);
+    }
+
+    .preview-container::-webkit-scrollbar-thumb {
+      background: var(--ui-04);
+      border-radius: 4px;
+    }
+
+    .preview-container::-webkit-scrollbar-thumb:hover {
+      background: var(--interactive-02);
+    }
+
+    #preview {
+      padding: 2rem;
+      background: white;
+      min-height: 100%;
+      display: block;
+    }
+
+    #preview svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .preview-empty {
+      color: var(--text-03);
+      font-style: italic;
+      padding: 3rem;
+      text-align: center;
+    }
+
+    /* Code Display Enhancement */
+    .code-container {
+      background: #1e1e1e;
+      border-radius: 4px;
+      position: relative;
+      max-height: 400px;
+      overflow: hidden;
+    }
+
+    .code-header {
+      background: #2d2d2d;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #3e3e3e;
+    }
+
+    .code-title {
+      color: #cccccc;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .code-content {
+      padding: 1rem;
+      overflow: auto;
+      max-height: 320px;
+      background: #1e1e1e;
+    }
+
+    .code-content pre {
+      margin: 0;
+      color: #d4d4d4;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    /* Enhanced Form Styling */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bx--label {
+      font-weight: 500;
+      color: var(--text-01);
+      margin-bottom: 0.5rem;
+    }
+
+    .bx--text-input,
+    .bx--text-area,
+    .bx--select-input {
+      border: 1px solid var(--ui-03);
+      background: var(--ui-02);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .bx--text-input:focus,
+    .bx--text-area:focus,
+    .bx--select-input:focus {
+      border-color: var(--interactive-01);
+      box-shadow: 0 0 0 1px var(--interactive-01);
+      outline: none;
+    }
+
+    /* Actions Bar */
+    .actions-bar {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 1rem 0;
+    }
+
+    .actions-primary {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .actions-secondary {
+      margin-left: auto;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    /* Enhanced Buttons */
+    .bx--btn {
+      font-weight: 500;
+      transition: all 0.15s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bx--btn::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .bx--btn:active::after {
+      width: 300px;
+      height: 300px;
+    }
+
+    .bx--btn--primary {
+      background: var(--interactive-01);
+      color: var(--inverse-01);
+    }
+
+    .bx--btn--primary:hover {
+      background: var(--hover-primary);
+    }
+
+    /* Batch Processing Enhancement */
+    .batch-container {
+      background: var(--ui-02);
+      border: 1px solid var(--ui-03);
+      border-radius: 4px;
+      padding: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .batch-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--ui-03);
+    }
+
+    .batch-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--ui-01);
+      padding: 1rem;
+      border-radius: 4px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: var(--text-01);
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--text-02);
+      margin-top: 0.25rem;
+    }
+
+    /* Live Preview Grid - FIXED */
+    .batch-previews {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .preview-section {
+      background: var(--ui-01);
+      border-radius: 4px;
+      padding: 1rem;
+      height: 400px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .preview-section-header {
+      font-weight: 600;
+      color: var(--text-01);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--ui-03);
+      flex-shrink: 0;
+    }
+
+    .live-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.75rem;
+      overflow-y: auto;
+      flex: 1;
+      padding-right: 0.5rem;
+    }
+
+    .live-preview-grid::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .live-preview-grid::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .live-preview-grid::-webkit-scrollbar-thumb {
+      background: var(--ui-04);
+      border-radius: 3px;
+    }
+
+    .live-preview-card {
+      background: var(--ui-02);
+      border: 1px solid var(--ui-03);
+      border-radius: 4px;
+      padding: 0.75rem;
+      height: fit-content;
+      transition: all 0.2s ease;
+    }
+
+    .live-preview-card:hover {
+      border-color: var(--interactive-01);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .live-preview-card svg {
+      width: 100%;
+      height: auto;
+      max-height: 120px;
+      display: block;
+      margin-top: 0.5rem;
+    }
+
+    .live-preview-filename {
+      font-weight: 500;
+      font-size: 0.75rem;
+      color: var(--text-01);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .live-preview-status {
+      font-size: 0.625rem;
+      color: var(--support-02);
+      margin-top: 0.25rem;
+    }
+
+    .batch-log {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem;
+      padding: 1rem;
+      border-radius: 4px;
+      overflow-y: auto;
+      flex: 1;
+      line-height: 1.4;
+    }
+
+    .batch-log-entry {
+      padding: 0.25rem 0;
+      border-bottom: 1px solid #2d2d2d;
+    }
+
+    .batch-log-entry.success {
+      color: #4ade80;
+    }
+
+    .batch-log-entry.error {
+      color: #f87171;
+    }
+
+    /* Progress Indicator */
+    .progress-bar {
+      background: var(--ui-03);
+      height: 4px;
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 1rem 0;
+    }
+
+    .progress-fill {
+      background: var(--interactive-01);
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    /* Dropzone Enhancement */
+    .dropzone {
+      border: 2px dashed var(--ui-03);
+      border-radius: 4px;
+      padding: 2rem;
+      background: var(--ui-01);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .dropzone:hover {
+      border-color: var(--interactive-01);
+      background: #f0f7ff;
+    }
+
+    .dropzone.dragover {
+      border-color: var(--interactive-01);
+      background: #e5f3ff;
+      transform: scale(1.02);
+    }
+
+    .dropzone-icon {
+      font-size: 3rem;
+      color: var(--interactive-01);
+      margin-bottom: 1rem;
+    }
+
+    .dropzone-text {
+      color: var(--text-01);
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+
+    .dropzone-subtext {
+      color: var(--text-02);
+      font-size: 0.875rem;
+    }
+
+    .file-info {
+      background: var(--ui-02);
+      border: 1px solid var(--support-02);
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .file-info-name {
+      font-weight: 500;
+      color: var(--text-01);
+    }
+
+    .file-info-size {
+      color: var(--text-02);
+      font-size: 0.875rem;
+    }
+
+    /* Toolbar Enhancement */
+    .toolbar {
+      background: var(--ui-02);
+      border: 1px solid var(--ui-03);
+      border-radius: 4px;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .toolbar-divider {
+      width: 1px;
+      height: 24px;
+      background: var(--ui-03);
+    }
+
+    .zoom-control {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .zoom-slider {
+      width: 150px;
+    }
+
+    .zoom-value {
+      font-weight: 500;
+      min-width: 45px;
+      text-align: right;
+    }
+
+    /* Lightbox for SVG Preview */
+    .lightbox {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 2rem;
+      cursor: zoom-out;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.3s ease, visibility 0.3s ease, background 0.3s ease;
+    }
+
+    .lightbox.active {
+      visibility: visible;
+      opacity: 1;
+      background: rgba(0, 0, 0, 0.9);
+    }
+
+    .lightbox-content {
+      background: white;
+      border-radius: 8px;
+      max-width: 90vw;
+      max-height: 90vh;
+      overflow: auto;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+
+    .lightbox.active .lightbox-content {
+      transform: scale(1);
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: var(--ui-05);
+      color: var(--inverse-01);
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+      transition: background 0.2s ease;
+    }
+
+    .lightbox-close:hover {
+      background: var(--hover-primary);
+    }
+
+    .lightbox-svg {
+      padding: 2rem;
+      min-width: 600px;
+      min-height: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lightbox-svg svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* Clickable SVG Previews */
+    .clickable-svg {
+      cursor: zoom-in;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .clickable-svg:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    #preview.has-content {
+      cursor: zoom-in;
+    }
+
+    #preview.has-content:hover svg {
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.1));
+    }
+
+    /* Loading Overlay Enhancement */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .overlay.visible {
+      display: flex;
+    }
+
+    .loading-container {
+      background: var(--ui-02);
+      border-radius: 8px;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+
+    .loading-spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--ui-03);
+      border-top-color: var(--interactive-01);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: var(--text-01);
+      font-weight: 500;
+    }
+
+    /* Notification Enhancement */
+    .notification-container {
+      position: fixed;
+      top: 70px;
+      right: 1rem;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      max-width: 400px;
+    }
+
+    .notification {
+      background: var(--ui-02);
+      border-radius: 4px;
+      padding: 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .notification-icon {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+    }
+
+    .notification.error {
+      border-left: 4px solid var(--support-01);
+    }
+
+    .notification.success {
+      border-left: 4px solid var(--support-02);
+    }
+
+    .notification-content {
+      flex: 1;
+    }
+
+    .notification-title {
+      font-weight: 600;
+      color: var(--text-01);
+      margin-bottom: 0.25rem;
+    }
+
+    .notification-message {
+      color: var(--text-02);
+      font-size: 0.875rem;
+    }
+
+    .notification-close {
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      color: var(--text-02);
+      cursor: pointer;
+      padding: 0.25rem;
+      transition: color 0.15s ease;
+    }
+
+    .notification-close:hover {
+      color: var(--text-01);
+    }
+
+    /* Footer Enhancement */
+    .site-footer {
+      background: var(--ui-05);
+      color: var(--inverse-01);
+      padding: 2rem;
+      text-align: center;
+      border-top: 1px solid var(--interactive-01);
+      margin-top: 3rem;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .footer-brand {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .footer-tagline {
+      color: rgba(255,255,255,0.7);
+      font-size: 0.875rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .batch-stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .batch-previews {
+        grid-template-columns: 1fr;
+      }
+
+      .actions-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .actions-secondary {
+        margin-left: 0;
+        margin-top: 0.5rem;
+      }
+
+      .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .toolbar-divider {
+        width: 100%;
+        height: 1px;
+      }
+    }
+
+    /* Utility Classes */
+    .mt-1 { margin-top: 0.5rem; }
+    .mt-2 { margin-top: 1rem; }
+    .mt-3 { margin-top: 1.5rem; }
+    .mb-1 { margin-bottom: 0.5rem; }
+    .mb-2 { margin-bottom: 1rem; }
+    .mb-3 { margin-bottom: 1.5rem; }
+    .text-muted { color: var(--text-02); }
+    .text-small { font-size: 0.875rem; }
   </style>
 </head>
 <body>
-  <!-- UI Shell Header -->
-  <header class="bx--header" role="banner" aria-label="WriteBot">
+  <!-- Enhanced Header -->
+  <header class="bx--header" role="banner" aria-label="WriteBot Platform">
     <a class="bx--header__name" href="#" title="WriteBot">
-      <span class="bx--header__name--prefix">WriteBot</span>
-      Handwriting Synthesis
+      <span class="bx--header__name--prefix"></span>
+      WriteBot
     </a>
   </header>
 
   <main class="bx--content">
     <div class="bx--grid">
+      <!-- Main Configuration Panel -->
       <div class="bx--row">
-        <!-- Left Column: Inputs -->
-        <div class="bx--col-lg-8 bx--col-md-8 bx--col-sm-4">
-          <h3 class="section-title">Text & Style</h3>
-          <div class="bx--form">
-            <div class="bx--form-item">
-              <label for="text" class="bx--label">Text (multi-line)</label>
-              <div class="bx--text-area__wrapper">
-                <textarea id="text" class="bx--text-area" rows="8" placeholder="Enter text... One line per paragraph."></textarea>
-              </div>
-              <div class="bx--form__helper-text helper">Use \\ on a line by itself to insert a blank spacer line.</div>
-            </div>
+        <div class="bx--col-lg-16">
+          <div class="section-header">
+            <h1 class="section-title">
+              Handwriting Synthesis
+            </h1>
+          </div>
+        </div>
+      </div>
 
-            <div class="bx--grid" style="padding-left:0;">
-              <div class="bx--row">
-                <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
-                  <div class="bx--form-item">
-                    <label class="bx--label" for="biases">Biases (optional)</label>
-                    <input id="biases" class="bx--text-input" type="text" placeholder="0.75|0.75|0.6" />
-                  </div>
+      <div class="bx--row">
+        <!-- Left Column: Input & Configuration -->
+        <div class="bx--col-lg-8 bx--col-md-8">
+          <!-- Text Input Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Text Input</h3>
+            </div>
+            <div class="bx--form">
+              <div class="bx--form-item">
+                <label for="text" class="bx--label">Content</label>
+                <div class="bx--text-area__wrapper">
+                  <textarea id="text" class="bx--text-area" rows="6" 
+                    placeholder="Enter your text here. Each line will become a new paragraph.
+Use \\ on its own line to insert blank space."></textarea>
                 </div>
-                <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
-                  <div class="bx--form-item">
-                    <label class="bx--label" for="styles">Styles (optional)</label>
-                    <input id="styles" class="bx--text-input" type="text" placeholder="1|1|2" />
-                  </div>
-                </div>
-              </div>
-              <div class="bx--row">
-                <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
-                  <div class="bx--form-item">
-                    <label class="bx--label" for="strokeColors">Stroke colors (optional)</label>
-                    <input id="strokeColors" class="bx--text-input" type="text" placeholder="black|#333|red" />
-                  </div>
-                </div>
-                <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
-                  <div class="bx--form-item">
-                    <label class="bx--label" for="strokeWidths">Stroke widths (optional)</label>
-                    <input id="strokeWidths" class="bx--text-input" type="text" placeholder="2|2|2" />
-                  </div>
+                <div class="bx--form__helper-text text-small mt-1">
+                  Text will automatically wrap based on page settings.
                 </div>
               </div>
             </div>
           </div>
 
-          <h3 class="section-title">Page settings</h3>
-          <div class="bx--form">
-            <div class="bx--grid" style="padding-left:0;">
-              <div class="bx--row">
-                <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
-                  <div class="bx--form-item">
-                    <label for="pageSize" class="bx--label">Page size</label>
+          <!-- Style Configuration Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Style Configuration</h3>
+            </div>
+            <div class="bx--form">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="styleSelect" class="bx--label">Base Style</label>
+                  <div class="bx--select">
+                    <select id="styleSelect" class="bx--select-input">
+                      <option value="">Loading styles...</option>
+                    </select>
+                    <svg class="bx--select__arrow" width="10" height="6" viewBox="0 0 10 6">
+                      <path d="M5 6L0 0h10z" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="legibility" class="bx--label">Legibility</label>
+                  <div class="bx--select">
+                    <select id="legibility" class="bx--select-input">
+                      <option value="natural">Natural</option>
+                      <option value="normal" selected>Normal</option>
+                      <option value="high">High</option>
+                    </select>
+                    <svg class="bx--select__arrow" width="10" height="6" viewBox="0 0 10 6">
+                      <path d="M5 6L0 0h10z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Advanced Style Options -->
+              <details class="mt-2">
+                <summary style="cursor: pointer; font-weight: 500; color: var(--interactive-01);">
+                  Advanced Style Options
+                </summary>
+                <div class="form-grid mt-2">
+                  <div class="form-group">
+                    <label for="biases" class="bx--label">Biases</label>
+                    <input id="biases" class="bx--text-input" type="text" placeholder="0.75|0.75|0.6" />
+                  </div>
+                  <div class="form-group">
+                    <label for="styles" class="bx--label">Per-line Styles</label>
+                    <input id="styles" class="bx--text-input" type="text" placeholder="9|9|12" />
+                  </div>
+                  <div class="form-group">
+                    <label for="strokeColors" class="bx--label">Stroke Colors</label>
+                    <input id="strokeColors" class="bx--text-input" type="text" placeholder="black|#333|red" />
+                  </div>
+                  <div class="form-group">
+                    <label for="strokeWidths" class="bx--label">Stroke Widths</label>
+                    <input id="strokeWidths" class="bx--text-input" type="text" placeholder="2|2|2" />
+                  </div>
+                  <div class="form-group">
+                    <label for="xStretch" class="bx--label">Horizontal Stretch</label>
+                    <input id="xStretch" class="bx--text-input" type="number" step="0.05" placeholder="1.0" />
+                  </div>
+                  <div class="form-group">
+                    <label for="denoise" class="bx--label">Denoise</label>
                     <div class="bx--select">
-                      <select id="pageSize" class="bx--select-input">
-                        <option value="A4">A4 (210 x 297 mm)</option>
-                        <option value="A5">A5 (148 x 210 mm)</option>
-                        <option value="Letter">Letter (215.9 x 279.4 mm)</option>
-                        <option value="Legal">Legal (215.9 x 355.6 mm)</option>
-                        <option value="custom">Custom</option>
+                      <select id="denoise" class="bx--select-input">
+                        <option value="true" selected>Enabled</option>
+                        <option value="false">Disabled</option>
                       </select>
-                      <div class="bx--select__arrow" aria-hidden="true"></div>
+                      <svg class="bx--select__arrow" width="10" height="6" viewBox="0 0 10 6">
+                        <path d="M5 6L0 0h10z" />
+                      </svg>
                     </div>
                   </div>
                 </div>
-                <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
-                  <div class="bx--form-item">
-                    <label for="units" class="bx--label">Units</label>
-                    <div class="bx--select">
-                      <select id="units" class="bx--select-input">
-                        <option value="mm">mm</option>
-                        <option value="px">px</option>
-                      </select>
-                      <div class="bx--select__arrow" aria-hidden="true"></div>
-                    </div>
-                  </div>
-                </div>
-                <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4"></div>
-              </div>
+              </details>
             </div>
+          </div>
 
-            <div id="customSizeFields" class="custom-size">
-              <div class="bx--grid" style="padding-left:0;">
-                <div class="bx--row">
-                  <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
-                    <div class="bx--form-item">
-                      <label class="bx--label" for="pageWidth">Custom width</label>
-                      <input id="pageWidth" class="bx--text-input" type="number" step="any" placeholder="e.g., 210" />
-                    </div>
-                  </div>
-                  <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
-                    <div class="bx--form-item">
-                      <label class="bx--label" for="pageHeight">Custom height</label>
-                      <input id="pageHeight" class="bx--text-input" type="number" step="any" placeholder="e.g., 297" />
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <!-- Page Settings Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Page Settings</h3>
             </div>
-
-            <div class="bx--form-item">
-              <label class="bx--label">Margins</label>
-              <div class="bx--grid" style="padding-left:0;">
-                <div class="bx--row">
-                  <div class="bx--col-sm-2 bx--col-md-2 bx--col-lg-2">
-                    <label class="bx--label" for="marginTop">Top</label>
-                    <input id="marginTop" class="bx--text-input" type="number" step="any" placeholder="20" />
-                  </div>
-                  <div class="bx--col-sm-2 bx--col-md-2 bx--col-lg-2">
-                    <label class="bx--label" for="marginRight">Right</label>
-                    <input id="marginRight" class="bx--text-input" type="number" step="any" placeholder="20" />
-                  </div>
-                  <div class="bx--col-sm-2 bx--col-md-2 bx--col-lg-2">
-                    <label class="bx--label" for="marginBottom">Bottom</label>
-                    <input id="marginBottom" class="bx--text-input" type="number" step="any" placeholder="20" />
-                  </div>
-                  <div class="bx--col-sm-2 bx--col-md-2 bx--col-lg-2">
-                    <label class="bx--label" for="marginLeft">Left</label>
-                    <input id="marginLeft" class="bx--text-input" type="number" step="any" placeholder="20" />
+            <div class="bx--form">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="pageSize" class="bx--label">Page Size</label>
+                  <div class="bx--select">
+                    <select id="pageSize" class="bx--select-input">
+                      <option value="A4">A4 (210 × 297 mm)</option>
+                      <option value="A5">A5 (148 × 210 mm)</option>
+                      <option value="Letter">Letter (8.5 × 11")</option>
+                      <option value="Legal">Legal (8.5 × 14")</option>
+                      <option value="custom">Custom Size</option>
+                    </select>
+                    <svg class="bx--select__arrow" width="10" height="6" viewBox="0 0 10 6">
+                      <path d="M5 6L0 0h10z" />
+                    </svg>
                   </div>
                 </div>
-              </div>
-              <div class="bx--form__helper-text helper">Units respect the selection above (mm or px). Leave blank to use defaults.</div>
-            </div>
-
-            <div class="bx--grid" style="padding-left:0;">
-              <div class="bx--row">
-                <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
-                  <div class="bx--form-item">
-                    <label class="bx--label" for="lineHeight">Line height</label>
-                    <input id="lineHeight" class="bx--text-input" type="number" placeholder="auto" />
+                <div class="form-group">
+                  <label for="orientation" class="bx--label">Orientation</label>
+                  <div class="bx--select">
+                    <select id="orientation" class="bx--select-input">
+                      <option value="portrait">Portrait</option>
+                      <option value="landscape">Landscape</option>
+                    </select>
+                    <svg class="bx--select__arrow" width="10" height="6" viewBox="0 0 10 6">
+                      <path d="M5 6L0 0h10z" />
+                    </svg>
                   </div>
                 </div>
-                <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
-                  <div class="bx--form-item">
-                    <label for="align" class="bx--label">Alignment</label>
-                    <div class="bx--select">
-                      <select id="align" class="bx--select-input">
-                        <option value="left">Left</option>
-                        <option value="center">Center</option>
-                        <option value="right">Right</option>
-                      </select>
-                      <div class="bx--select__arrow" aria-hidden="true"></div>
-                    </div>
+                <div class="form-group">
+                  <label for="units" class="bx--label">Units</label>
+                  <div class="bx--select">
+                    <select id="units" class="bx--select-input">
+                      <option value="mm">Millimeters</option>
+                      <option value="px">Pixels</option>
+                    </select>
+                    <svg class="bx--select__arrow" width="10" height="6" viewBox="0 0 10 6">
+                      <path d="M5 6L0 0h10z" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="align" class="bx--label">Text Alignment</label>
+                  <div class="bx--select">
+                    <select id="align" class="bx--select-input">
+                      <option value="left">Left</option>
+                      <option value="center">Center</option>
+                      <option value="right">Right</option>
+                    </select>
+                    <svg class="bx--select__arrow" width="10" height="6" viewBox="0 0 10 6">
+                      <path d="M5 6L0 0h10z" />
+                    </svg>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div class="bx--form-item">
-              <label for="orientation" class="bx--label">Orientation</label>
-              <div class="bx--select">
-                <select id="orientation" class="bx--select-input">
-                  <option value="portrait">Portrait</option>
-                  <option value="landscape">Landscape</option>
-                </select>
-                <div class="bx--select__arrow" aria-hidden="true"></div>
-              </div>
-            </div>
-
-            <div class="bx--grid" style="padding-left:0;">
-              <div class="bx--row">
-                <div class="bx--col-sm-4 bx--col-md-4 bx--col-lg-4">
-                  <div class="bx--form-item">
-                    <label class="bx--label" for="background">Background</label>
-                    <input id="background" class="bx--text-input" type="text" value="white" />
+              <!-- Custom Size Fields -->
+              <div id="customSizeFields" style="display: none;">
+                <div class="form-grid mt-2">
+                  <div class="form-group">
+                    <label for="pageWidth" class="bx--label">Width</label>
+                    <input id="pageWidth" class="bx--text-input" type="number" step="any" placeholder="210" />
                   </div>
-                </div>
-                <div class="bx--col-sm-6 bx--col-md-6 bx--col-lg-6">
-                  <div class="bx--form-item">
-                    <label class="bx--label" for="filename">File name</label>
-                    <input id="filename" class="bx--text-input" type="text" placeholder="handwriting.svg" />
+                  <div class="form-group">
+                    <label for="pageHeight" class="bx--label">Height</label>
+                    <input id="pageHeight" class="bx--text-input" type="number" step="any" placeholder="297" />
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div class="actions" style="margin: .5rem 0 1rem;">
-              <button class="bx--btn bx--btn--primary" onclick="generate()">Generate</button>
-              <button class="bx--btn bx--btn--secondary" onclick="downloadSVG()">Download SVG</button>
-              <a href="/api/template-csv" class="bx--btn bx--btn--tertiary">Download CSV template</a>
-            </div>
+              <!-- Layout Settings -->
+              <div class="form-grid mt-3">
+                <div class="form-group">
+                  <label class="bx--label">Margins</label>
+                  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;">
+                    <input id="marginTop" class="bx--text-input" type="number" placeholder="Top" title="Top margin" />
+                    <input id="marginRight" class="bx--text-input" type="number" placeholder="Right" title="Right margin" />
+                    <input id="marginBottom" class="bx--text-input" type="number" placeholder="Bottom" title="Bottom margin" />
+                    <input id="marginLeft" class="bx--text-input" type="number" placeholder="Left" title="Left margin" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="lineHeight" class="bx--label">Line Height</label>
+                  <input id="lineHeight" class="bx--text-input" type="number" placeholder="Auto" />
+                </div>
+                <div class="form-group">
+                  <label for="globalScale" class="bx--label">Global Scale</label>
+                  <input id="globalScale" class="bx--text-input" type="number" step="0.1" placeholder="1.0" />
+                </div>
+                <div class="form-group">
+                  <label for="background" class="bx--label">Background</label>
+                  <input id="background" class="bx--text-input" type="text" placeholder="white" />
+                </div>
+              </div>
 
-            <div class="toolbar">
-              <span class="zoom-label">Zoom</span>
-              <input id="zoom" class="bx--text-input" type="range" min="25" max="200" step="5" value="100" style="width:200px" />
-              <span id="zoomVal">100%</span>
-              <div style="flex:1"></div>
-              <button class="bx--btn bx--btn--tertiary" onclick="applyPreset('A4','portrait',20)">Preset: A4 Portrait</button>
-              <button class="bx--btn bx--btn--tertiary" onclick="applyPreset('Letter','landscape',15)">Preset: Letter Landscape</button>
+              <!-- Advanced Layout Options -->
+              <details class="mt-2">
+                <summary style="cursor: pointer; font-weight: 500; color: var(--interactive-01);">
+                  Text Wrapping Options
+                </summary>
+                <div class="form-grid mt-2">
+                  <div class="form-group">
+                    <label for="wrapCharPx" class="bx--label">Character Width (px)</label>
+                    <input id="wrapCharPx" class="bx--text-input" type="number" step="0.5" placeholder="10.5" />
+                  </div>
+                  <div class="form-group">
+                    <label for="wrapRatio" class="bx--label">Wrap Ratio</label>
+                    <input id="wrapRatio" class="bx--text-input" type="number" step="0.01" placeholder="0.18" />
+                  </div>
+                  <div class="form-group">
+                    <label for="wrapUtil" class="bx--label">Utilization</label>
+                    <input id="wrapUtil" class="bx--text-input" type="number" step="0.05" placeholder="1.35" />
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="actions-bar">
+            <div class="actions-primary">
+              <button class="bx--btn bx--btn--primary" onclick="generate()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.5rem;">
+                  <path d="M8 0a.5.5 0 0 1 .5.5v6.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 7.293V.5A.5.5 0 0 1 8 0zM2 9.5A.5.5 0 0 1 2.5 9h11a.5.5 0 0 1 .5.5v5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-5zm1 .5v4h10v-4H3z"/>
+                </svg>
+                Generate Handwriting
+              </button>
+              <button class="bx--btn bx--btn--secondary" onclick="downloadSVG()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.5rem;">
+                  <path d="M8 12a.5.5 0 0 0 .5-.5v-7.793l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 3.707V11.5A.5.5 0 0 0 8 12zM2 14.5A.5.5 0 0 0 2.5 15h11a.5.5 0 0 0 .5-.5V14H2v.5z"/>
+                </svg>
+                Download SVG
+              </button>
+            </div>
+            <div class="actions-secondary">
+              <button class="bx--btn bx--btn--tertiary" onclick="applyPreset('A4','portrait',20)">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.25rem;">
+                  <path d="M3 2a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2z"/>
+                </svg>
+                A4 Portrait
+              </button>
+              <button class="bx--btn bx--btn--tertiary" onclick="applyPreset('Letter','landscape',15)">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.25rem; transform: rotate(90deg);">
+                  <path d="M3 2a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2z"/>
+                </svg>
+                Letter Landscape
+              </button>
             </div>
           </div>
         </div>
 
-        <!-- Right Column: Preview & Source -->
-        <div class="bx--col-lg-8 bx--col-md-8 bx--col-sm-4">
-          <h3 class="section-title">SVG Preview</h3>
-          <div class="bx--tile preview-tile" id="preview"></div>
-
-          <h3 class="section-title">SVG Source</h3>
-          <div class="bx--tile code-tile">
-            <div class="actions" style="justify-content: flex-end;">
-              <button class="bx--btn bx--btn--secondary" onclick="copySvg()">Copy SVG</button>
+        <!-- Right Column: Preview & Output -->
+        <div class="bx--col-lg-8 bx--col-md-8">
+          <!-- Preview Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Preview</h3>
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                <span class="text-small text-muted" id="previewHint" style="display: none;">Click to enlarge</span>
+                <div class="zoom-control">
+                  <span class="text-small text-muted">Zoom:</span>
+                  <input id="zoom" type="range" min="25" max="200" step="5" value="100" class="zoom-slider" />
+                  <span id="zoomVal" class="zoom-value">100%</span>
+                </div>
+              </div>
             </div>
-            <pre id="output" class="bx--snippet bx--snippet--multi" tabindex="0" aria-label="Code Snippet"><code></code></pre>
+            <div class="preview-container">
+              <div id="preview">
+                <div class="preview-empty">Generated handwriting will appear here</div>
+              </div>
+            </div>
           </div>
 
-          <h3 class="section-title">Batch CSV</h3>
-          <div class="bx--form">
-            <div class="bx--file">
-              <label for="csv" class="bx--file-browse-btn">Choose CSV file</label>
-              <input id="csv" class="bx--file-input" type="file" accept=".csv" style="display:none" />
-              <button class="bx--btn bx--btn--secondary" style="margin-left:.5rem" onclick="batchGenerateStream()">Start Batch</button>
-              <a class="bx--btn bx--btn--tertiary" href="/api/template-csv">Template</a>
+          <!-- SVG Source Output -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">SVG Source Code</h3>
+              <button class="bx--btn bx--btn--ghost bx--btn--sm" onclick="copySvg()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.5rem;">
+                  <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                  <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+                </svg>
+                Copy to Clipboard
+              </button>
             </div>
-            <div class="bx--form__helper-text helper">CSV columns: filename, text, biases, styles, stroke_colors, stroke_widths, page_size, units, page_width, page_height, margins, line_height, align, background, global_scale, orientation, wrap_ratio, wrap_char_px</div>
-
-            <div class="bx--tile" style="margin-top: .75rem;">
-              <div class="bx--progress bx--progress--vertical" style="min-height: 140px;">
-                <div class="bx--progress-step bx--progress-step--current" id="batchStepStart" aria-label="Start"></div>
-                <div class="bx--progress-step bx--progress-step--incomplete" id="batchStepProcessing" aria-label="Processing"></div>
-                <div class="bx--progress-step bx--progress-step--incomplete" id="batchStepDone" aria-label="Done"></div>
+            <div class="code-container">
+              <div class="code-content">
+                <pre id="output"><code>// SVG output will appear here after generation</code></pre>
               </div>
-              <div style="margin-top:.5rem;">
-                <div><strong>Progress:</strong> <span id="batchProg">0</span>/<span id="batchTotal">0</span></div>
-                <div><strong>Success:</strong> <span id="batchOk">0</span> &nbsp; <strong>Errors:</strong> <span id="batchErr">0</span></div>
-                <div id="batchLog" style="margin-top:.5rem; max-height:160px; overflow:auto; font-family:monospace; font-size:12px; background:#f4f4f4; padding:.5rem; border-radius:4px;"></div>
-                <div class="actions" style="margin-top:.5rem;">
-                  <a id="batchDownload" class="bx--btn bx--btn--primary" style="display:none">Download Results</a>
-                  <button class="bx--btn bx--btn--tertiary" onclick="clearBatchUI()">Clear</button>
+            </div>
+            <div class="text-small text-muted mt-2" style="padding: 0 1rem;">
+              <strong>Metadata:</strong> <span id="metaInfo">Generate handwriting to view metadata</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Batch Processing Section -->
+      <div class="bx--row mt-3">
+        <div class="bx--col-lg-16">
+          <div class="section-header">
+            <h2 class="section-title">Batch Processing</h2>
+          </div>
+        </div>
+      </div>
+
+      <div class="bx--row">
+        <div class="bx--col-lg-8 bx--col-md-8">
+          <div class="card">
+            <!-- Upload Area -->
+            <div id="csvDrop" class="dropzone" onclick="document.getElementById('csv').click()">
+              <div class="dropzone-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10 9 9 9 8 9"/>
+                </svg>
+              </div>
+              <div class="dropzone-text">Drop CSV file here or click to browse</div>
+              <div class="dropzone-subtext">Maximum file size: 10MB</div>
+              <div id="csvInfo" style="display: none;"></div>
+            </div>
+            <input id="csv" type="file" accept=".csv" style="display: none;" />
+
+            <div class="actions-bar">
+              <button class="bx--btn bx--btn--primary" onclick="batchGenerateStream()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.5rem;">
+                  <path d="M4 0h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H4z"/>
+                  <path d="M8 5.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V10a.5.5 0 0 1-1 0V8.5H6a.5.5 0 0 1 0-1h1.5V6a.5.5 0 0 1 .5-.5z"/>
+                </svg>
+                Start Batch Processing
+              </button>
+              <a href="/api/template-csv" class="bx--btn bx--btn--secondary">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.5rem;">
+                  <path d="M8 12a.5.5 0 0 0 .5-.5v-7.793l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 3.707V11.5A.5.5 0 0 0 8 12zM2 14.5A.5.5 0 0 0 2.5 15h11a.5.5 0 0 0 .5-.5V14H2v.5z"/>
+                </svg>
+                Download CSV Template
+              </a>
+              <div class="actions-secondary">
+                <label for="liveLimit" class="text-small text-muted">Preview limit:</label>
+                <input id="liveLimit" class="bx--text-input" type="number" min="1" max="50" value="12" style="width: 80px;" />
+              </div>
+            </div>
+
+            <!-- Batch Status -->
+            <div class="batch-container" id="batchContainer" style="display: none;">
+              <div class="batch-header">
+                <h4>Processing Status</h4>
+                <button class="bx--btn bx--btn--ghost bx--btn--sm" onclick="clearBatchUI()">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.25rem;">
+                    <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
+                  </svg>
+                  Clear
+                </button>
+              </div>
+
+              <!-- Progress Bar -->
+              <div class="progress-bar">
+                <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+              </div>
+
+              <!-- Statistics -->
+              <div class="batch-stats">
+                <div class="stat-card">
+                  <span id="batchProg" class="stat-value">0</span>
+                  <span class="stat-label">Processed</span>
                 </div>
+                <div class="stat-card">
+                  <span id="batchTotal" class="stat-value">0</span>
+                  <span class="stat-label">Total</span>
+                </div>
+                <div class="stat-card">
+                  <span id="batchOk" class="stat-value">0</span>
+                  <span class="stat-label">Success</span>
+                </div>
+                <div class="stat-card">
+                  <span id="batchErr" class="stat-value">0</span>
+                  <span class="stat-label">Errors</span>
+                </div>
+              </div>
+
+              <!-- Live Previews and Log -->
+              <div class="batch-previews">
+                <div class="preview-section">
+                  <div class="preview-section-header">Live Previews</div>
+                  <div id="batchLiveGrid" class="live-preview-grid"></div>
+                </div>
+                <div class="preview-section">
+                  <div class="preview-section-header">Processing Log</div>
+                  <div id="batchLog" class="batch-log"></div>
+                </div>
+              </div>
+
+              <!-- Download Button -->
+              <div class="actions-bar mt-2">
+                <a id="batchDownload" class="bx--btn bx--btn--primary" style="display: none;">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.5rem;">
+                    <path d="M8 12a.5.5 0 0 0 .5-.5v-7.793l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 3.707V11.5A.5.5 0 0 0 8 12zM2 14.5A.5.5 0 0 0 2.5 15h11a.5.5 0 0 0 .5-.5V14H2v.5z"/>
+                  </svg>
+                  Download Results
+                </a>
               </div>
             </div>
           </div>
@@ -272,73 +1305,189 @@
     </div>
   </main>
 
-  <div id="overlay" class="overlay">
-    <div data-loading class="bx--loading bx--loading--small">
-      <svg class="bx--loading__svg" viewBox="-75 -75 150 150">
-        <circle cx="0" cy="0" r="37.5" />
-      </svg>
+  <!-- Enhanced Footer -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-brand">WriteBot</div>
+      <div class="footer-tagline">Handwriting Synthesis • Developed by Arie Joe</div>
+    </div>
+  </footer>
+
+  <!-- Lightbox for SVG Preview -->
+  <div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
+    <div class="lightbox-content" onclick="event.stopPropagation()">
+      <button class="lightbox-close" onclick="closeLightbox()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <div id="lightboxSvg" class="lightbox-svg"></div>
     </div>
   </div>
 
-  <div id="notif" style="position:fixed; top:70px; right:12px; z-index:1000;"></div>
+  <!-- Loading Overlay -->
+  <div id="overlay" class="overlay">
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Processing...</div>
+    </div>
+  </div>
 
-  <script src="https://unpkg.com/carbon-components/scripts/carbon-components.min.js"></script>
+  <!-- Notification Container -->
+  <div id="notif" class="notification-container"></div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/carbon-components@10.58.0/scripts/carbon-components.min.js"></script>
   <script>
+    // State Management
     let lastSvgText = '';
-    const overlay = document.getElementById('overlay');
+    let lastMetadata = {};
+    let STYLE_LIST = [];
+    let SELECTED_STYLE_ID = null;
+    let CSV_FILE = null;
 
-    function setLoading(v) {
-      if (!overlay) return;
-      overlay.classList.toggle('visible', !!v);
+    // Lightbox Functions
+    function openLightbox(svgContent) {
+      const lightbox = document.getElementById('lightbox');
+      const lightboxSvg = document.getElementById('lightboxSvg');
+      lightboxSvg.innerHTML = svgContent;
+      lightbox.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox(event) {
+      if (event && event.target !== event.currentTarget && !event.target.classList.contains('lightbox')) {
+        return;
+      }
+      const lightbox = document.getElementById('lightbox');
+      lightbox.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    // Setup clickable SVG previews
+    function makePreviewClickable() {
+      const preview = document.getElementById('preview');
+      const hint = document.getElementById('previewHint');
+      if (lastSvgText) {
+        preview.classList.add('has-content');
+        preview.onclick = () => openLightbox(lastSvgText);
+        hint.style.display = 'block';
+      }
+    }
+
+    // UI Helper Functions
+    function setLoading(visible) {
+      const overlay = document.getElementById('overlay');
+      overlay.classList.toggle('visible', !!visible);
+    }
+
+    function showNotification(type, title, message, duration = 5000) {
+      const container = document.getElementById('notif');
+      const id = 'notif-' + Date.now();
+      
+      const notification = document.createElement('div');
+      notification.id = id;
+      notification.className = `notification ${type}`;
+      notification.innerHTML = `
+        <svg class="notification-icon" viewBox="0 0 20 20">
+          ${type === 'error' ? 
+            '<path fill="#da1e28" d="M10 0C4.5 0 0 4.5 0 10s4.5 10 10 10 10-4.5 10-10S15.5 0 10 0zm5 13.6L13.6 15 10 11.4 6.4 15 5 13.6 8.6 10 5 6.4 6.4 5 10 8.6 13.6 5 15 6.4 11.4 10 15 13.6z"/>' :
+            '<path fill="#24a148" d="M10 0C4.5 0 0 4.5 0 10s4.5 10 10 10 10-4.5 10-10S15.5 0 10 0zm4.2 8.3l-5 5c-.2.2-.5.3-.7.3s-.5-.1-.7-.3l-2-2c-.4-.4-.4-1 0-1.4s1-.4 1.4 0l1.3 1.3 4.3-4.3c.4-.4 1-.4 1.4 0s.4 1 0 1.4z"/>'}
+        </svg>
+        <div class="notification-content">
+          <div class="notification-title">${title}</div>
+          <div class="notification-message">${message}</div>
+        </div>
+        <button class="notification-close" onclick="this.parentElement.remove()">
+          <svg width="16" height="16" viewBox="0 0 16 16">
+            <path fill="currentColor" d="M12 4.7L11.3 4 8 7.3 4.7 4 4 4.7 7.3 8 4 11.3l.7.7L8 8.7l3.3 3.3.7-.7L8.7 8z"/>
+          </svg>
+        </button>
+      `;
+      
+      container.appendChild(notification);
+      
+      if (duration > 0) {
+        setTimeout(() => {
+          const el = document.getElementById(id);
+          if (el) el.remove();
+        }, duration);
+      }
     }
 
     function toastError(msg) {
-      const c = document.getElementById('notif');
-      const id = 'n' + Date.now();
-      const html = `
-      <div id="${id}" data-notification class="bx--inline-notification bx--inline-notification--error" role="alert" style="margin-bottom:.5rem">
-        <div class="bx--inline-notification__details">
-          <div class="bx--inline-notification__text-wrapper">
-            <p class="bx--inline-notification__title">Error</p>
-            <p class="bx--inline-notification__subtitle">${msg}</p>
-          </div>
-        </div>
-        <button class="bx--inline-notification__close-button" type="button" aria-label="close notification" onclick="this.parentElement.remove()">
-          <svg focusable="false" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="16" height="16" viewBox="0 0 32 32" aria-hidden="true"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16 24 9.4z"></path></svg>
-        </button>
-      </div>`;
-      c.insertAdjacentHTML('beforeend', html);
-      setTimeout(() => { const el = document.getElementById(id); if (el) el.remove(); }, 5000);
+      showNotification('error', 'Error', msg);
     }
 
+    function toastSuccess(msg) {
+      showNotification('success', 'Success', msg);
+    }
+
+    // Style Loading
+    async function loadStyles() {
+      const sel = document.getElementById('styleSelect');
+      sel.innerHTML = '<option>Loading styles...</option>';
+      
+      try {
+        const res = await fetch('/api/styles');
+        const data = await res.json();
+        STYLE_LIST = (data && data.styles) || [];
+        
+        if (!STYLE_LIST.length) {
+          STYLE_LIST = Array.from({ length: 13 }, (_, i) => ({ id: i, label: `Style ${i}` }));
+        }
+        
+        sel.innerHTML = '';
+        STYLE_LIST.forEach(style => {
+          const opt = document.createElement('option');
+          opt.value = String(style.id);
+          opt.textContent = `Style ${style.id} - ${style.label || 'Custom'}`;
+          sel.appendChild(opt);
+        });
+        
+        SELECTED_STYLE_ID = STYLE_LIST[0].id;
+        sel.value = String(SELECTED_STYLE_ID);
+        
+        sel.addEventListener('change', () => {
+          SELECTED_STYLE_ID = sel.value;
+        });
+      } catch (e) {
+        console.error('Failed to load styles:', e);
+        sel.innerHTML = '';
+        for (let i = 0; i <= 12; i++) {
+          const opt = document.createElement('option');
+          opt.value = String(i);
+          opt.textContent = `Style ${i}`;
+          sel.appendChild(opt);
+        }
+        SELECTED_STYLE_ID = '9';
+        sel.value = '9';
+      }
+    }
+
+    // Custom Size Visibility
     function syncCustomSizeVisibility() {
-      const ps = document.getElementById('pageSize').value;
-      const block = document.getElementById('customSizeFields');
-      block.style.display = (ps === 'custom') ? 'block' : 'none';
+      const pageSize = document.getElementById('pageSize').value;
+      const customFields = document.getElementById('customSizeFields');
+      customFields.style.display = pageSize === 'custom' ? 'block' : 'none';
     }
 
-    function syncCustomSizeVisibility() {
-      const ps = document.getElementById('pageSize').value;
-      const block = document.getElementById('customSizeFields');
-      block.style.display = (ps === 'custom') ? 'block' : 'none';
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      syncCustomSizeVisibility();
-      document.getElementById('pageSize').addEventListener('change', syncCustomSizeVisibility);
-    });
-
+    // Build Margins Object
     function buildMargins() {
       const mt = document.getElementById('marginTop').value;
       const mr = document.getElementById('marginRight').value;
       const mb = document.getElementById('marginBottom').value;
       const ml = document.getElementById('marginLeft').value;
+      
       const toNum = v => (v === '' || v === null || v === undefined) ? null : Number(v);
       const t = toNum(mt), r = toNum(mr), b = toNum(mb), l = toNum(ml);
-      if (t === null && r === null && b === null && l === null) return undefined; // let backend default
+      
+      if (t === null && r === null && b === null && l === null) return undefined;
       return { top: t ?? 20, right: r ?? 20, bottom: b ?? 20, left: l ?? 20 };
     }
 
+    // Apply Presets
     function applyPreset(size, orient, margin) {
       document.getElementById('pageSize').value = size;
       document.getElementById('orientation').value = orient;
@@ -347,29 +1496,29 @@
       document.getElementById('marginBottom').value = margin;
       document.getElementById('marginLeft').value = margin;
       syncCustomSizeVisibility();
+      toastSuccess(`Applied preset: ${size} ${orient}`);
     }
 
+    // Copy SVG to Clipboard
     function copySvg() {
-      if (!lastSvgText) { toastError('Nothing to copy. Generate first.'); return; }
-      navigator.clipboard.writeText(lastSvgText).catch(() => toastError('Clipboard copy failed'));
+      if (!lastSvgText) {
+        toastError('No SVG to copy. Please generate first.');
+        return;
+      }
+      
+      navigator.clipboard.writeText(lastSvgText)
+        .then(() => toastSuccess('SVG copied to clipboard'))
+        .catch(() => toastError('Failed to copy to clipboard'));
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      syncCustomSizeVisibility();
-      document.getElementById('pageSize').addEventListener('change', syncCustomSizeVisibility);
-      const zoom = document.getElementById('zoom');
-      const zv = document.getElementById('zoomVal');
-      zoom.addEventListener('input', () => {
-        const v = Number(zoom.value);
-        zv.textContent = v + '%';
-        const el = document.getElementById('preview');
-        el.style.transformOrigin = 'top left';
-        el.style.transform = `scale(${v/100})`;
-      });
-    });
-
+    // Generate Handwriting
     async function generate() {
       const text = document.getElementById('text').value;
+      if (!text.trim()) {
+        toastError('Please enter some text');
+        return;
+      }
+
       const pageSize = document.getElementById('pageSize').value;
       const units = document.getElementById('units').value;
       const margins = buildMargins();
@@ -377,14 +1526,24 @@
       const align = document.getElementById('align').value;
       const background = document.getElementById('background').value;
       const orientation = document.getElementById('orientation').value;
+      const legibility = document.getElementById('legibility').value;
       const biases = document.getElementById('biases').value;
-      const styles = document.getElementById('styles').value;
+      const stylesOverride = document.getElementById('styles').value;
+      const globalStyle = SELECTED_STYLE_ID ? String(SELECTED_STYLE_ID) : '';
       const strokeColors = document.getElementById('strokeColors').value;
       const strokeWidths = document.getElementById('strokeWidths').value;
-      const pageWidth = document.getElementById('pageWidth') ? document.getElementById('pageWidth').value : '';
-      const pageHeight = document.getElementById('pageHeight') ? document.getElementById('pageHeight').value : '';
+      const pageWidth = document.getElementById('pageWidth').value;
+      const pageHeight = document.getElementById('pageHeight').value;
+      const wrapCharPx = document.getElementById('wrapCharPx').value;
+      const wrapRatio = document.getElementById('wrapRatio').value;
+      const wrapUtil = document.getElementById('wrapUtil').value;
+      const xStretch = document.getElementById('xStretch').value;
+      const denoise = document.getElementById('denoise').value;
+      const globalScale = document.getElementById('globalScale').value;
 
       const parseList = (s, cast) => s ? s.split('|').map(v => cast(v.trim())) : undefined;
+      const stylesList = stylesOverride ? parseList(stylesOverride, Number) : (globalStyle ? [Number(globalStyle)] : undefined);
+      
       const payload = {
         text,
         page_size: pageSize,
@@ -392,37 +1551,77 @@
         margins,
         line_height: lineHeight ? Number(lineHeight) : undefined,
         align,
-        background,
+        background: background || undefined,
         orientation,
+        legibility,
+        global_scale: globalScale ? Number(globalScale) : undefined,
         page_width: pageWidth ? Number(pageWidth) : undefined,
         page_height: pageHeight ? Number(pageHeight) : undefined,
         biases: parseList(biases, Number),
-        styles: parseList(styles, Number),
+        styles: stylesList,
         stroke_colors: parseList(strokeColors, String),
         stroke_widths: parseList(strokeWidths, Number),
+        wrap_char_px: wrapCharPx ? Number(wrapCharPx) : undefined,
+        wrap_ratio: wrapRatio ? Number(wrapRatio) : undefined,
+        wrap_utilization: wrapUtil ? Number(wrapUtil) : undefined,
+        x_stretch: xStretch ? Number(xStretch) : undefined,
+        denoise: denoise || undefined,
       };
 
       setLoading(true);
-      const res = await fetch('/api/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        toastError(err.error || res.statusText);
+      
+      try {
+        const res = await fetch('/api/v1/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || res.statusText);
+        }
+        
+        const data = await res.json();
+        lastSvgText = data.svg;
+        lastMetadata = data.meta || {};
+        
+        // Update preview
+        const preview = document.getElementById('preview');
+        preview.innerHTML = lastSvgText;
+        makePreviewClickable();
+        
+        // Update source code
+        document.getElementById('output').querySelector('code').textContent = lastSvgText;
+        
+        // Update metadata info
+        const metaInfo = document.getElementById('metaInfo');
+        if (lastMetadata && Object.keys(lastMetadata).length > 0) {
+          const lines = lastMetadata.lines || {};
+          const page = lastMetadata.page || {};
+          metaInfo.innerHTML = `
+            Lines: ${lines.wrapped_count || 0} (from ${lines.input_count || 0} input) | 
+            Page: ${page.width_mm || 0}×${page.height_mm || 0}mm | 
+            Orientation: ${page.orientation || 'portrait'}
+          `;
+        }
+        
+        toastSuccess('Handwriting generated successfully');
+      } catch (error) {
+        toastError(error.message);
+      } finally {
         setLoading(false);
-        return;
       }
-      const svgText = await res.text();
-      lastSvgText = svgText;
-      const out = document.getElementById('output').querySelector('code');
-      out.textContent = svgText;
-      document.getElementById('preview').innerHTML = svgText;
-      setLoading(false);
     }
 
+    // Download SVG
     function downloadSVG() {
-      if (!lastSvgText) { alert('Generate a preview first.'); return; }
-      let filename = document.getElementById('filename').value.trim();
-      if (!filename) filename = 'handwriting.svg';
-      if (!filename.toLowerCase().endsWith('.svg')) filename += '.svg';
+      if (!lastSvgText) {
+        toastError('Please generate handwriting first');
+        return;
+      }
+      
+      const filename = 'handwriting.svg';
       const blob = new Blob([lastSvgText], { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -430,122 +1629,267 @@
       a.download = filename;
       document.body.appendChild(a);
       a.click();
-      setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 0);
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+        a.remove();
+      }, 0);
+      
+      toastSuccess(`Downloaded ${filename}`);
     }
 
-    async function batchGenerate() {
-      const fileInput = document.getElementById('csv');
-      if (!fileInput.files.length) { alert('Please choose a CSV file'); return; }
-      const form = new FormData();
-      form.append('file', fileInput.files[0]);
-
-      setLoading(true);
-      const res = await fetch('/api/batch', { method: 'POST', body: form });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        toastError(err.error || res.statusText);
-        setLoading(false);
-        return;
-      }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'writebot_batch.zip';
-      a.click();
-      URL.revokeObjectURL(url);
-      setLoading(false);
-    }
-
-    function setStep(elId, state) {
-      const el = document.getElementById(elId);
-      el.classList.remove('bx--progress-step--incomplete', 'bx--progress-step--current', 'bx--progress-step--complete');
-      el.classList.add(state);
-    }
-
+    // Batch Processing
     function clearBatchUI() {
       document.getElementById('batchProg').textContent = '0';
       document.getElementById('batchTotal').textContent = '0';
       document.getElementById('batchOk').textContent = '0';
       document.getElementById('batchErr').textContent = '0';
       document.getElementById('batchLog').innerHTML = '';
+      document.getElementById('batchLiveGrid').innerHTML = '';
+      document.getElementById('progressFill').style.width = '0%';
+      
       const dl = document.getElementById('batchDownload');
       dl.style.display = 'none';
       dl.removeAttribute('href');
-      setStep('batchStepStart','bx--progress-step--incomplete');
-      setStep('batchStepProcessing','bx--progress-step--incomplete');
-      setStep('batchStepDone','bx--progress-step--incomplete');
+      
+      document.getElementById('batchContainer').style.display = 'none';
     }
 
     async function batchGenerateStream() {
-      const fileInput = document.getElementById('csv');
-      if (!fileInput.files.length) { toastError('Please choose a CSV file'); return; }
-      clearBatchUI();
-      setStep('batchStepStart','bx--progress-step--current');
-
-      const form = new FormData();
-      form.append('file', fileInput.files[0]);
-      setLoading(true);
-
-      const res = await fetch('/api/batch/stream', { method: 'POST', body: form });
-      if (!res.ok || !res.body) {
-        toastError('Failed to start batch');
-        setLoading(false);
+      const file = CSV_FILE || document.getElementById('csv').files[0];
+      if (!file) {
+        toastError('Please select a CSV file');
         return;
       }
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      setStep('batchStepStart','bx--progress-step--complete');
-      setStep('batchStepProcessing','bx--progress-step--current');
-
-      let ok = 0, err = 0, total = 0;
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const parts = buffer.split('\n\n');
-        buffer = parts.pop();
-        for (const chunk of parts) {
-          if (!chunk.startsWith('data:')) continue;
-          try {
-            const payload = JSON.parse(chunk.replace(/^data:\s*/, ''));
-            if (payload.type === 'start') {
-              total = payload.total || 0;
-              document.getElementById('batchTotal').textContent = String(total);
-            } else if (payload.type === 'row') {
-              const log = document.getElementById('batchLog');
-              if (payload.status === 'ok') {
-                ok += 1;
-                log.insertAdjacentHTML('beforeend', `<div>row ${payload.row}: ✓ ${payload.file}</div>`);
-                document.getElementById('batchOk').textContent = String(ok);
-              } else {
-                err += 1;
-                log.insertAdjacentHTML('beforeend', `<div>row ${payload.row}: ✗ ${payload.error}</div>`);
-                document.getElementById('batchErr').textContent = String(err);
+      
+      clearBatchUI();
+      document.getElementById('batchContainer').style.display = 'block';
+      
+      const form = new FormData();
+      form.append('file', file);
+      
+      setLoading(true);
+      
+      try {
+        const res = await fetch('/api/batch/stream', {
+          method: 'POST',
+          body: form
+        });
+        
+        if (!res.ok || !res.body) {
+          throw new Error('Failed to start batch processing');
+        }
+        
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let ok = 0, err = 0, total = 0;
+        
+        const liveGrid = document.getElementById('batchLiveGrid');
+        const liveLimit = () => {
+          const el = document.getElementById('liveLimit');
+          return Math.max(1, Math.min(50, Number(el?.value) || 12));
+        };
+        
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split('\n\n');
+          buffer = parts.pop();
+          
+          for (const chunk of parts) {
+            if (!chunk.startsWith('data:')) continue;
+            
+            try {
+              const payload = JSON.parse(chunk.replace(/^data:\s*/, ''));
+              
+              if (payload.type === 'start') {
+                total = payload.total || 0;
+                document.getElementById('batchTotal').textContent = String(total);
+              } else if (payload.type === 'row') {
+                const log = document.getElementById('batchLog');
+                const entry = document.createElement('div');
+                
+                if (payload.status === 'ok') {
+                  ok += 1;
+                  entry.className = 'batch-log-entry success';
+                  entry.textContent = `✓ Row ${payload.row}: ${payload.file}`;
+                  document.getElementById('batchOk').textContent = String(ok);
+                  
+                  // Add live preview card
+                  if (payload.file && liveGrid.children.length < liveLimit()) {
+                    const card = document.createElement('div');
+                    card.className = 'live-preview-card';
+                    card.setAttribute('data-filename', payload.file);
+                    card.innerHTML = `
+                      <div class="live-preview-filename">${payload.file}</div>
+                      <div class="live-preview-status">Generating...</div>
+                    `;
+                    liveGrid.insertBefore(card, liveGrid.firstChild);
+                  }
+                } else {
+                  err += 1;
+                  entry.className = 'batch-log-entry error';
+                  entry.textContent = `✗ Row ${payload.row}: ${payload.error}`;
+                  document.getElementById('batchErr').textContent = String(err);
+                }
+                
+                log.appendChild(entry);
+                log.scrollTop = log.scrollHeight;
+              } else if (payload.type === 'progress') {
+                const completed = payload.completed || 0;
+                document.getElementById('batchProg').textContent = String(completed);
+                if (total > 0) {
+                  const percent = (completed / total) * 100;
+                  document.getElementById('progressFill').style.width = `${percent}%`;
+                }
+              } else if (payload.type === 'done') {
+                const dl = document.getElementById('batchDownload');
+                dl.href = payload.download;
+                dl.style.display = 'inline-flex';
+                
+                toastSuccess(`Batch processing complete: ${ok} successful, ${err} errors`);
+                
+                // Load preview SVGs
+                const jobId = payload.job_id;
+                   if (jobId) {
+                  const cards = Array.from(liveGrid.children);
+                  for (const card of cards) {
+                    const fname = card.getAttribute('data-filename');
+                    if (!fname) continue;
+                    
+                    fetch(`/api/batch/result/${jobId}/file/${encodeURIComponent(fname)}`)
+                       .then(r => r.text())
+                       .then(svg => {
+                         const encoded = encodeURIComponent(svg);
+                         card.innerHTML = `
+                           <div class="live-preview-filename">${fname}</div>
+                           <div class="clickable-svg" data-svg="${encoded}">
+                             ${svg}
+                           </div>
+                           <div class="live-preview-status">Complete</div>
+                         `;
+                         // Add click handler after inserting HTML
+                         const svgDiv = card.querySelector('.clickable-svg');
+                         svgDiv.addEventListener('click', () => {
+                           const raw = decodeURIComponent(svgDiv.getAttribute('data-svg'));
+                           openLightbox(raw);
+                         });
+                       })
+                      .catch(() => {});
+                  }
+                }
               }
-              log.scrollTop = log.scrollHeight;
-            } else if (payload.type === 'progress') {
-              document.getElementById('batchProg').textContent = String(payload.completed || 0);
-            } else if (payload.type === 'done') {
-              setStep('batchStepProcessing','bx--progress-step--complete');
-              setStep('batchStepDone','bx--progress-step--current');
-              const dl = document.getElementById('batchDownload');
-              dl.href = payload.download;
-              dl.style.display = 'inline-flex';
-              setLoading(false);
+            } catch (e) {
+              console.error('Parse error:', e);
             }
-          } catch (e) {
-            // ignore parse errors on keepalives
           }
         }
+      } catch (error) {
+        toastError(error.message);
+      } finally {
+        setLoading(false);
       }
     }
+
+    // CSV Drag and Drop
+    function setupCsvDragDrop() {
+      const dropzone = document.getElementById('csvDrop');
+      const input = document.getElementById('csv');
+      const info = document.getElementById('csvInfo');
+      
+      function showFileInfo(file) {
+        if (!file) {
+          info.style.display = 'none';
+          return;
+        }
+        
+        info.innerHTML = `
+          <div class="file-info">
+            <span class="file-info-name">${file.name}</span>
+            <span class="file-info-size">${(file.size / 1024).toFixed(1)} KB</span>
+          </div>
+        `;
+        info.style.display = 'block';
+      }
+      
+      input.addEventListener('change', () => {
+        CSV_FILE = input.files[0];
+        showFileInfo(CSV_FILE);
+      });
+      
+      ['dragenter', 'dragover'].forEach(event => {
+        dropzone.addEventListener(event, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.add('dragover');
+        });
+      });
+      
+      ['dragleave', 'drop'].forEach(event => {
+        dropzone.addEventListener(event, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.remove('dragover');
+        });
+      });
+      
+      dropzone.addEventListener('drop', (e) => {
+        const files = e.dataTransfer?.files;
+        if (!files?.length) return;
+        
+        const file = Array.from(files).find(f => f.name.toLowerCase().endsWith('.csv')) || files[0];
+        CSV_FILE = file;
+        showFileInfo(CSV_FILE);
+        
+        // Auto-start batch processing
+        if (file.name.toLowerCase().endsWith('.csv')) {
+          batchGenerateStream();
+        }
+      });
+    }
+
+    // Zoom Control
+    function setupZoomControl() {
+      const zoom = document.getElementById('zoom');
+      const zoomVal = document.getElementById('zoomVal');
+      
+      zoom.addEventListener('input', () => {
+        const value = Number(zoom.value);
+        zoomVal.textContent = `${value}%`;
+        
+        const preview = document.getElementById('preview');
+        preview.style.transform = `scale(${value / 100})`;
+        preview.style.transformOrigin = 'top left';
+      });
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      loadStyles();
+      syncCustomSizeVisibility();
+      setupCsvDragDrop();
+      setupZoomControl();
+      
+      document.getElementById('pageSize').addEventListener('change', syncCustomSizeVisibility);
+      
+      // Add keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeLightbox();
+        }
+        if (e.ctrlKey || e.metaKey) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            generate();
+          } else if (e.key === 's') {
+            e.preventDefault();
+            downloadSVG();
+          }
+        }
+      });
+    });
   </script>
 </body>
 </html>
-
-

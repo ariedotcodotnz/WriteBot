@@ -19,7 +19,7 @@ def parse_list(s, cast):
 
 def main():
     parser = argparse.ArgumentParser(description='Batch generate SVG handwriting from CSV')
-    parser.add_argument('csv', help='CSV file with rows to generate. Required column: text. Optional: filename, biases, styles, stroke_colors, stroke_widths, page_size, units, margins, line_height, align, background, global_scale, orientation')
+    parser.add_argument('csv', help='CSV file with rows to generate. Required column: text. Optional: filename, biases, styles, stroke_colors, stroke_widths, page_size, units, margins, line_height, align, background, global_scale, orientation, wrap_char_px, wrap_ratio, wrap_utilization, legibility')
     parser.add_argument('--out-dir', default='out', help='Output directory for SVGs')
     args = parser.parse_args()
 
@@ -64,9 +64,10 @@ def main():
             margins=margins,
             line_height=float(r.get('line_height')) if str(r.get('line_height')).strip() else None,
             align=r.get('align', 'left'),
-            background=r.get('background', 'white'),
+            background=r.get('background') if str(r.get('background')).strip() else None,
             global_scale=float(r.get('global_scale')) if str(r.get('global_scale')).strip() else 1.0,
             orientation=r.get('orientation', 'portrait'),
+            legibility=r.get('legibility', 'normal'),
         )
         print(f"Wrote {out_path}")
 

@@ -1,0 +1,44 @@
+{
+    "application": {
+        "name": "WriteBot",
+        "version": "1.0.0",
+        "author": "WriteBot Software",
+        "website": "https://writebot.com"
+    },
+    "defaults": {
+        "handwriting": {
+            "style": 9,
+            "bias": 0.75,
+            "stroke_color": "black",
+            "stroke_width": 2
+        },
+        "page": {
+            "size": "A4",
+            "orientation": "portrait",
+            "margins": 20,
+            "line_height": 60,
+            "alignment": "left",
+            "background": "white",
+            "units": "mm"
+        },
+        "preview": {
+            "zoom": 100,
+            "auto_generate": false
+        }
+    },
+    "limits": {
+        "max_lines": 50,
+        "max_chars_per_line": 75,
+        "max_file_size_mb": 10
+    },
+    "ui": {
+        "window_size": [1200, 800],
+        "theme": "default",
+        "language": "en"
+    },
+    "export": {
+        "default_format": "svg",
+        "auto_save": false,
+        "backup_enabled": true
+    }
+}

@@ -50,9 +50,12 @@ class Hand(object):
         margins=20,
         line_height=None,
         align='left',
-        background='white',
+        background=None,
         global_scale=1.0,
         orientation='portrait',
+        legibility='normal',
+        x_stretch=1.0,
+        denoise=True,
     ):
         def _normalize_seq(value, desired_len, cast_fn=None, name='param'):
             if value is None:
@@ -109,6 +112,9 @@ class Hand(object):
             background=background,
             global_scale=global_scale,
             orientation=orientation,
+            legibility=legibility,
+            x_stretch=x_stretch,
+            denoise=denoise,
         )
 
     def _sample(self, lines, biases=None, styles=None):
