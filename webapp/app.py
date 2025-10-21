@@ -152,6 +152,9 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> Tuple[str, Dict[
             # Estimate based on content width: roughly 600 units fits ~75 chars before scaling
             # So we scale proportionally: max_line_width = 600 * (content_width_px / expected_scaled_width)
             # For simplicity, use a configurable default with adjustment for content width
+            util = None
+            lines = []
+            max_line_width = None
             max_line_width_param = payload.get("max_line_width")
             if max_line_width_param is not None:
                 max_line_width = float(max_line_width_param)

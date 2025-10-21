@@ -39,24 +39,24 @@ class Hand(object):
         self.nn.restore()
 
     def write(
-        self,
-        filename,
-        lines,
-        biases=None,
-        styles=None,
-        stroke_colors=None,
-        stroke_widths=None,
-        page_size='A4',
-        units='mm',
-        margins=20,
-        line_height=None,
-        align='left',
-        background=None,
-        global_scale=1.0,
-        orientation='portrait',
-        legibility='normal',
-        x_stretch=1.0,
-        denoise=True,
+            self,
+            filename,
+            lines,
+            biases=None,
+            styles=None,
+            stroke_colors=None,
+            stroke_widths=None,
+            page_size='A4',
+            units='mm',
+            margins=20,
+            line_height=None,
+            align='left',
+            background=None,
+            global_scale=1.0,
+            orientation='portrait',
+            legibility='normal',
+            x_stretch=1.0,
+            denoise=True,
     ):
         def _normalize_seq(value, desired_len, cast_fn=None, name='param'):
             if value is None:
@@ -72,6 +72,7 @@ class Hand(object):
                     f"Length of {name} ({len(seq)}) must be 1 or equal to number of lines ({desired_len})"
                 )
             return [cast_fn(v) if cast_fn else v for v in seq]
+
         valid_char_set = set(drawing.alphabet)
         for line_num, line in enumerate(lines):
             if len(line) > drawing.MAX_CHAR_LEN:
@@ -171,12 +172,13 @@ class Hand(object):
         coords = drawing.offsets_to_coords(stroke)
         return float(np.max(coords[:, 0]) - np.min(coords[:, 0]))
 
-    def _calculate_baseline_angle(self, stroke: np.ndarray) -> float:
+    def _calculate_baseline_angle(self, stroke: np.ndarray, use_last_portion: float = 1.0) -> float:
         """
-        Calculate the baseline angle of a stroke.
+        Calculate the baseline angle of a stroke with improved accuracy.
 
         Args:
             stroke: Input stroke sequence (offsets)
+            use_last_portion: Fraction of stroke to use (1.0 = all, 0.4 = last 40%)
 
         Returns:
             Baseline angle in radians
@@ -186,6 +188,11 @@ class Hand(object):
 
         # Convert to coordinates
         coords = drawing.offsets_to_coords(stroke)
+
+        # Use only the specified portion of the stroke
+        if use_last_portion < 1.0:
+            start_idx = int(len(coords) * (1.0 - use_last_portion))
+            coords = coords[start_idx:]
 
         if len(coords) < 4:
             return 0.0
@@ -215,7 +222,7 @@ class Hand(object):
         x_baseline = baseline_points[:, 0]
         y_baseline = baseline_points[:, 1]
 
-        # Use least squares to find slope
+        # Use least squares to find slope with better conditioning
         A = np.vstack([x_baseline, np.ones(len(x_baseline))]).T
         result = np.linalg.lstsq(A, y_baseline, rcond=None)
         m, b = result[0]
@@ -297,94 +304,166 @@ class Hand(object):
             # Fallback: use 75th percentile
             return float(np.percentile(y_values, 75))
 
-    def _stitch_strokes(
-        self,
-        stroke1: np.ndarray,
-        stroke2: np.ndarray,
-        spacing: float = 0.0,
-        rotate_to_match: bool = True
+    def _smooth_chunk_boundary(
+            self,
+            stroke: np.ndarray,
+            boundary_idx: int,
+            window_size: int = 5
     ) -> np.ndarray:
         """
-        Stitch two stroke sequences together horizontally with improved baseline alignment
-        and rotation correction to prevent cumulative slant.
+        Smooth the transition at a chunk boundary to reduce visible seams.
 
-        This method now:
-        1. Calculates the baseline angle at the end of stroke1
-        2. Rotates stroke2 to match that angle (compensating for cumulative slant)
-        3. Aligns baselines vertically
-        4. Stitches the strokes together
+        Args:
+            stroke: Combined stroke sequence (offsets)
+            boundary_idx: Index where the boundary occurs
+            window_size: Number of points to smooth on each side
+
+        Returns:
+            Smoothed stroke sequence
+        """
+        if len(stroke) == 0 or boundary_idx < window_size or boundary_idx >= len(stroke) - window_size:
+            return stroke
+
+        coords = drawing.offsets_to_coords(stroke)
+
+        # Extract the boundary region
+        start_idx = boundary_idx - window_size
+        end_idx = boundary_idx + window_size + 1
+
+        # Apply Gaussian smoothing to Y coordinates in the boundary region
+        # This reduces sharp transitions while preserving overall shape
+        boundary_y = coords[start_idx:end_idx, 1].copy()
+
+        # Create Gaussian kernel
+        sigma = window_size / 3.0
+        x = np.arange(-window_size, window_size + 1)
+        kernel = np.exp(-x ** 2 / (2 * sigma ** 2))
+        kernel = kernel / kernel.sum()
+
+        # Apply smoothing
+        smoothed_y = np.convolve(
+            coords[max(0, start_idx - window_size):min(len(coords), end_idx + window_size), 1],
+            kernel,
+            mode='valid'
+        )
+
+        # Replace the boundary region with smoothed values
+        if len(smoothed_y) >= len(boundary_y):
+            coords[start_idx:end_idx, 1] = smoothed_y[:len(boundary_y)]
+
+        return drawing.coords_to_offsets(coords)
+
+    def _calculate_adaptive_spacing(
+            self,
+            stroke1: np.ndarray,
+            stroke2: np.ndarray,
+            base_spacing: float = 8.0
+    ) -> float:
+        """
+        Calculate adaptive spacing between chunks based on their characteristics.
+
+        Args:
+            stroke1: First stroke sequence
+            stroke2: Second stroke sequence
+            base_spacing: Base spacing value
+
+        Returns:
+            Adjusted spacing value
+        """
+        if len(stroke1) == 0 or len(stroke2) == 0:
+            return base_spacing
+
+        # Get the characteristics of the ending and starting strokes
+        coords1 = drawing.offsets_to_coords(stroke1)
+        coords2 = drawing.offsets_to_coords(stroke2)
+
+        # Look at the last few points of stroke1 and first few of stroke2
+        end_points = coords1[-min(10, len(coords1)):]
+        start_points = coords2[:min(10, len(coords2))]
+
+        # Calculate the density (how spread out the strokes are)
+        end_x_range = np.max(end_points[:, 0]) - np.min(end_points[:, 0])
+        start_x_range = np.max(start_points[:, 0]) - np.min(start_points[:, 0])
+
+        # Adjust spacing based on density
+        # If chunks are dense (many points in small space), use more spacing
+        # If chunks are sparse, use less spacing
+        avg_density = (end_x_range + start_x_range) / 2.0
+
+        if avg_density < 5.0:
+            # Dense strokes (like 'i', 'l') - use more spacing
+            return base_spacing * 1.2
+        elif avg_density > 20.0:
+            # Sparse strokes (like 'w', 'm') - use less spacing
+            return base_spacing * 0.85
+
+        return base_spacing
+
+    def _stitch_strokes(
+            self,
+            stroke1: np.ndarray,
+            stroke2: np.ndarray,
+            spacing: float = 0.0,
+            rotate_to_match: bool = True,
+            smooth_boundary: bool = True,
+            adaptive_spacing: bool = True
+    ) -> np.ndarray:
+        """
+        Stitch two stroke sequences together with comprehensive improvements.
+
+        This method now includes:
+        1. Baseline angle correction (horizontal alignment)
+        2. Adaptive spacing (context-aware gaps)
+        3. Boundary smoothing (seamless transitions)
 
         Args:
             stroke1: First stroke sequence (offsets)
             stroke2: Second stroke sequence (offsets)
-            spacing: Horizontal spacing between strokes
-            rotate_to_match: If True, rotate stroke2 to match stroke1's ending angle
+            spacing: Base horizontal spacing between strokes
+            rotate_to_match: If True, apply rotation correction
+            smooth_boundary: If True, smooth the transition at chunk boundary
+            adaptive_spacing: If True, use context-aware spacing
 
         Returns:
-            Combined stroke sequence
+            Combined stroke sequence with all improvements applied
         """
         if len(stroke1) == 0:
             return stroke2
         if len(stroke2) == 0:
             return stroke1
 
+        # Store the boundary index for later smoothing
+        boundary_idx = len(stroke1)
+
         # Convert to coordinates
         coords1 = drawing.offsets_to_coords(stroke1)
         coords2 = drawing.offsets_to_coords(stroke2)
 
+        # IMPROVEMENT 1: Baseline angle correction
         if rotate_to_match:
-            # Calculate the baseline angle at the end of stroke1
-            # Use the last 40% of stroke1 to get the ending angle
-            end_portion_start = int(len(coords1) * 0.6)
-            end_coords = coords1[end_portion_start:]
+            # STEP 1: Pre-correction of stroke2 to horizontal
+            angle2 = self._calculate_baseline_angle(stroke2, use_last_portion=1.0)
 
-            # Calculate ending angle using the same baseline detection
-            if len(end_coords) >= 4:
-                y_values = end_coords[:, 1]
-                y_range = np.max(y_values) - np.min(y_values)
+            if abs(angle2) > 0.003:  # ~0.17 degrees threshold
+                y_values2 = coords2[:, 1]
+                baseline2_y = np.percentile(y_values2, 70)
+                x_mid = (np.max(coords2[:, 0]) + np.min(coords2[:, 0])) / 2
+                pivot = np.array([x_mid, baseline2_y])
 
-                if y_range >= 1.0:
-                    y_lower = np.percentile(y_values, 60)
-                    y_upper = np.percentile(y_values, 80)
-                    baseline_mask = (y_values >= y_lower) & (y_values <= y_upper)
-                    baseline_points = end_coords[baseline_mask]
+                stroke2 = self._rotate_stroke(stroke2, -angle2, pivot)
+                coords2 = drawing.offsets_to_coords(stroke2)
 
-                    if len(baseline_points) >= 2:
-                        x_baseline = baseline_points[:, 0]
-                        y_baseline = baseline_points[:, 1]
-                        A = np.vstack([x_baseline, np.ones(len(x_baseline))]).T
-                        result = np.linalg.lstsq(A, y_baseline, rcond=None)
-                        m1, b1 = result[0]
-                        ending_angle = np.arctan(m1)
+        # IMPROVEMENT 2: Adaptive spacing
+        actual_spacing = spacing
+        if adaptive_spacing:
+            actual_spacing = self._calculate_adaptive_spacing(stroke1, stroke2, spacing)
 
-                        # Calculate the baseline angle at the start of stroke2
-                        start_angle = self._calculate_baseline_angle(stroke2)
-
-                        # Calculate rotation needed to match angles
-                        rotation_needed = ending_angle - start_angle
-
-                        # Only rotate if the difference is significant
-                        if abs(rotation_needed) > 0.005:  # ~0.3 degrees
-                            # Rotate stroke2 around its starting point to match stroke1's ending angle
-                            # Find the baseline point at the start of stroke2
-                            y_values2 = coords2[:, 1]
-                            baseline2_y = np.percentile(y_values2, 70)
-                            baseline_points2 = coords2[coords2[:, 1] >= np.percentile(y_values2, 60)]
-                            if len(baseline_points2) > 0:
-                                pivot_x = np.min(baseline_points2[:, 0])
-                                pivot_y = baseline2_y
-                                pivot = np.array([pivot_x, pivot_y])
-
-                                # Apply rotation
-                                stroke2 = self._rotate_stroke(stroke2, rotation_needed, pivot)
-                                coords2 = drawing.offsets_to_coords(stroke2)
-
-        # Calculate horizontal offset needed for stroke2
+        # Calculate horizontal and vertical offsets
         max_x1 = np.max(coords1[:, 0])
         min_x2 = np.min(coords2[:, 0])
-        x_offset = max_x1 - min_x2 + spacing
+        x_offset = max_x1 - min_x2 + actual_spacing
 
-        # Calculate vertical offset to align baselines using improved method
+        # Improved baseline alignment
         baseline1 = self._get_baseline_y(coords1)
         baseline2 = self._get_baseline_y(coords2)
         y_offset = baseline1 - baseline2
@@ -395,19 +474,42 @@ class Hand(object):
 
         # Combine coordinates
         combined_coords = np.vstack([coords1, coords2])
-
-        # Convert back to offsets
         combined_offsets = drawing.coords_to_offsets(combined_coords)
+
+        # IMPROVEMENT 3: Boundary smoothing
+        if smooth_boundary:
+            combined_offsets = self._smooth_chunk_boundary(
+                combined_offsets,
+                boundary_idx,
+                window_size=3  # Small window for subtle smoothing
+            )
+
+        # Final angle correction
+        if rotate_to_match:
+            final_angle = self._calculate_baseline_angle(combined_offsets, use_last_portion=0.5)
+
+            if abs(final_angle) > 0.003:
+                combined_coords = drawing.offsets_to_coords(combined_offsets)
+
+                end_portion_start = int(len(combined_coords) * 0.5)
+                end_coords = combined_coords[end_portion_start:]
+                y_values_end = end_coords[:, 1]
+                baseline_end_y = np.percentile(y_values_end, 70)
+
+                pivot_x = max_x1
+                pivot = np.array([pivot_x, baseline_end_y])
+
+                combined_offsets = self._rotate_stroke(combined_offsets, -final_angle, pivot)
 
         return combined_offsets
 
     def _split_text_into_chunks(
-        self,
-        text: str,
-        words_per_chunk: int = 4,
-        target_chars_per_chunk: int = 25,
-        min_words: int = 2,
-        max_words: int = 8
+            self,
+            text: str,
+            words_per_chunk: int = 4,
+            target_chars_per_chunk: int = 25,
+            min_words: int = 2,
+            max_words: int = 8
     ) -> List[str]:
         """
         Split text into chunks with dynamic sizing based on word length.
@@ -476,31 +578,31 @@ class Hand(object):
         return chunks
 
     def write_chunked(
-        self,
-        filename,
-        text,
-        max_line_width=800.0,  # Increased from 550.0 for longer lines
-        words_per_chunk=3,  # Increased from 2 for better context with dynamic sizing
-        chunk_spacing=8.0,
-        rotate_chunks=True,  # NEW: Enable rotation correction for cumulative slant
-        min_words_per_chunk=2,  # NEW: Minimum words per chunk
-        max_words_per_chunk=8,  # NEW: Maximum words per chunk
-        target_chars_per_chunk=25,  # NEW: Target characters per chunk
-        biases=None,
-        styles=None,
-        stroke_colors=None,
-        stroke_widths=None,
-        page_size='A4',
-        units='mm',
-        margins=20,
-        line_height=None,
-        align='left',
-        background=None,
-        global_scale=1.0,
-        orientation='portrait',
-        legibility='normal',
-        x_stretch=1.0,
-        denoise=True,
+            self,
+            filename,
+            text,
+            max_line_width=800.0,  # Increased from 550.0 for longer lines
+            words_per_chunk=3,  # Increased from 2 for better context with dynamic sizing
+            chunk_spacing=8.0,
+            rotate_chunks=True,  # NEW: Enable rotation correction for cumulative slant
+            min_words_per_chunk=2,  # NEW: Minimum words per chunk
+            max_words_per_chunk=8,  # NEW: Maximum words per chunk
+            target_chars_per_chunk=25,  # NEW: Target characters per chunk
+            biases=None,
+            styles=None,
+            stroke_colors=None,
+            stroke_widths=None,
+            page_size='A4',
+            units='mm',
+            margins=20,
+            line_height=None,
+            align='left',
+            background=None,
+            global_scale=1.0,
+            orientation='portrait',
+            legibility='normal',
+            x_stretch=1.0,
+            denoise=True,
     ):
         """
         Generate handwriting using chunk-based approach to overcome long-range dependency.
