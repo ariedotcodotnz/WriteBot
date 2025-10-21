@@ -171,39 +171,30 @@ class Hand(object):
         coords = drawing.offsets_to_coords(stroke)
         return float(np.max(coords[:, 0]) - np.min(coords[:, 0]))
 
-    def _straighten_baseline(self, stroke: np.ndarray) -> np.ndarray:
+    def _calculate_baseline_angle(self, stroke: np.ndarray) -> float:
         """
-        Straighten the baseline of a stroke by detecting and correcting slant.
-
-        Improved version that:
-        1. Uses a more robust baseline detection method
-        2. Rotates around a point on the baseline (not center) to preserve vertical alignment
-        3. Ensures chunks can be stitched together without introducing vertical displacement
+        Calculate the baseline angle of a stroke.
 
         Args:
             stroke: Input stroke sequence (offsets)
 
         Returns:
-            Straightened stroke sequence (offsets)
+            Baseline angle in radians
         """
         if len(stroke) == 0:
-            return stroke
+            return 0.0
 
         # Convert to coordinates
         coords = drawing.offsets_to_coords(stroke)
 
-        if len(coords) < 4:  # Need at least a few points for meaningful correction
-            return stroke
+        if len(coords) < 4:
+            return 0.0
 
-        # Better baseline detection: use points in the lower portion of the stroke
-        # Exclude the very bottom (which might be descenders) but focus on the main body
         y_values = coords[:, 1]
-        y_min = np.min(y_values)
-        y_max = np.max(y_values)
-        y_range = y_max - y_min
+        y_range = np.max(y_values) - np.min(y_values)
 
-        if y_range < 1.0:  # Too flat to meaningfully correct
-            return stroke
+        if y_range < 1.0:
+            return 0.0
 
         # Focus on points between 60th-80th percentile (main baseline, excluding descenders)
         y_lower = np.percentile(y_values, 60)
@@ -213,13 +204,12 @@ class Hand(object):
         baseline_points = coords[baseline_mask]
 
         if len(baseline_points) < 3:
-            # Not enough baseline points, fall back to using more points
             y_threshold = np.percentile(y_values, 70)
             baseline_mask = y_values >= y_threshold
             baseline_points = coords[baseline_mask]
 
         if len(baseline_points) < 2:
-            return stroke
+            return 0.0
 
         # Fit linear regression to baseline points: y = mx + b
         x_baseline = baseline_points[:, 0]
@@ -230,36 +220,50 @@ class Hand(object):
         result = np.linalg.lstsq(A, y_baseline, rcond=None)
         m, b = result[0]
 
-        # Calculate rotation angle to make baseline horizontal
+        # Calculate rotation angle
         angle = np.arctan(m)
 
-        # Only correct if angle is significant (> 0.3 degrees to catch subtle slants)
-        if abs(np.degrees(angle)) < 0.3:
+        return angle
+
+    def _rotate_stroke(self, stroke: np.ndarray, angle: float, pivot_point: Optional[np.ndarray] = None) -> np.ndarray:
+        """
+        Rotate a stroke by a given angle around a pivot point.
+
+        Args:
+            stroke: Input stroke sequence (offsets)
+            angle: Rotation angle in radians (positive = counter-clockwise)
+            pivot_point: Point to rotate around (default: center of stroke)
+
+        Returns:
+            Rotated stroke sequence (offsets)
+        """
+        if len(stroke) == 0 or abs(angle) < 1e-6:
             return stroke
 
-        # IMPORTANT: Rotate around a point on the baseline to avoid vertical displacement
-        # Use the middle of the baseline as the rotation pivot
-        x_mid = np.mean(x_baseline)
-        y_mid = m * x_mid + b  # Point on the fitted baseline
-        pivot_point = np.array([x_mid, y_mid])
+        # Convert to coordinates
+        coords = drawing.offsets_to_coords(stroke)
+
+        if pivot_point is None:
+            # Use center of stroke as pivot
+            pivot_point = np.mean(coords[:, :2], axis=0)
 
         # Rotation matrix
-        cos_angle = np.cos(-angle)
-        sin_angle = np.sin(-angle)
+        cos_angle = np.cos(angle)
+        sin_angle = np.sin(angle)
         rotation_matrix = np.array([
             [cos_angle, -sin_angle],
             [sin_angle, cos_angle]
         ])
 
-        # Apply rotation around the baseline pivot point
+        # Apply rotation around pivot point
         coords_centered = coords[:, :2] - pivot_point
         coords_rotated = coords_centered @ rotation_matrix.T
         coords[:, :2] = coords_rotated + pivot_point
 
         # Convert back to offsets
-        straightened = drawing.coords_to_offsets(coords)
+        rotated = drawing.coords_to_offsets(coords)
 
-        return straightened
+        return rotated
 
     def _get_baseline_y(self, coords: np.ndarray) -> float:
         """
@@ -297,18 +301,24 @@ class Hand(object):
         self,
         stroke1: np.ndarray,
         stroke2: np.ndarray,
-        spacing: float = 0.0
+        spacing: float = 0.0,
+        rotate_to_match: bool = True
     ) -> np.ndarray:
         """
-        Stitch two stroke sequences together horizontally with improved baseline alignment.
+        Stitch two stroke sequences together horizontally with improved baseline alignment
+        and rotation correction to prevent cumulative slant.
 
-        Uses a consistent baseline calculation method to ensure natural-looking
-        vertical alignment between chunks on the same line.
+        This method now:
+        1. Calculates the baseline angle at the end of stroke1
+        2. Rotates stroke2 to match that angle (compensating for cumulative slant)
+        3. Aligns baselines vertically
+        4. Stitches the strokes together
 
         Args:
             stroke1: First stroke sequence (offsets)
             stroke2: Second stroke sequence (offsets)
             spacing: Horizontal spacing between strokes
+            rotate_to_match: If True, rotate stroke2 to match stroke1's ending angle
 
         Returns:
             Combined stroke sequence
@@ -321,6 +331,53 @@ class Hand(object):
         # Convert to coordinates
         coords1 = drawing.offsets_to_coords(stroke1)
         coords2 = drawing.offsets_to_coords(stroke2)
+
+        if rotate_to_match:
+            # Calculate the baseline angle at the end of stroke1
+            # Use the last 40% of stroke1 to get the ending angle
+            end_portion_start = int(len(coords1) * 0.6)
+            end_coords = coords1[end_portion_start:]
+
+            # Calculate ending angle using the same baseline detection
+            if len(end_coords) >= 4:
+                y_values = end_coords[:, 1]
+                y_range = np.max(y_values) - np.min(y_values)
+
+                if y_range >= 1.0:
+                    y_lower = np.percentile(y_values, 60)
+                    y_upper = np.percentile(y_values, 80)
+                    baseline_mask = (y_values >= y_lower) & (y_values <= y_upper)
+                    baseline_points = end_coords[baseline_mask]
+
+                    if len(baseline_points) >= 2:
+                        x_baseline = baseline_points[:, 0]
+                        y_baseline = baseline_points[:, 1]
+                        A = np.vstack([x_baseline, np.ones(len(x_baseline))]).T
+                        result = np.linalg.lstsq(A, y_baseline, rcond=None)
+                        m1, b1 = result[0]
+                        ending_angle = np.arctan(m1)
+
+                        # Calculate the baseline angle at the start of stroke2
+                        start_angle = self._calculate_baseline_angle(stroke2)
+
+                        # Calculate rotation needed to match angles
+                        rotation_needed = ending_angle - start_angle
+
+                        # Only rotate if the difference is significant
+                        if abs(rotation_needed) > 0.005:  # ~0.3 degrees
+                            # Rotate stroke2 around its starting point to match stroke1's ending angle
+                            # Find the baseline point at the start of stroke2
+                            y_values2 = coords2[:, 1]
+                            baseline2_y = np.percentile(y_values2, 70)
+                            baseline_points2 = coords2[coords2[:, 1] >= np.percentile(y_values2, 60)]
+                            if len(baseline_points2) > 0:
+                                pivot_x = np.min(baseline_points2[:, 0])
+                                pivot_y = baseline2_y
+                                pivot = np.array([pivot_x, pivot_y])
+
+                                # Apply rotation
+                                stroke2 = self._rotate_stroke(stroke2, rotation_needed, pivot)
+                                coords2 = drawing.offsets_to_coords(stroke2)
 
         # Calculate horizontal offset needed for stroke2
         max_x1 = np.max(coords1[:, 0])
@@ -347,24 +404,74 @@ class Hand(object):
     def _split_text_into_chunks(
         self,
         text: str,
-        words_per_chunk: int = 4
+        words_per_chunk: int = 4,
+        target_chars_per_chunk: int = 25,
+        min_words: int = 2,
+        max_words: int = 8
     ) -> List[str]:
         """
-        Split text into chunks of approximately words_per_chunk words.
+        Split text into chunks with dynamic sizing based on word length.
+
+        This method creates more natural chunks by:
+        1. Using more words if they're short (better context for the model)
+        2. Using fewer words if they're long (avoid exceeding limits)
+        3. Ensuring reasonable min/max bounds
 
         Args:
             text: Input text to split
-            words_per_chunk: Target number of words per chunk
+            words_per_chunk: Target number of words per chunk (used as baseline)
+            target_chars_per_chunk: Target character count per chunk (default: 25)
+            min_words: Minimum words per chunk
+            max_words: Maximum words per chunk
 
         Returns:
             List of text chunks
         """
         words = text.split()
-        chunks = []
+        if not words:
+            return []
 
-        for i in range(0, len(words), words_per_chunk):
-            chunk = ' '.join(words[i:i + words_per_chunk])
-            chunks.append(chunk)
+        chunks = []
+        i = 0
+
+        while i < len(words):
+            # Start with the target words per chunk
+            chunk_word_count = words_per_chunk
+
+            # Look ahead to see the average word length
+            lookahead_end = min(i + words_per_chunk * 2, len(words))
+            lookahead_words = words[i:lookahead_end]
+
+            if lookahead_words:
+                avg_word_length = sum(len(w) for w in lookahead_words) / len(lookahead_words)
+
+                # Adjust chunk size based on word length
+                if avg_word_length < 4:  # Short words (a, an, the, is, of, etc.)
+                    # Use more words to provide better context
+                    chunk_word_count = min(max_words, int(words_per_chunk * 1.5))
+                elif avg_word_length > 7:  # Long words
+                    # Use fewer words to avoid too long chunks
+                    chunk_word_count = max(min_words, int(words_per_chunk * 0.75))
+
+            # Ensure we stay within bounds
+            chunk_word_count = max(min_words, min(max_words, chunk_word_count))
+
+            # Don't exceed remaining words
+            chunk_word_count = min(chunk_word_count, len(words) - i)
+
+            # Create the chunk
+            chunk_words = words[i:i + chunk_word_count]
+            chunk_text = ' '.join(chunk_words)
+
+            # If chunk is too long (> 50 chars), split it
+            if len(chunk_text) > 50 and len(chunk_words) > min_words:
+                # Use fewer words
+                chunk_word_count = max(min_words, len(chunk_words) // 2)
+                chunk_words = words[i:i + chunk_word_count]
+                chunk_text = ' '.join(chunk_words)
+
+            chunks.append(chunk_text)
+            i += chunk_word_count
 
         return chunks
 
@@ -373,8 +480,12 @@ class Hand(object):
         filename,
         text,
         max_line_width=800.0,  # Increased from 550.0 for longer lines
-        words_per_chunk=2,  # Reduced from 4 for better long-range dependency handling
+        words_per_chunk=3,  # Increased from 2 for better context with dynamic sizing
         chunk_spacing=8.0,
+        rotate_chunks=True,  # NEW: Enable rotation correction for cumulative slant
+        min_words_per_chunk=2,  # NEW: Minimum words per chunk
+        max_words_per_chunk=8,  # NEW: Maximum words per chunk
+        target_chars_per_chunk=25,  # NEW: Target characters per chunk
         biases=None,
         styles=None,
         stroke_colors=None,
@@ -396,22 +507,28 @@ class Hand(object):
 
         Instead of generating line-by-line, this method:
         1. Splits text by newlines to preserve line breaks
-        2. Generates text in small chunks (a few words at a time)
-        3. Measures the actual width of each generated chunk
-        4. Stitches chunks together into lines based on actual measurements
+        2. Generates text in small chunks (dynamically sized based on word length)
+        3. Rotates chunks during stitching to prevent cumulative slant
+        4. Measures the actual width of each generated chunk
+        5. Stitches chunks together into lines based on actual measurements
 
         This allows:
         - Better line filling (using actual widths, not predictions)
         - Shorter RNN sequences (fewer long-range dependencies)
         - More text per line
         - Preserves blank lines and explicit line breaks
+        - Natural-looking continuous writing without cumulative slant
 
         Args:
             filename: Output file path
             text: Full text to write (newlines preserved for line breaks)
             max_line_width: Maximum line width in coordinate units
-            words_per_chunk: Number of words to generate per chunk
+            words_per_chunk: Target number of words per chunk (adjusted dynamically)
             chunk_spacing: Horizontal spacing between chunks
+            rotate_chunks: Enable rotation correction to prevent cumulative slant
+            min_words_per_chunk: Minimum words per chunk
+            max_words_per_chunk: Maximum words per chunk
+            target_chars_per_chunk: Target character count per chunk
             ... (other params same as write())
         """
         # Split text by newlines first to preserve line structure
@@ -428,8 +545,14 @@ class Hand(object):
                 all_line_texts.append('')
                 continue
 
-            # Split line into chunks
-            chunks = self._split_text_into_chunks(input_line, words_per_chunk)
+            # Split line into chunks with dynamic sizing
+            chunks = self._split_text_into_chunks(
+                input_line,
+                words_per_chunk=words_per_chunk,
+                target_chars_per_chunk=target_chars_per_chunk,
+                min_words=min_words_per_chunk,
+                max_words=max_words_per_chunk
+            )
 
             if not chunks:
                 all_lines.append(np.empty((0, 3)))
@@ -453,10 +576,8 @@ class Hand(object):
                 styles=[styles] * len(chunks) if styles is not None else None
             )
 
-            # Straighten baseline for each chunk to correct slant
-            chunk_strokes = [self._straighten_baseline(stroke) for stroke in chunk_strokes]
-
             # Stitch chunks into lines based on actual widths
+            # Now with rotation correction to prevent cumulative slant
             current_line_stroke = np.empty((0, 3))
             current_line_text = []
             current_line_width = 0.0
@@ -477,7 +598,8 @@ class Hand(object):
                         current_line_stroke = self._stitch_strokes(
                             current_line_stroke,
                             chunk_stroke,
-                            chunk_spacing
+                            chunk_spacing,
+                            rotate_to_match=rotate_chunks
                         )
                         current_line_text.append(chunk_text)
                     else:
