@@ -171,6 +171,75 @@ class Hand(object):
         coords = drawing.offsets_to_coords(stroke)
         return float(np.max(coords[:, 0]) - np.min(coords[:, 0]))
 
+    def _straighten_baseline(self, stroke: np.ndarray) -> np.ndarray:
+        """
+        Straighten the baseline of a stroke by detecting and correcting slant.
+
+        Lines often have a natural slant where they start lower and end higher.
+        This method:
+        1. Detects the baseline by finding bottom points
+        2. Fits a linear regression to find the slope
+        3. Rotates the stroke to make the baseline horizontal
+
+        Args:
+            stroke: Input stroke sequence (offsets)
+
+        Returns:
+            Straightened stroke sequence (offsets)
+        """
+        if len(stroke) == 0:
+            return stroke
+
+        # Convert to coordinates
+        coords = drawing.offsets_to_coords(stroke)
+
+        if len(coords) < 2:
+            return stroke
+
+        # Find baseline points (bottom 30% of Y values)
+        y_values = coords[:, 1]
+        y_threshold = np.percentile(y_values, 70)  # Points below 70th percentile (bottom 30%)
+        baseline_mask = y_values >= y_threshold  # Higher Y = lower on page
+        baseline_points = coords[baseline_mask]
+
+        if len(baseline_points) < 2:
+            # Not enough baseline points, use all points
+            baseline_points = coords
+
+        # Fit linear regression to baseline points: y = mx + b
+        x_baseline = baseline_points[:, 0]
+        y_baseline = baseline_points[:, 1]
+
+        # Use least squares to find slope
+        A = np.vstack([x_baseline, np.ones(len(x_baseline))]).T
+        m, b = np.linalg.lstsq(A, y_baseline, rcond=None)[0]
+
+        # Calculate rotation angle to make baseline horizontal
+        angle = np.arctan(m)
+
+        # Only correct if angle is significant (> 0.5 degrees)
+        if abs(np.degrees(angle)) < 0.5:
+            return stroke
+
+        # Rotate all coordinates to straighten baseline
+        cos_angle = np.cos(-angle)
+        sin_angle = np.sin(-angle)
+        rotation_matrix = np.array([
+            [cos_angle, -sin_angle],
+            [sin_angle, cos_angle]
+        ])
+
+        # Apply rotation around the center of the stroke
+        center = np.mean(coords[:, :2], axis=0)
+        coords_centered = coords[:, :2] - center
+        coords_rotated = coords_centered @ rotation_matrix.T
+        coords[:, :2] = coords_rotated + center
+
+        # Convert back to offsets
+        straightened = drawing.coords_to_offsets(coords)
+
+        return straightened
+
     def _stitch_strokes(
         self,
         stroke1: np.ndarray,
@@ -203,9 +272,15 @@ class Hand(object):
         x_offset = max_x1 - min_x2 + spacing
 
         # Calculate vertical offset to align baselines
-        # Use the median Y position as a proxy for baseline
-        baseline1 = np.median(coords1[:, 1])
-        baseline2 = np.median(coords2[:, 1])
+        # Use the bottom 30% of points (baseline) for better alignment
+        def get_baseline(coords):
+            y_values = coords[:, 1]
+            # Higher Y = lower on page, so get the 85th percentile (lower part of text)
+            baseline_y = np.percentile(y_values, 85)
+            return baseline_y
+
+        baseline1 = get_baseline(coords1)
+        baseline2 = get_baseline(coords2)
         y_offset = baseline1 - baseline2
 
         # Apply offsets to stroke2
@@ -328,6 +403,9 @@ class Hand(object):
                 biases=[biases] * len(chunks) if biases is not None else None,
                 styles=[styles] * len(chunks) if styles is not None else None
             )
+
+            # Straighten baseline for each chunk to correct slant
+            chunk_strokes = [self._straighten_baseline(stroke) for stroke in chunk_strokes]
 
             # Stitch chunks into lines based on actual widths
             current_line_stroke = np.empty((0, 3))
