@@ -513,15 +513,25 @@ class Hand(object):
             words_per_chunk: int = 4,
             target_chars_per_chunk: int = 25,
             min_words: int = 2,
-            max_words: int = 8
+            max_words: int = 8,
+            adaptive_chunking: bool = True,
+            adaptive_strategy: str = 'balanced'
     ) -> List[str]:
         """
-        Split text into chunks with dynamic sizing based on word length.
+        Split text into chunks with adaptive sizing based on selected strategy.
+
+        Adaptive strategies:
+        - 'word_length': Adjusts based on average word length (original behavior)
+        - 'sentence': Respects sentence boundaries (periods, !, ?)
+        - 'punctuation': Prefers to break at punctuation marks (commas, semicolons)
+        - 'balanced': Combines word length + punctuation awareness
+        - 'off': Fixed chunk sizes (no adaptation)
 
         This method creates more natural chunks by:
         1. Using more words if they're short (better context for the model)
         2. Using fewer words if they're long (avoid exceeding limits)
-        3. Ensuring reasonable min/max bounds
+        3. Respecting sentence and punctuation boundaries when enabled
+        4. Ensuring reasonable min/max bounds
 
         Args:
             text: Input text to split
@@ -529,6 +539,8 @@ class Hand(object):
             target_chars_per_chunk: Target character count per chunk (default: 25)
             min_words: Minimum words per chunk
             max_words: Maximum words per chunk
+            adaptive_chunking: Enable adaptive chunking
+            adaptive_strategy: Strategy to use ('word_length', 'sentence', 'punctuation', 'balanced', 'off')
 
         Returns:
             List of text chunks
@@ -537,8 +549,20 @@ class Hand(object):
         if not words:
             return []
 
+        # Non-adaptive mode: fixed chunk sizes
+        if not adaptive_chunking or adaptive_strategy == 'off':
+            chunks = []
+            for i in range(0, len(words), words_per_chunk):
+                chunk = ' '.join(words[i:i + words_per_chunk])
+                chunks.append(chunk)
+            return chunks
+
         chunks = []
         i = 0
+
+        # Sentence boundary markers
+        sentence_enders = {'.', '!', '?'}
+        punctuation_breaks = {',', ';', ':', '--'}
 
         while i < len(words):
             # Start with the target words per chunk
@@ -548,7 +572,8 @@ class Hand(object):
             lookahead_end = min(i + words_per_chunk * 2, len(words))
             lookahead_words = words[i:lookahead_end]
 
-            if lookahead_words:
+            # Word length adaptation (used in word_length and balanced strategies)
+            if adaptive_strategy in ('word_length', 'balanced') and lookahead_words:
                 avg_word_length = sum(len(w) for w in lookahead_words) / len(lookahead_words)
 
                 # Adjust chunk size based on word length
@@ -563,6 +588,42 @@ class Hand(object):
             chunk_word_count = max(min_words, min(max_words, chunk_word_count))
 
             # Don't exceed remaining words
+            chunk_word_count = min(chunk_word_count, len(words) - i)
+
+            # Sentence-aware chunking (sentence and balanced strategies)
+            if adaptive_strategy in ('sentence', 'balanced'):
+                # Look for sentence boundaries within our chunk range
+                search_end = min(i + max_words, len(words))
+                for j in range(i + min_words, search_end):
+                    word = words[j]
+                    # Check if word ends with sentence terminator
+                    if any(word.endswith(char) for char in sentence_enders):
+                        # Found sentence end, use this as chunk boundary
+                        chunk_word_count = j - i + 1
+                        break
+
+            # Punctuation-aware chunking (punctuation and balanced strategies)
+            elif adaptive_strategy in ('punctuation', 'balanced'):
+                # Look for punctuation breaks within our chunk range
+                search_start = i + min_words
+                search_end = min(i + chunk_word_count + 2, len(words))
+                best_break = None
+
+                for j in range(search_start, search_end):
+                    word = words[j]
+                    # Check for sentence enders first (higher priority)
+                    if any(word.endswith(char) for char in sentence_enders):
+                        best_break = j - i + 1
+                        break
+                    # Check for punctuation breaks (lower priority)
+                    elif any(word.endswith(char) for char in punctuation_breaks):
+                        best_break = j - i + 1
+
+                if best_break:
+                    chunk_word_count = best_break
+
+            # Final bounds check
+            chunk_word_count = max(min_words, min(max_words, chunk_word_count))
             chunk_word_count = min(chunk_word_count, len(words) - i)
 
             # Create the chunk
@@ -592,6 +653,8 @@ class Hand(object):
             min_words_per_chunk=2,  # NEW: Minimum words per chunk
             max_words_per_chunk=8,  # NEW: Maximum words per chunk
             target_chars_per_chunk=25,  # NEW: Target characters per chunk
+            adaptive_chunking=True,  # NEW: Enable adaptive chunking
+            adaptive_strategy='balanced',  # NEW: Adaptive chunking strategy
             biases=None,
             styles=None,
             stroke_colors=None,
@@ -613,7 +676,7 @@ class Hand(object):
 
         Instead of generating line-by-line, this method:
         1. Splits text by newlines to preserve line breaks
-        2. Generates text in small chunks (dynamically sized based on word length)
+        2. Generates text in small chunks (adaptively sized based on strategy)
         3. Rotates chunks during stitching to prevent cumulative slant
         4. Measures the actual width of each generated chunk
         5. Stitches chunks together into lines based on actual measurements
@@ -629,12 +692,15 @@ class Hand(object):
             filename: Output file path
             text: Full text to write (newlines preserved for line breaks)
             max_line_width: Maximum line width in coordinate units
-            words_per_chunk: Target number of words per chunk (adjusted dynamically)
+            words_per_chunk: Target number of words per chunk (adjusted by strategy)
             chunk_spacing: Horizontal spacing between chunks
             rotate_chunks: Enable rotation correction to prevent cumulative slant
             min_words_per_chunk: Minimum words per chunk
             max_words_per_chunk: Maximum words per chunk
             target_chars_per_chunk: Target character count per chunk
+            adaptive_chunking: Enable adaptive chunking (default: True)
+            adaptive_strategy: Strategy for adaptive chunking ('balanced', 'word_length',
+                             'sentence', 'punctuation', 'off')
             ... (other params same as write())
         """
         # Split text by newlines first to preserve line structure
@@ -651,13 +717,15 @@ class Hand(object):
                 all_line_texts.append('')
                 continue
 
-            # Split line into chunks with dynamic sizing
+            # Split line into chunks with adaptive sizing
             chunks = self._split_text_into_chunks(
                 input_line,
                 words_per_chunk=words_per_chunk,
                 target_chars_per_chunk=target_chars_per_chunk,
                 min_words=min_words_per_chunk,
-                max_words=max_words_per_chunk
+                max_words=max_words_per_chunk,
+                adaptive_chunking=adaptive_chunking,
+                adaptive_strategy=adaptive_strategy
             )
 
             if not chunks:
