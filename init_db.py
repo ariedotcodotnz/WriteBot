@@ -7,6 +7,7 @@ This script creates the database tables and optionally creates a default admin u
 import os
 import sys
 from getpass import getpass
+import warnings
 
 # Add project root to path
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -15,6 +16,20 @@ if PROJECT_ROOT not in sys.path:
 
 from webapp.app import app
 from webapp.models import db, User
+
+
+def get_password_input(prompt="Password: "):
+    """Safely get password input with fallback for non-TTY environments."""
+    # Check if we have a TTY
+    if not sys.stdin.isatty():
+        warnings.warn("No TTY detected - password input will be visible!")
+        return input(prompt).strip()
+
+    try:
+        return getpass(prompt).strip()
+    except Exception as e:
+        print(f"\nWarning: getpass failed ({e}), falling back to visible input")
+        return input(prompt).strip()
 
 
 def init_database():
@@ -51,17 +66,15 @@ def create_admin_user():
 
         full_name = input("Enter full name (optional): ").strip()
 
-        # Flush stdout to ensure clean transition to getpass
-        sys.stdout.flush()
-
         # Get password with confirmation
+        print()  # Add blank line for better readability
         while True:
-            password = getpass("Enter password: ")
+            password = get_password_input("Enter password: ")
             if len(password) < 8:
                 print("Error: Password must be at least 8 characters long.")
                 continue
 
-            password_confirm = getpass("Confirm password: ")
+            password_confirm = get_password_input("Confirm password: ")
             if password != password_confirm:
                 print("Error: Passwords do not match!")
                 continue
