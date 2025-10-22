@@ -555,48 +555,48 @@ class Hand(object):
                     styles=[styles] * len(chunks) if styles is not None else None
                 )
 
-            # Stitch chunks into lines based on actual widths
-            current_line_stroke = np.empty((0, 3))
-            current_line_text = []
-            current_line_width = 0.0
+                # Stitch chunks into lines based on actual widths
+                current_line_stroke = np.empty((0, 3))
+                current_line_text = []
+                current_line_width = 0.0
 
-            for chunk_text, chunk_stroke in zip(chunks, chunk_strokes):
-                chunk_width = get_stroke_width(chunk_stroke)
+                for chunk_text, chunk_stroke in zip(chunks, chunk_strokes):
+                    chunk_width = get_stroke_width(chunk_stroke)
 
-                # Check if chunk fits on current line
-                potential_width = current_line_width
-                if current_line_width > 0:
-                    potential_width += chunk_spacing + chunk_width
-                else:
-                    potential_width = chunk_width
-
-                if potential_width <= max_line_width or current_line_width == 0:
-                    # Chunk fits on current line
+                    # Check if chunk fits on current line
+                    potential_width = current_line_width
                     if current_line_width > 0:
-                        current_line_stroke = stitch_strokes(
-                            current_line_stroke,
-                            chunk_stroke,
-                            chunk_spacing,
-                            rotate_to_match=rotate_chunks
-                        )
-                        current_line_text.append(chunk_text)
+                        potential_width += chunk_spacing + chunk_width
                     else:
+                        potential_width = chunk_width
+
+                    if potential_width <= max_line_width or current_line_width == 0:
+                        # Chunk fits on current line
+                        if current_line_width > 0:
+                            current_line_stroke = stitch_strokes(
+                                current_line_stroke,
+                                chunk_stroke,
+                                chunk_spacing,
+                                rotate_to_match=rotate_chunks
+                            )
+                            current_line_text.append(chunk_text)
+                        else:
+                            current_line_stroke = chunk_stroke
+                            current_line_text.append(chunk_text)
+                        current_line_width = potential_width
+                    else:
+                        # Start new line (width exceeded)
+                        all_lines.append(current_line_stroke)
+                        all_line_texts.append(' '.join(current_line_text))
+
                         current_line_stroke = chunk_stroke
-                        current_line_text.append(chunk_text)
-                    current_line_width = potential_width
-                else:
-                    # Start new line (width exceeded)
+                        current_line_text = [chunk_text]
+                        current_line_width = chunk_width
+
+                # Add last line from this input line
+                if len(current_line_stroke) > 0 or len(current_line_text) > 0:
                     all_lines.append(current_line_stroke)
                     all_line_texts.append(' '.join(current_line_text))
-
-                    current_line_stroke = chunk_stroke
-                    current_line_text = [chunk_text]
-                    current_line_width = chunk_width
-
-            # Add last line from this input line
-            if len(current_line_stroke) > 0 or len(current_line_text) > 0:
-                all_lines.append(current_line_stroke)
-                all_line_texts.append(' '.join(current_line_text))
 
         # Use the collected lines
         lines = all_lines
