@@ -549,32 +549,33 @@ function setupZoomControl() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-  loadStyles();
-  syncCustomSizeVisibility();
-  setupCsvDragDrop();
-  setupZoomControl();
-  
-  document.getElementById('pageSize').addEventListener('change', syncCustomSizeVisibility);
+    loadStyles();
+    syncCustomSizeVisibility();
+    setupCsvDragDrop();
+    setupZoomControl();
 
-  // Toggle manual size scale input based on auto size checkbox
-  const autoSizeCheckbox = document.getElementById('autoSize');
-  const manualSizeScaleInput = document.getElementById('manualSizeScale');
-  autoSizeCheckbox.addEventListener('change', () => {
-    manualSizeScaleInput.disabled = autoSizeCheckbox.checked;
-  });
+    document.getElementById('pageSize').addEventListener('change', syncCustomSizeVisibility);
 
-  // Add keyboard shortcuts
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      closeLightbox();
-    }
-    if (e.ctrlKey || e.metaKey) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        generate();
-      } else if (e.key === 's') {
-        e.preventDefault();
-        downloadSVG();
-      }
-    }
-  });
+    // Toggle manual size scale input based on auto size checkbox
+    const autoSizeCheckbox = document.getElementById('autoSize');
+    const manualSizeScaleInput = document.getElementById('manualSizeScale');
+    autoSizeCheckbox.addEventListener('change', () => {
+        manualSizeScaleInput.disabled = autoSizeCheckbox.checked;
+    });
+
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeLightbox();
+        }
+        if (e.ctrlKey || e.metaKey) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                generate();
+            } else if (e.key === 's') {
+                e.preventDefault();
+                downloadSVG();
+            }
+        }
+    });
+})

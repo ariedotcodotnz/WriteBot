@@ -1,0 +1,4 @@
+Contact: mailto:jordan@campaign.company
+Contact: https://www.campaign.company/
+Expires: 2039-12-31T23:00:00.000Z
+Preferred-Languages: en
