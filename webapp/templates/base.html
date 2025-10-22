@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}WriteBot - Handwriting Synthesis{% endblock %}</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Carbon Design System -->
+  <link rel="stylesheet" href="https://unpkg.com/carbon-components@10.58.0/css/carbon-components.min.css" />
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  {% include 'components/header.html' %}
+
+  <main class="bx--content">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include 'components/footer.html' %}
+
+  <!-- Lightbox for SVG Preview -->
+  <div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
+    <div class="lightbox-content" onclick="event.stopPropagation()">
+      <button class="lightbox-close" onclick="closeLightbox()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+      <div id="lightboxSvg" class="lightbox-svg"></div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="overlay" class="overlay">
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Processing...</div>
+    </div>
+  </div>
+
+  <!-- Notification Container -->
+  <div id="notif" class="notification-container"></div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/carbon-components@10.58.0/scripts/carbon-components.min.js"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

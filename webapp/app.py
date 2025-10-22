@@ -7,7 +7,7 @@ for handwriting synthesis via web API.
 
 import os
 import sys
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, send_from_directory, render_template
 
 # Ensure project root is in sys.path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
@@ -40,25 +40,10 @@ app.register_blueprint(batch_bp)
 app.register_blueprint(style_bp)
 
 
-# Configuration
-_DIST_DIR = os.path.join(os.path.dirname(__file__), 'dist')
-
-
 @app.route("/")
 def index():
-    """Serve the main application page."""
-    # If a built dist exists, serve hashed index; otherwise serve static index as-is
-    dist_index_candidates = []
-    if os.path.isdir(_DIST_DIR):
-        for name in os.listdir(_DIST_DIR):
-            if name.startswith('index.') and name.endswith('.html'):
-                dist_index_candidates.append(name)
-
-    if dist_index_candidates:
-        return send_from_directory(_DIST_DIR, sorted(dist_index_candidates)[-1])
-
-    # Fallback: serve original static index without transformation to ensure stability
-    return send_from_directory(app.static_folder, "index.html")
+    """Serve the main application page using Flask templates."""
+    return render_template('index.html')
 
 
 @app.route("/api/health", methods=["GET"])
