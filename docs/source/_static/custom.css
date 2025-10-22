@@ -1,0 +1,175 @@
+/* Custom CSS for WriteBot Documentation */
+
+/* Brand colors */
+:root {
+    --writebot-primary: #0f62fe;
+    --writebot-secondary: #667eea;
+    --writebot-dark: #161616;
+    --writebot-light: #f4f4f4;
+}
+
+/* Header customization */
+.wy-side-nav-search {
+    background-color: var(--writebot-secondary);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.wy-side-nav-search input[type="text"] {
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Link colors */
+a {
+    color: var(--writebot-primary);
+}
+
+a:hover {
+    color: var(--writebot-secondary);
+}
+
+.wy-menu-vertical a {
+    color: #404040;
+}
+
+.wy-menu-vertical a:hover {
+    background-color: var(--writebot-light);
+    color: var(--writebot-primary);
+}
+
+.wy-menu-vertical li.current > a {
+    background-color: var(--writebot-light);
+    border-right: 3px solid var(--writebot-primary);
+}
+
+/* Code blocks */
+.rst-content pre.literal-block, .rst-content div[class^='highlight'] {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+}
+
+.rst-content code.literal {
+    background-color: #f4f4f4;
+    border: 1px solid #e0e0e0;
+    color: var(--writebot-dark);
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
+/* HTTP methods */
+.rst-content dl.http dt {
+    background-color: #f8f9fa;
+    border-left: 4px solid var(--writebot-primary);
+    padding-left: 10px;
+}
+
+/* Admonitions */
+.rst-content .note {
+    background-color: #e5f6ff;
+    border-color: var(--writebot-primary);
+}
+
+.rst-content .warning {
+    background-color: #fff1f1;
+    border-color: #da1e28;
+}
+
+.rst-content .tip {
+    background-color: #defbe6;
+    border-color: #24a148;
+}
+
+/* Tables */
+.rst-content table.docutils {
+    border: 1px solid #e0e0e0;
+}
+
+.rst-content table.docutils thead {
+    background-color: var(--writebot-light);
+}
+
+.rst-content table.docutils th {
+    background-color: var(--writebot-light);
+    border-bottom: 2px solid var(--writebot-primary);
+}
+
+/* Footer */
+.rst-footer-buttons {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+/* Custom branding in footer */
+.wy-nav-content-wrap {
+    background-color: #fcfcfc;
+}
+
+/* Improve readability */
+.rst-content {
+    font-size: 16px;
+    line-height: 1.7;
+}
+
+.rst-content h1 {
+    font-size: 2.5em;
+    margin-bottom: 0.5em;
+    color: var(--writebot-dark);
+}
+
+.rst-content h2 {
+    font-size: 2em;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    color: var(--writebot-dark);
+}
+
+.rst-content h3 {
+    font-size: 1.5em;
+    margin-top: 1.2em;
+    color: var(--writebot-dark);
+}
+
+/* Custom badges */
+.rst-content .badge {
+    display: inline-block;
+    padding: 3px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 3px;
+    margin: 0 3px;
+}
+
+.rst-content .badge-get {
+    background-color: #61affe;
+    color: white;
+}
+
+.rst-content .badge-post {
+    background-color: #49cc90;
+    color: white;
+}
+
+.rst-content .badge-put {
+    background-color: #fca130;
+    color: white;
+}
+
+.rst-content .badge-delete {
+    background-color: #f93e3e;
+    color: white;
+}
+
+/* Responsive improvements */
+@media screen and (max-width: 768px) {
+    .rst-content {
+        font-size: 14px;
+    }
+
+    .rst-content h1 {
+        font-size: 2em;
+    }
+
+    .rst-content h2 {
+        font-size: 1.5em;
+    }
+}
