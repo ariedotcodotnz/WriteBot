@@ -1,272 +1,130 @@
-{% extends "base.html" %}
+{% extends "admin/base.html" %}
+
+{% set active_nav = 'statistics' %}
 
 {% block title %}Statistics - Admin - WriteBot{% endblock %}
 
-{% block extra_css %}
-<style>
-    .admin-container {
-        max-width: 1400px;
-        margin: 40px auto;
-        padding: 0 20px;
-    }
+{% block admin_title %}Usage Statistics{% endblock %}
 
-    .admin-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 32px;
-    }
-
-    .admin-header h1 {
-        font-size: 32px;
-        color: #161616;
-    }
-
-    .admin-nav {
-        background: white;
-        padding: 16px;
-        border-radius: 8px;
-        margin-bottom: 24px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    .admin-nav a {
-        display: inline-block;
-        padding: 8px 16px;
-        margin-right: 8px;
-        text-decoration: none;
-        color: #0f62fe;
-        border-radius: 4px;
-        transition: background-color 0.2s;
-    }
-
-    .admin-nav a:hover {
-        background-color: #e8e8e8;
-    }
-
-    .admin-nav a.active {
-        background-color: #0f62fe;
-        color: white;
-    }
-
-    .stats-section {
-        background: white;
-        padding: 24px;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        margin-bottom: 24px;
-    }
-
-    .stats-section h2 {
-        font-size: 20px;
-        margin-bottom: 20px;
-        color: #161616;
-    }
-
-    .period-tabs {
-        display: flex;
-        gap: 16px;
-        margin-bottom: 24px;
-    }
-
-    .period-card {
-        flex: 1;
-        padding: 24px;
-        background-color: #f4f4f4;
-        border-radius: 8px;
-        border: 2px solid transparent;
-        transition: border-color 0.2s;
-    }
-
-    .period-card h3 {
-        font-size: 14px;
-        color: #6f6f6f;
-        margin-bottom: 16px;
-        text-transform: uppercase;
-    }
-
-    .stat-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 12px;
-        font-size: 14px;
-    }
-
-    .stat-row .label {
-        color: #525252;
-    }
-
-    .stat-row .value {
-        color: #161616;
-        font-weight: 600;
-    }
-
-    .daily-stats-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .daily-stats-table th {
-        text-align: left;
-        padding: 12px;
-        background-color: #f4f4f4;
-        font-weight: 500;
-        font-size: 14px;
-        color: #161616;
-        border-bottom: 2px solid #e0e0e0;
-    }
-
-    .daily-stats-table td {
-        padding: 12px;
-        border-bottom: 1px solid #e0e0e0;
-        font-size: 14px;
-        color: #525252;
-    }
-
-    .btn-primary {
-        padding: 10px 20px;
-        background-color: #0f62fe;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 14px;
-    }
-
-    .btn-primary:hover {
-        background-color: #0353e9;
-    }
-
-    .no-data {
-        text-align: center;
-        padding: 40px;
-        color: #6f6f6f;
-    }
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="admin-container">
-    <div class="admin-header">
-        <h1>Admin Dashboard</h1>
-        <a href="{{ url_for('index') }}" class="btn-primary">Back to App</a>
-    </div>
-
-    <div class="admin-nav">
-        <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
-        <a href="{{ url_for('admin.users') }}">Users</a>
-        <a href="{{ url_for('admin.activities') }}">Activity Log</a>
-        <a href="{{ url_for('admin.statistics') }}" class="active">Statistics</a>
-        <a href="{{ url_for('character_overrides.list_collections') }}">Character Overrides</a>
-    </div>
-
-    <div class="stats-section">
-        <h2>Usage Statistics</h2>
-
-        <div class="period-tabs">
-            <div class="period-card">
-                <h3>Last 7 Days</h3>
-                <div class="stat-row">
-                    <span class="label">SVG Generations</span>
-                    <span class="value">{{ stats_7d.svg_generations }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="label">Batch Generations</span>
-                    <span class="value">{{ stats_7d.batch_generations }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="label">Total Lines</span>
-                    <span class="value">{{ stats_7d.total_lines }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="label">Total Characters</span>
-                    <span class="value">{{ stats_7d.total_characters }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="label">Processing Time</span>
-                    <span class="value">{{ "%.1f"|format(stats_7d.total_processing_time) }}s</span>
-                </div>
-            </div>
-
-            <div class="period-card">
-                <h3>Last 30 Days</h3>
-                <div class="stat-row">
-                    <span class="label">SVG Generations</span>
-                    <span class="value">{{ stats_30d.svg_generations }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="label">Batch Generations</span>
-                    <span class="value">{{ stats_30d.batch_generations }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="label">Total Lines</span>
-                    <span class="value">{{ stats_30d.total_lines }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="label">Total Characters</span>
-                    <span class="value">{{ stats_30d.total_characters }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="label">Processing Time</span>
-                    <span class="value">{{ "%.1f"|format(stats_30d.total_processing_time) }}s</span>
-                </div>
-            </div>
-
-            <div class="period-card">
-                <h3>Last 90 Days</h3>
-                <div class="stat-row">
-                    <span class="label">SVG Generations</span>
-                    <span class="value">{{ stats_90d.svg_generations }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="label">Batch Generations</span>
-                    <span class="value">{{ stats_90d.batch_generations }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="label">Total Lines</span>
-                    <span class="value">{{ stats_90d.total_lines }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="label">Total Characters</span>
-                    <span class="value">{{ stats_90d.total_characters }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="label">Processing Time</span>
-                    <span class="value">{{ "%.1f"|format(stats_90d.total_processing_time) }}s</span>
-                </div>
-            </div>
+{% block admin_content %}
+{# Aggregated Statistics by Period #}
+<div class="admin-section">
+    <div class="admin-section__header">
+        <div>
+            <h2 class="admin-section__title">Usage Statistics</h2>
+            <p class="admin-section__subtitle">Aggregated metrics across different time periods</p>
         </div>
     </div>
 
-    <div class="stats-section">
-        <h2>Daily Statistics (Last 30 Days)</h2>
-        {% if daily_stats %}
-        <table class="daily-stats-table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>SVG Generations</th>
-                    <th>Batch Generations</th>
-                    <th>Total Lines</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for stat in daily_stats %}
-                <tr>
-                    <td>{{ stat.date }}</td>
-                    <td>{{ stat.svg or 0 }}</td>
-                    <td>{{ stat.batch or 0 }}</td>
-                    <td>{{ stat.lines or 0 }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <div class="no-data">
-            <p>No statistics available for the selected period.</p>
+    <div class="period-tabs">
+        <div class="period-card">
+            <h3>Last 7 Days</h3>
+            <div class="stat-row">
+                <span class="label">SVG Generations</span>
+                <span class="value">{{ stats_7d.svg_generations }}</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">Batch Generations</span>
+                <span class="value">{{ stats_7d.batch_generations }}</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">Total Lines</span>
+                <span class="value">{{ stats_7d.total_lines }}</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">Total Characters</span>
+                <span class="value">{{ stats_7d.total_characters }}</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">Processing Time</span>
+                <span class="value">{{ "%.1f"|format(stats_7d.total_processing_time) }}s</span>
+            </div>
         </div>
-        {% endif %}
+
+        <div class="period-card">
+            <h3>Last 30 Days</h3>
+            <div class="stat-row">
+                <span class="label">SVG Generations</span>
+                <span class="value">{{ stats_30d.svg_generations }}</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">Batch Generations</span>
+                <span class="value">{{ stats_30d.batch_generations }}</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">Total Lines</span>
+                <span class="value">{{ stats_30d.total_lines }}</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">Total Characters</span>
+                <span class="value">{{ stats_30d.total_characters }}</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">Processing Time</span>
+                <span class="value">{{ "%.1f"|format(stats_30d.total_processing_time) }}s</span>
+            </div>
+        </div>
+
+        <div class="period-card">
+            <h3>Last 90 Days</h3>
+            <div class="stat-row">
+                <span class="label">SVG Generations</span>
+                <span class="value">{{ stats_90d.svg_generations }}</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">Batch Generations</span>
+                <span class="value">{{ stats_90d.batch_generations }}</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">Total Lines</span>
+                <span class="value">{{ stats_90d.total_lines }}</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">Total Characters</span>
+                <span class="value">{{ stats_90d.total_characters }}</span>
+            </div>
+            <div class="stat-row">
+                <span class="label">Processing Time</span>
+                <span class="value">{{ "%.1f"|format(stats_90d.total_processing_time) }}s</span>
+            </div>
+        </div>
     </div>
+</div>
+
+{# Daily Statistics Table #}
+<div class="admin-section">
+    <div class="admin-section__header">
+        <div>
+            <h2 class="admin-section__title">Daily Statistics (Last 30 Days)</h2>
+            <p class="admin-section__subtitle">Day-by-day breakdown of platform usage</p>
+        </div>
+    </div>
+
+    {% if daily_stats %}
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>SVG Generations</th>
+                <th>Batch Generations</th>
+                <th>Total Lines</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in daily_stats %}
+            <tr>
+                <td><strong>{{ stat.date }}</strong></td>
+                <td>{{ stat.svg or 0 }}</td>
+                <td>{{ stat.batch or 0 }}</td>
+                <td>{{ stat.lines or 0 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state__message">No statistics available for the selected period.</div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

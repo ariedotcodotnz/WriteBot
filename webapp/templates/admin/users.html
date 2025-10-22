@@ -1,276 +1,70 @@
-{% extends "base.html" %}
+{% extends "admin/base.html" %}
+
+{% set active_nav = 'users' %}
 
 {% block title %}Manage Users - Admin - WriteBot{% endblock %}
 
-{% block extra_css %}
-<style>
-    .admin-container {
-        max-width: 1400px;
-        margin: 40px auto;
-        padding: 0 20px;
-    }
+{% block admin_title %}Manage Users{% endblock %}
 
-    .admin-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 32px;
-    }
-
-    .admin-header h1 {
-        font-size: 32px;
-        color: #161616;
-    }
-
-    .admin-nav {
-        background: white;
-        padding: 16px;
-        border-radius: 8px;
-        margin-bottom: 24px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    .admin-nav a {
-        display: inline-block;
-        padding: 8px 16px;
-        margin-right: 8px;
-        text-decoration: none;
-        color: #0f62fe;
-        border-radius: 4px;
-        transition: background-color 0.2s;
-    }
-
-    .admin-nav a:hover {
-        background-color: #e8e8e8;
-    }
-
-    .admin-nav a.active {
-        background-color: #0f62fe;
-        color: white;
-    }
-
-    .users-section {
-        background: white;
-        padding: 24px;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    .users-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-    }
-
-    .users-header h2 {
-        font-size: 20px;
-        color: #161616;
-    }
-
-    .btn-primary {
-        padding: 10px 20px;
-        background-color: #0f62fe;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 14px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-
-    .btn-primary:hover {
-        background-color: #0353e9;
-    }
-
-    .btn-secondary {
-        padding: 8px 16px;
-        background-color: #e0e0e0;
-        color: #161616;
-        border: none;
-        border-radius: 4px;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 14px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-        margin-right: 8px;
-    }
-
-    .btn-secondary:hover {
-        background-color: #c6c6c6;
-    }
-
-    .btn-danger {
-        padding: 8px 16px;
-        background-color: #da1e28;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        font-size: 14px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-
-    .btn-danger:hover {
-        background-color: #ba1b23;
-    }
-
-    .users-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .users-table th {
-        text-align: left;
-        padding: 12px;
-        background-color: #f4f4f4;
-        font-weight: 500;
-        font-size: 14px;
-        color: #161616;
-        border-bottom: 2px solid #e0e0e0;
-    }
-
-    .users-table td {
-        padding: 12px;
-        border-bottom: 1px solid #e0e0e0;
-        font-size: 14px;
-        color: #525252;
-    }
-
-    .badge {
-        display: inline-block;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: 500;
-    }
-
-    .badge-admin {
-        background-color: #ffcfe1;
-        color: #9f1853;
-    }
-
-    .badge-user {
-        background-color: #d0e2ff;
-        color: #0043ce;
-    }
-
-    .badge-active {
-        background-color: #defbe6;
-        color: #24a148;
-    }
-
-    .badge-inactive {
-        background-color: #fff1f1;
-        color: #da1e28;
-    }
-
-    .alert {
-        padding: 12px 16px;
-        margin-bottom: 20px;
-        border-radius: 4px;
-        font-size: 14px;
-    }
-
-    .alert-error {
-        background-color: #fff1f1;
-        border: 1px solid #da1e28;
-        color: #da1e28;
-    }
-
-    .alert-success {
-        background-color: #defbe6;
-        border: 1px solid #24a148;
-        color: #24a148;
-    }
-
-    .actions {
-        display: flex;
-        gap: 8px;
-    }
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="admin-container">
-    <div class="admin-header">
-        <h1>Admin Dashboard</h1>
-        <a href="{{ url_for('index') }}" class="btn-primary">Back to App</a>
-    </div>
-
-    <div class="admin-nav">
-        <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
-        <a href="{{ url_for('admin.users') }}" class="active">Users</a>
-        <a href="{{ url_for('admin.activities') }}">Activity Log</a>
-        <a href="{{ url_for('admin.statistics') }}">Statistics</a>
-        <a href="{{ url_for('character_overrides.list_collections') }}">Character Overrides</a>
-    </div>
-
-    <div class="users-section">
-        <div class="users-header">
-            <h2>Manage Users</h2>
-            <a href="{{ url_for('admin.create_user') }}" class="btn-primary">Create New User</a>
+{% block admin_content %}
+<div class="admin-section">
+    <div class="admin-section__header">
+        <div>
+            <h2 class="admin-section__title">User Management</h2>
+            <p class="admin-section__subtitle">View and manage all user accounts</p>
         </div>
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        {% if users %}
-        <table class="users-table">
-            <thead>
-                <tr>
-                    <th>Username</th>
-                    <th>Full Name</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Created</th>
-                    <th>Last Login</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in users %}
-                <tr>
-                    <td><strong>{{ user.username }}</strong></td>
-                    <td>{{ user.full_name or '-' }}</td>
-                    <td><span class="badge badge-{{ user.role }}">{{ user.role }}</span></td>
-                    <td>
-                        {% if user.is_active %}
-                        <span class="badge badge-active">Active</span>
-                        {% else %}
-                        <span class="badge badge-inactive">Inactive</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
-                    <td>{{ user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else '-' }}</td>
-                    <td>
-                        <div class="actions">
-                            <a href="{{ url_for('admin.view_user', user_id=user.id) }}" class="btn-secondary">View</a>
-                            <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn-secondary">Edit</a>
-                            {% if user.id != current_user.id %}
-                            <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this user?');">
-                                <button type="submit" class="btn-danger">Delete</button>
-                            </form>
-                            {% endif %}
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p style="color: #525252;">No users found.</p>
-        {% endif %}
+        <a href="{{ url_for('admin.create_user') }}" class="btn btn-primary">Create New User</a>
     </div>
+
+    {% if users %}
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Full Name</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Last Login</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td><strong>{{ user.username }}</strong></td>
+                <td>{{ user.full_name or '-' }}</td>
+                <td><span class="badge badge-{{ user.role }}">{{ user.role }}</span></td>
+                <td>
+                    {% if user.is_active %}
+                    <span class="badge badge-active">Active</span>
+                    {% else %}
+                    <span class="badge badge-inactive">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                <td>{{ user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else '-' }}</td>
+                <td>
+                    <div class="admin-table__actions">
+                        <a href="{{ url_for('admin.view_user', user_id=user.id) }}" class="btn btn-secondary btn-sm">View</a>
+                        <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+                        {% if user.id != current_user.id %}
+                        <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+                              style="display: inline;"
+                              data-confirm="Are you sure you want to delete this user?">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state__message">No users found.</div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

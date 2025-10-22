@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{# Admin base template - all admin pages should extend this #}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}" />
+{% block admin_extra_css %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="admin-container{% if narrow_layout %} admin-container--narrow{% endif %}">
+    {# Admin Header #}
+    <div class="admin-header">
+        <h1>{% block admin_title %}Admin Dashboard{% endblock %}</h1>
+        <div class="admin-header__actions">
+            {% block admin_header_actions %}
+            <a href="{{ url_for('index') }}" class="btn btn-ghost">Back to App</a>
+            {% endblock %}
+        </div>
+    </div>
+
+    {# Admin Navigation #}
+    <nav class="admin-nav">
+        <ul class="admin-nav__list">
+            <li class="admin-nav__item">
+                <a href="{{ url_for('admin.dashboard') }}"
+                   class="admin-nav__link{% if active_nav == 'dashboard' %} admin-nav__link--active{% endif %}">
+                    Dashboard
+                </a>
+            </li>
+            <li class="admin-nav__item">
+                <a href="{{ url_for('admin.users') }}"
+                   class="admin-nav__link{% if active_nav == 'users' %} admin-nav__link--active{% endif %}">
+                    Users
+                </a>
+            </li>
+            <li class="admin-nav__item">
+                <a href="{{ url_for('admin.activities') }}"
+                   class="admin-nav__link{% if active_nav == 'activities' %} admin-nav__link--active{% endif %}">
+                    Activity Log
+                </a>
+            </li>
+            <li class="admin-nav__item">
+                <a href="{{ url_for('admin.statistics') }}"
+                   class="admin-nav__link{% if active_nav == 'statistics' %} admin-nav__link--active{% endif %}">
+                    Statistics
+                </a>
+            </li>
+            <li class="admin-nav__item">
+                <a href="{{ url_for('character_overrides.list_collections') }}"
+                   class="admin-nav__link{% if active_nav == 'character_overrides' %} admin-nav__link--active{% endif %}">
+                    Character Overrides
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    {# Flash Messages #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {# Main Admin Content #}
+    {% block admin_content %}{% endblock %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% block admin_extra_js %}{% endblock %}
+{% endblock %}
