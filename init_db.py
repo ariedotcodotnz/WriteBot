@@ -51,6 +51,9 @@ def create_admin_user():
 
         full_name = input("Enter full name (optional): ").strip()
 
+        # Flush stdout to ensure clean transition to getpass
+        sys.stdout.flush()
+
         # Get password with confirmation
         while True:
             password = getpass("Enter password: ")
