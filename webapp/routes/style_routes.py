@@ -5,6 +5,7 @@ import sys
 import re
 from typing import List, Dict, Any
 from flask import Blueprint, jsonify
+from flask_login import login_required
 import numpy as np
 
 # Ensure project root is in sys.path
@@ -46,6 +47,7 @@ def _iter_style_ids(style_dir: str) -> List[int]:
 
 
 @style_bp.route("/api/styles", methods=["GET"])
+@login_required
 def list_styles():
     """
     List available handwriting styles and their priming text.

@@ -10,6 +10,7 @@ import json
 import uuid
 from typing import List, Tuple, Dict, Any
 from flask import Blueprint, jsonify, request, send_file, Response, stream_with_context
+from flask_login import login_required
 
 # Ensure project root is in sys.path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -44,8 +45,10 @@ def _get_row_value(row: Dict[str, Any], key: str, default=None):
 
 
 @batch_bp.route("/api/batch", methods=["POST"])
+@login_required
 def batch_generate():
     """Process batch CSV upload and generate multiple handwriting samples."""
+    from webapp.utils.auth_utils import log_activity, track_generation
     if "file" not in request.files:
         return jsonify({"error": "CSV file is required under 'file' field"}), 400
 
@@ -204,10 +207,16 @@ def batch_generate():
         with zipfile.ZipFile(zip_path, "a", zipfile.ZIP_DEFLATED) as zf:
             zf.write(error_log, arcname="errors.txt")
 
+    # Log the batch generation
+    log_activity('batch', f'Generated batch with {len(generated_files)} files ({len(errors)} errors)')
+    track_generation(lines_count=len(generated_files), chars_count=0,
+                     processing_time=0, is_batch=True)
+
     return send_file(zip_path, mimetype="application/zip", as_attachment=True, download_name=os.path.basename(zip_path))
 
 
 @batch_bp.route("/api/template-csv", methods=["GET"])
+@login_required
 def template_csv():
     """Download a template CSV file for batch processing."""
     header = (
@@ -226,6 +235,7 @@ def _sse(obj: Dict[str, Any]) -> str:
 
 
 @batch_bp.route("/api/batch/stream", methods=["POST"])
+@login_required
 def batch_stream():
     """Process batch CSV with streaming progress updates."""
     if "file" not in request.files:
@@ -310,6 +320,7 @@ def batch_stream():
 
 
 @batch_bp.route("/api/batch/result/<job_id>", methods=["GET"])
+@login_required
 def batch_result(job_id: str):
     """Download batch processing results."""
     job_dir = os.path.join(JOBS_ROOT, job_id)
@@ -320,6 +331,7 @@ def batch_result(job_id: str):
 
 
 @batch_bp.route("/api/batch/result/<job_id>/file/<path:filename>", methods=["GET"])
+@login_required
 def batch_result_file(job_id: str, filename: str):
     """Serve an individual generated file from a batch job for live preview."""
     job_dir = os.path.join(JOBS_ROOT, job_id)

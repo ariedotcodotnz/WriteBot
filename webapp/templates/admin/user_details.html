@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}User Details - {{ user.username }} - Admin - WriteBot{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-container {
+        max-width: 1400px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+    }
+
+    .admin-header h1 {
+        font-size: 32px;
+        color: #161616;
+    }
+
+    .user-info {
+        background: white;
+        padding: 24px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 24px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .info-item {
+        padding: 16px;
+        background-color: #f4f4f4;
+        border-radius: 4px;
+    }
+
+    .info-label {
+        font-size: 12px;
+        color: #6f6f6f;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .info-value {
+        font-size: 16px;
+        color: #161616;
+        font-weight: 500;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #525252;
+        margin-bottom: 8px;
+    }
+
+    .stat-value {
+        font-size: 28px;
+        font-weight: 600;
+        color: #161616;
+    }
+
+    .section {
+        background: white;
+        padding: 24px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 24px;
+    }
+
+    .section h2 {
+        font-size: 20px;
+        margin-bottom: 20px;
+        color: #161616;
+    }
+
+    .activity-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .activity-table th {
+        text-align: left;
+        padding: 12px;
+        background-color: #f4f4f4;
+        font-weight: 500;
+        font-size: 14px;
+        color: #161616;
+    }
+
+    .activity-table td {
+        padding: 12px;
+        border-bottom: 1px solid #e0e0e0;
+        font-size: 14px;
+        color: #525252;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .badge-login { background-color: #d0e2ff; color: #0043ce; }
+    .badge-logout { background-color: #e0e0e0; color: #525252; }
+    .badge-generate { background-color: #d2f4ea; color: #005d5d; }
+    .badge-batch { background-color: #fdd13a; color: #684e00; }
+    .badge-admin { background-color: #ffcfe1; color: #9f1853; }
+    .badge-page_view { background-color: #e5f6ff; color: #00539a; }
+
+    .btn-secondary {
+        padding: 10px 20px;
+        background-color: #e0e0e0;
+        color: #161616;
+        border: none;
+        border-radius: 4px;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+        cursor: pointer;
+    }
+
+    .btn-secondary:hover {
+        background-color: #c6c6c6;
+    }
+
+    .btn-primary {
+        padding: 10px 20px;
+        background-color: #0f62fe;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+        margin-right: 8px;
+    }
+
+    .btn-primary:hover {
+        background-color: #0353e9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>User Details: {{ user.username }}</h1>
+        <a href="{{ url_for('admin.users') }}" class="btn-secondary">Back to Users</a>
+    </div>
+
+    <div class="user-info">
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Username</div>
+                <div class="info-value">{{ user.username }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Full Name</div>
+                <div class="info-value">{{ user.full_name or '-' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Role</div>
+                <div class="info-value">{{ user.role|capitalize }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Status</div>
+                <div class="info-value">{{ 'Active' if user.is_active else 'Inactive' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Created At</div>
+                <div class="info-value">{{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Last Login</div>
+                <div class="info-value">{{ user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else 'Never' }}</div>
+            </div>
+        </div>
+        <div style="margin-top: 20px;">
+            <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn-primary">Edit User</a>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Total SVG Generations</div>
+            <div class="stat-value">{{ total_svg }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Batch Generations</div>
+            <div class="stat-value">{{ total_batch }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Lines</div>
+            <div class="stat-value">{{ total_lines }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Characters</div>
+            <div class="stat-value">{{ total_chars }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Processing Time</div>
+            <div class="stat-value">{{ "%.1f"|format(total_time) }}s</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Recent Activity (Last 100)</h2>
+        {% if activities %}
+        <table class="activity-table">
+            <thead>
+                <tr>
+                    <th>Activity Type</th>
+                    <th>Description</th>
+                    <th>IP Address</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for activity in activities %}
+                <tr>
+                    <td><span class="badge badge-{{ activity.activity_type }}">{{ activity.activity_type }}</span></td>
+                    <td>{{ activity.description or '-' }}</td>
+                    <td>{{ activity.ip_address or '-' }}</td>
+                    <td>{{ activity.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: #525252;">No activity recorded.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Activity Log - Admin - WriteBot{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-container {
+        max-width: 1400px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+    }
+
+    .admin-header h1 {
+        font-size: 32px;
+        color: #161616;
+    }
+
+    .admin-nav {
+        background: white;
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .admin-nav a {
+        display: inline-block;
+        padding: 8px 16px;
+        margin-right: 8px;
+        text-decoration: none;
+        color: #0f62fe;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+    }
+
+    .admin-nav a:hover {
+        background-color: #e8e8e8;
+    }
+
+    .admin-nav a.active {
+        background-color: #0f62fe;
+        color: white;
+    }
+
+    .activities-section {
+        background: white;
+        padding: 24px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .activities-section h2 {
+        font-size: 20px;
+        margin-bottom: 20px;
+        color: #161616;
+    }
+
+    .activity-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .activity-table th {
+        text-align: left;
+        padding: 12px;
+        background-color: #f4f4f4;
+        font-weight: 500;
+        font-size: 14px;
+        color: #161616;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .activity-table td {
+        padding: 12px;
+        border-bottom: 1px solid #e0e0e0;
+        font-size: 14px;
+        color: #525252;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .badge-login { background-color: #d0e2ff; color: #0043ce; }
+    .badge-logout { background-color: #e0e0e0; color: #525252; }
+    .badge-generate { background-color: #d2f4ea; color: #005d5d; }
+    .badge-batch { background-color: #fdd13a; color: #684e00; }
+    .badge-admin_action { background-color: #ffcfe1; color: #9f1853; }
+    .badge-page_view { background-color: #e5f6ff; color: #00539a; }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 24px;
+    }
+
+    .pagination a,
+    .pagination span {
+        padding: 8px 12px;
+        border-radius: 4px;
+        text-decoration: none;
+        color: #0f62fe;
+        background-color: #f4f4f4;
+    }
+
+    .pagination a:hover {
+        background-color: #e0e0e0;
+    }
+
+    .pagination .current {
+        background-color: #0f62fe;
+        color: white;
+    }
+
+    .btn-primary {
+        padding: 10px 20px;
+        background-color: #0f62fe;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+    }
+
+    .btn-primary:hover {
+        background-color: #0353e9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Admin Dashboard</h1>
+        <a href="{{ url_for('index') }}" class="btn-primary">Back to App</a>
+    </div>
+
+    <div class="admin-nav">
+        <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('admin.users') }}">Users</a>
+        <a href="{{ url_for('admin.activities') }}" class="active">Activity Log</a>
+        <a href="{{ url_for('admin.statistics') }}">Statistics</a>
+    </div>
+
+    <div class="activities-section">
+        <h2>Activity Log</h2>
+        {% if activities %}
+        <table class="activity-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Activity Type</th>
+                    <th>Description</th>
+                    <th>IP Address</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for activity in activities %}
+                <tr>
+                    <td><a href="{{ url_for('admin.view_user', user_id=activity.user_id) }}" style="color: #0f62fe; text-decoration: none;">{{ activity.user.username }}</a></td>
+                    <td><span class="badge badge-{{ activity.activity_type }}">{{ activity.activity_type }}</span></td>
+                    <td>{{ activity.description or '-' }}</td>
+                    <td>{{ activity.ip_address or '-' }}</td>
+                    <td>{{ activity.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if pagination %}
+        <div class="pagination">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('admin.activities', page=pagination.prev_num) }}">Previous</a>
+            {% endif %}
+
+            {% for page in pagination.iter_pages() %}
+                {% if page %}
+                    {% if page == pagination.page %}
+                    <span class="current">{{ page }}</span>
+                    {% else %}
+                    <a href="{{ url_for('admin.activities', page=page) }}">{{ page }}</a>
+                    {% endif %}
+                {% else %}
+                <span>...</span>
+                {% endif %}
+            {% endfor %}
+
+            {% if pagination.has_next %}
+            <a href="{{ url_for('admin.activities', page=pagination.next_num) }}">Next</a>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% else %}
+        <p style="color: #525252;">No activities recorded yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

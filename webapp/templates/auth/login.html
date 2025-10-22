@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Login - WriteBot{% endblock %}
+
+{% block extra_css %}
+<style>
+    .login-container {
+        max-width: 420px;
+        margin: 100px auto;
+        padding: 40px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .login-header h1 {
+        font-size: 28px;
+        margin-bottom: 8px;
+        color: #161616;
+    }
+
+    .login-header p {
+        color: #525252;
+        font-size: 14px;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #161616;
+        font-size: 14px;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="password"] {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        font-size: 14px;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+    }
+
+    .form-group input[type="text"]:focus,
+    .form-group input[type="password"]:focus {
+        outline: none;
+        border-color: #0f62fe;
+        box-shadow: 0 0 0 2px rgba(15, 98, 254, 0.1);
+    }
+
+    .form-check {
+        display: flex;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .form-check input[type="checkbox"] {
+        margin-right: 8px;
+    }
+
+    .form-check label {
+        font-size: 14px;
+        color: #525252;
+        cursor: pointer;
+    }
+
+    .btn-login {
+        width: 100%;
+        padding: 12px;
+        background-color: #0f62fe;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .btn-login:hover {
+        background-color: #0353e9;
+    }
+
+    .btn-login:active {
+        background-color: #002d9c;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .alert-error {
+        background-color: #fff1f1;
+        border: 1px solid #da1e28;
+        color: #da1e28;
+    }
+
+    .alert-success {
+        background-color: #defbe6;
+        border: 1px solid #24a148;
+        color: #24a148;
+    }
+
+    body {
+        background-color: #f4f4f4;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-header">
+        <h1>WriteBot</h1>
+        <p>Sign in to your account</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('auth.login') }}">
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required autofocus>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+
+        <div class="form-check">
+            <input type="checkbox" id="remember" name="remember">
+            <label for="remember">Remember me</label>
+        </div>
+
+        <button type="submit" class="btn-login">Sign In</button>
+    </form>
+</div>
+{% endblock %}
