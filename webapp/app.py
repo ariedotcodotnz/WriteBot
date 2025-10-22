@@ -32,7 +32,7 @@ from webapp.routes import generation_bp, batch_bp, style_bp
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 
 # Configuration
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', '0ea55211309ed371c3d266185fb4123f')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///writebot.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 

@@ -49,7 +49,7 @@ export SECRET_KEY="your-very-secret-key-here-use-random-string"
 export DATABASE_URL="sqlite:///writebot.db"  # Optional, defaults to this
 
 # Windows
-set SECRET_KEY=your-very-secret-key-here-use-random-string
+set SECRET_KEY=0ea55211309ed371c3d266185fb4123f
 set DATABASE_URL=sqlite:///writebot.db
 ```
 
