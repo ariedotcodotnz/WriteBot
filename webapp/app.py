@@ -9,20 +9,46 @@ import os
 import sys
 from flask import Flask, jsonify, send_from_directory, render_template
 from flask_login import LoginManager, login_required
-# from flask_minify import minify, decorators
+
 # Ensure project root is in sys.path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-# Import Flask-Compress if available
+# Import Flask extensions
 try:
     from flask_compress import Compress
 except Exception:
     Compress = None
 
+try:
+    from flask_caching import Cache
+except Exception:
+    Cache = None
+
+try:
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
+except Exception:
+    Limiter = None
+    get_remote_address = None
+
+try:
+    from flask_minify import Minify
+except Exception:
+    Minify = None
+
+try:
+    from flask_assets import Environment, Bundle
+except Exception:
+    Environment = None
+    Bundle = None
+
 # Import database and models
 from webapp.models import db, User
+
+# Import extensions module
+from webapp.extensions import init_extensions
 
 # Import route blueprints
 from webapp.routes import generation_bp, batch_bp, style_bp
@@ -30,14 +56,19 @@ from webapp.routes import generation_bp, batch_bp, style_bp
 
 # Initialize Flask app
 app = Flask(__name__, static_folder="static", static_url_path="/static")
-# Init Flask-Squeeze
-# initializing minify for html, js and cssless
-# minify(app=app, html=True, js=True, cssless=True, static=True,passive=True)
 
 # Configuration
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', '0ea55211309ed371c3d266185fb4123f')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///writebot.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Flask-Caching configuration
+app.config['CACHE_TYPE'] = 'SimpleCache'  # Use simple in-memory cache
+app.config['CACHE_DEFAULT_TIMEOUT'] = 300  # Default timeout: 5 minutes
+
+# Flask-Limiter configuration
+app.config['RATELIMIT_STORAGE_URL'] = 'memory://'  # Use in-memory storage for rate limiting
+app.config['RATELIMIT_HEADERS_ENABLED'] = True  # Enable rate limit headers in responses
 
 # Initialize database
 db.init_app(app)
@@ -54,12 +85,65 @@ def load_user(user_id):
     """Load user by ID for Flask-Login."""
     return db.session.get(User, int(user_id))
 
+# Initialize Flask-Caching
+cache = None
+if Cache is not None:
+    try:
+        cache = Cache(app)
+    except Exception:
+        pass
+
+# Initialize Flask-Limiter
+limiter = None
+if Limiter is not None and get_remote_address is not None:
+    try:
+        limiter = Limiter(
+            app=app,
+            key_func=get_remote_address,
+            default_limits=["200 per day", "50 per hour"],
+            storage_uri=app.config.get('RATELIMIT_STORAGE_URL')
+        )
+    except Exception:
+        pass
+
+# Initialize Flask-Minify
+if Minify is not None:
+    try:
+        Minify(app=app, html=True, js=True, cssless=True)
+    except Exception:
+        pass
+
+# Initialize Flask-Assets
+assets = None
+if Environment is not None and Bundle is not None:
+    try:
+        assets = Environment(app)
+        # Define CSS bundle
+        css_bundle = Bundle(
+            'css/*.css',
+            filters='cssmin',
+            output='gen/packed.css'
+        )
+        # Define JS bundle
+        js_bundle = Bundle(
+            'js/*.js',
+            filters='jsmin',
+            output='gen/packed.js'
+        )
+        assets.register('css_all', css_bundle)
+        assets.register('js_all', js_bundle)
+    except Exception:
+        pass
+
 # Enable compression if available
 if Compress is not None:
     try:
         Compress(app)
     except Exception:
         pass
+
+# Make extensions available globally
+init_extensions(cache_instance=cache, limiter_instance=limiter, assets_instance=assets)
 
 # Register blueprints (auth blueprint imported later to avoid circular imports)
 app.register_blueprint(generation_bp)
@@ -95,12 +179,23 @@ def index():
 
 @app.route("/api/health", methods=["GET"])
 def health():
-    """Health check endpoint."""
-    return jsonify({
-        "status": "ok",
-        "model_ready": True,
-        "version": 1,
-    })
+    """Health check endpoint (cached for 60 seconds)."""
+    # Example of using cache decorator - cache this endpoint for 60 seconds
+    if cache:
+        @cache.cached(timeout=60, key_prefix='health_check')
+        def _cached_health():
+            return jsonify({
+                "status": "ok",
+                "model_ready": True,
+                "version": 1,
+            })
+        return _cached_health()
+    else:
+        return jsonify({
+            "status": "ok",
+            "model_ready": True,
+            "version": 1,
+        })
 
 @app.route('/robots.txt')
 def robots():
