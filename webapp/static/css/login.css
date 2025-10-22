@@ -1,0 +1,409 @@
+/**
+ * WriteBot Login Page Styles
+ * Modern, secure login interface with enhanced UX
+ */
+
+/* ============================================
+   Page Background
+   ============================================ */
+
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* ============================================
+   Login Container
+   ============================================ */
+
+.login-container {
+    max-width: 450px;
+    width: 100%;
+    margin: 20px;
+    padding: 48px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.4s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   Login Header
+   ============================================ */
+
+.login-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.login-header__logo {
+    font-size: 48px;
+    margin-bottom: 16px;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.login-header h1 {
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: #161616;
+    letter-spacing: -0.5px;
+}
+
+.login-header p {
+    color: #6f6f6f;
+    font-size: 15px;
+    margin: 0;
+    font-weight: 400;
+}
+
+/* ============================================
+   Form Elements
+   ============================================ */
+
+.form-group {
+    margin-bottom: 28px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #161616;
+    font-size: 14px;
+    letter-spacing: 0.2px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="password"] {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    background-color: #fafafa;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="password"]:focus {
+    outline: none;
+    border-color: #667eea;
+    background-color: white;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
+}
+
+.form-group input[type="text"]:hover,
+.form-group input[type="password"]:hover {
+    border-color: #c6c6c6;
+}
+
+/* Password field with show/hide toggle styling */
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper input {
+    padding-right: 50px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6f6f6f;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px;
+    transition: color 0.2s;
+}
+
+.password-toggle:hover {
+    color: #161616;
+}
+
+/* ============================================
+   Remember Me Checkbox
+   ============================================ */
+
+.form-check {
+    display: flex;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.form-check input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    cursor: pointer;
+    accent-color: #667eea;
+}
+
+.form-check label {
+    font-size: 14px;
+    color: #525252;
+    cursor: pointer;
+    user-select: none;
+    margin: 0;
+    font-weight: 500;
+}
+
+/* ============================================
+   Login Button
+   ============================================ */
+
+.btn-login {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+}
+
+.btn-login:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4);
+}
+
+.btn-login:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.3);
+}
+
+/* Loading state */
+.btn-login.loading {
+    position: relative;
+    color: transparent;
+    pointer-events: none;
+}
+
+.btn-login.loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    margin-left: -10px;
+    margin-top: -10px;
+    border: 2px solid white;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================
+   Alerts
+   ============================================ */
+
+.alert {
+    padding: 14px 18px;
+    margin-bottom: 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.alert::before {
+    content: '';
+    font-size: 20px;
+}
+
+.alert-error {
+    background-color: #fff1f1;
+    border: 2px solid #da1e28;
+    color: #a2191f;
+}
+
+.alert-error::before {
+    content: '⚠';
+}
+
+.alert-success {
+    background-color: #defbe6;
+    border: 2px solid #24a148;
+    color: #0e6027;
+}
+
+.alert-success::before {
+    content: '✓';
+}
+
+.alert-info {
+    background-color: #e5f6ff;
+    border: 2px solid #0f62fe;
+    color: #00539a;
+}
+
+.alert-info::before {
+    content: 'ℹ';
+}
+
+/* ============================================
+   Additional Links
+   ============================================ */
+
+.login-footer {
+    text-align: center;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.login-footer p {
+    margin: 0;
+    color: #6f6f6f;
+    font-size: 13px;
+}
+
+.login-footer a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.login-footer a:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+/* ============================================
+   Security Badge
+   ============================================ */
+
+.security-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+    padding: 12px;
+    background-color: #f4f4f4;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #6f6f6f;
+}
+
+.security-badge::before {
+    content: '🔒';
+    font-size: 16px;
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+
+@media (max-width: 480px) {
+    .login-container {
+        padding: 32px 24px;
+        margin: 10px;
+    }
+
+    .login-header h1 {
+        font-size: 28px;
+    }
+
+    .login-header p {
+        font-size: 14px;
+    }
+
+    .btn-login {
+        padding: 14px;
+        font-size: 15px;
+    }
+}
+
+/* ============================================
+   Accessibility
+   ============================================ */
+
+/* Focus visible for keyboard navigation */
+*:focus-visible {
+    outline: 2px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* Screen reader only text */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* ============================================
+   Dark Mode Support (Optional)
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+    /* Add dark mode styles if needed in the future */
+}
