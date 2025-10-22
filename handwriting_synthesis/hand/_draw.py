@@ -334,9 +334,8 @@ def _draw(
     # Add metadata comment if character overrides are enabled
     if character_override_collection_id is not None and overrides_dict:
         try:
-            import xml.etree.ElementTree as ET
-            comment = ET.Comment(f"Character overrides enabled: collection {character_override_collection_id} with {len(overrides_dict)} characters")
-            dwg.add(comment)
+            desc = dwg.desc(f"Character overrides enabled: collection {character_override_collection_id} with {len(overrides_dict)} characters")
+            dwg.add(desc)
         except Exception as e:
             print(f"Note: Could not add override metadata comment: {e}")
 
