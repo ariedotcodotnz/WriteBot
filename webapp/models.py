@@ -97,3 +97,57 @@ class UsageStatistics(db.Model):
 
     def __repr__(self):
         return f'<UsageStatistics user_id={self.user_id} date={self.date}>'
+
+
+class CharacterOverrideCollection(db.Model):
+    """Collection of manual character overrides for handwriting generation."""
+    __tablename__ = 'character_override_collections'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), nullable=False, unique=True)
+    description = db.Column(db.Text)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+
+    # Relationships
+    character_overrides = db.relationship('CharacterOverride', backref='collection', lazy='dynamic', cascade='all, delete-orphan')
+    creator = db.relationship('User', backref='created_collections', foreign_keys=[created_by])
+
+    def get_character_count(self):
+        """Get the total number of character variants in this collection."""
+        return self.character_overrides.count()
+
+    def get_unique_characters(self):
+        """Get a list of unique characters that have overrides in this collection."""
+        return db.session.query(CharacterOverride.character).filter_by(collection_id=self.id).distinct().all()
+
+    def __repr__(self):
+        return f'<CharacterOverrideCollection {self.name}>'
+
+
+class CharacterOverride(db.Model):
+    """Individual character override with SVG data."""
+    __tablename__ = 'character_overrides'
+
+    id = db.Column(db.Integer, primary_key=True)
+    collection_id = db.Column(db.Integer, db.ForeignKey('character_override_collections.id'), nullable=False, index=True)
+    character = db.Column(db.String(1), nullable=False, index=True)  # Single character
+    svg_data = db.Column(db.Text, nullable=False)  # SVG file contents
+
+    # SVG metadata for seamless stitching
+    viewbox_x = db.Column(db.Float, default=0.0)
+    viewbox_y = db.Column(db.Float, default=0.0)
+    viewbox_width = db.Column(db.Float, nullable=False)
+    viewbox_height = db.Column(db.Float, nullable=False)
+    baseline_offset = db.Column(db.Float, default=0.0)  # Vertical offset for baseline alignment
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Index for efficient lookup by collection and character
+    __table_args__ = (db.Index('idx_collection_character', 'collection_id', 'character'),)
+
+    def __repr__(self):
+        return f'<CharacterOverride {self.character} in collection {self.collection_id}>'

@@ -81,6 +81,7 @@ def _draw(
     empty_line_spacing=None,
     auto_size=True,
     manual_size_scale=1.0,
+    character_override_collection_id=None,
 ):
     stroke_colors = stroke_colors or ['black'] * len(lines)
     stroke_widths = stroke_widths or [2] * len(lines)
@@ -209,5 +210,15 @@ def _draw(
         dwg.add(path)
 
         cursor_y += line_height_px
+
+    # Add metadata comment if character overrides are enabled
+    if character_override_collection_id is not None:
+        try:
+            from handwriting_synthesis.hand.character_override_utils import get_character_overrides
+            overrides = get_character_overrides(character_override_collection_id)
+            if overrides:
+                dwg.add(dwg.desc(f"Character overrides enabled: collection {character_override_collection_id} with {len(overrides)} characters"))
+        except Exception as e:
+            print(f"Note: Character override collection {character_override_collection_id} specified but could not be loaded: {e}")
 
     dwg.save()
