@@ -167,11 +167,17 @@ Character overrides **allow you to add new characters** not supported by the AI 
 ## Advanced: Understanding the Integration
 
 When you enable character overrides during generation:
-1. The system generates handwriting normally using the AI model
-2. A metadata comment is added indicating overrides are enabled
-3. Future rendering enhancements will seamlessly substitute override characters
+1. The system scans the input text for characters that have overrides
+2. Text is split into chunks around override characters
+3. Non-override chunks are generated using the AI model
+4. During rendering, override SVGs are inserted at the correct positions
+5. The result is seamlessly integrated handwriting with your custom characters
 
-**Note**: The current implementation provides infrastructure for character overrides. Full character-level substitution requires additional rendering logic and will be enhanced in future versions.
+**Implementation Details**:
+- Override characters are randomly selected from available variants
+- Scaling and positioning are automatically calculated to match generated text
+- Baseline offset adjustments ensure proper alignment
+- Works with both `write()` and `write_chunked()` methods
 
 ## Support
 

@@ -117,39 +117,70 @@ def extract_svg_path(svg_data):
         return None, None
 
 
-def post_process_svg_with_overrides(svg_content, text, overrides_dict, approx_char_width=10):
+def split_text_with_overrides(text, overrides_dict):
     """
-    Post-process generated SVG to inject character overrides.
-
-    This is a simplified implementation that adds override characters as
-    overlay elements. A full implementation would require character-level
-    positioning data from the generation process.
+    Split text into chunks, separating override characters from regular text.
 
     Args:
-        svg_content: Generated SVG content as string
-        text: The text that was generated
+        text: Input text string
         overrides_dict: Dictionary of character overrides
-        approx_char_width: Approximate character width for positioning
 
     Returns:
-        Modified SVG content with overrides injected
+        List of tuples (chunk_text, is_override):
+        - chunk_text: The text chunk
+        - is_override: True if this chunk is a single override character, False otherwise
+
+    Example:
+        text = "Hello world"
+        overrides_dict = {'o': [...]}
+        Returns: [("Hell", False), ("o", True), (" w", False), ("o", True), ("rld", False)]
     """
-    if not overrides_dict:
-        return svg_content
+    if not overrides_dict or not text:
+        return [(text, False)]
 
-    # For now, this is a placeholder implementation
-    # A full implementation would require:
-    # 1. Character-level positioning data from generation
-    # 2. Sophisticated SVG manipulation to replace specific character strokes
-    # 3. Proper scaling and alignment of override SVGs
+    chunks = []
+    current_chunk = []
 
-    # Add a comment to indicate overrides are enabled
-    svg_content = svg_content.replace(
-        '</svg>',
-        f'<!-- Character overrides enabled (collection contains {len(overrides_dict)} characters) -->\n</svg>'
-    )
+    for char in text:
+        if char in overrides_dict:
+            # Save any accumulated regular text
+            if current_chunk:
+                chunks.append((''.join(current_chunk), False))
+                current_chunk = []
+            # Add the override character as its own chunk
+            chunks.append((char, True))
+        else:
+            # Accumulate regular text
+            current_chunk.append(char)
 
-    return svg_content
+    # Save any remaining regular text
+    if current_chunk:
+        chunks.append((''.join(current_chunk), False))
+
+    return chunks
+
+
+def estimate_override_width(override_data, target_height, x_stretch=1.0):
+    """
+    Estimate the width an override character will take when rendered.
+
+    Args:
+        override_data: Override data dict with viewbox info
+        target_height: Target height for rendering
+        x_stretch: Horizontal stretch factor
+
+    Returns:
+        Estimated width in pixels
+    """
+    vb_width = override_data['viewbox_width']
+    vb_height = override_data['viewbox_height']
+
+    if vb_height <= 0:
+        return target_height * x_stretch
+
+    # Scale based on aspect ratio
+    scale = target_height / vb_height
+    return vb_width * scale * x_stretch
 
 
 def expand_alphabet_with_overrides(overrides_dict, base_alphabet):
