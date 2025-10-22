@@ -5,10 +5,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Index &mdash; WriteBot API Documentation</title>
+  <title>Index &mdash; WriteBot 1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=63af810f" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
@@ -42,150 +41,10 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="introduction.html#what-is-writebot">What is WriteBot?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="introduction.html#features">Features</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="introduction.html#handwriting-generation">Handwriting Generation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="introduction.html#user-management">User Management</a></li>
-<li class="toctree-l3"><a class="reference internal" href="introduction.html#admin-dashboard">Admin Dashboard</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="introduction.html#architecture">Architecture</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="introduction.html#technology-stack">Technology Stack</a></li>
-<li class="toctree-l3"><a class="reference internal" href="introduction.html#project-structure">Project Structure</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="introduction.html#getting-started">Getting Started</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="introduction.html#installation">Installation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="introduction.html#configuration">Configuration</a></li>
-<li class="toctree-l3"><a class="reference internal" href="introduction.html#api-authentication">API Authentication</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api/authentication.html">Authentication</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api/authentication.html#login">Login</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/authentication.html#logout">Logout</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/authentication.html#session-management">Session Management</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/authentication.html#checking-authentication-status">Checking Authentication Status</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="api/generation.html">Generation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api/generation.html#generate-svg">Generate SVG</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/generation.html#generate-legacy">Generate (Legacy)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/generation.html#generate-with-metadata">Generate with Metadata</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/generation.html#parameter-details">Parameter Details</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api/generation.html#bias-parameter">Bias Parameter</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/generation.html#color-parameter">Color Parameter</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/generation.html#line-height">Line Height</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/generation.html#character-overrides">Character Overrides</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api/generation.html#error-handling">Error Handling</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="api/batch.html">Batch Generation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api/batch.html#batch-generate">Batch Generate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/batch.html#download-template">Download Template</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/batch.html#streaming-batch-generation">Streaming Batch Generation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/batch.html#download-batch-results">Download Batch Results</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/batch.html#get-individual-batch-file">Get Individual Batch File</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="api/styles.html">Styles</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api/styles.html#list-styles">List Styles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/styles.html#style-preview">Style Preview</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="api/admin.html">Admin API</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api/admin.html#dashboard">Dashboard</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api/admin.html#admin-dashboard">Admin Dashboard</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api/admin.html#users">Users</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api/admin.html#list-users">List Users</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/admin.html#create-user">Create User</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/admin.html#view-user">View User</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/admin.html#update-user">Update User</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/admin.html#delete-user">Delete User</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api/admin.html#statistics">Statistics</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api/admin.html#view-statistics">View Statistics</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api/admin.html#activities">Activities</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api/admin.html#view-activities">View Activities</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="api/character_overrides.html">Character Overrides</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api/character_overrides.html#collections">Collections</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#list-collections">List Collections</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#create-collection">Create Collection</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#view-collection">View Collection</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#edit-collection">Edit Collection</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#delete-collection">Delete Collection</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#upload-character">Upload Character</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#batch-upload">Batch Upload</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api/character_overrides.html#character-management">Character Management</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#delete-character-variant">Delete Character Variant</a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#preview-character">Preview Character</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api/character_overrides.html#api-endpoint">API Endpoint</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#get-collections-api">Get Collections (API)</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="api/character_overrides.html#usage-in-generation">Usage in Generation</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="api/index.html#api-overview">API Overview</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="api/index.html#base-url">Base URL</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/index.html#authentication">Authentication</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/index.html#response-format">Response Format</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/index.html#http-status-codes">HTTP Status Codes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/index.html#rate-limiting">Rate Limiting</a></li>
-<li class="toctree-l3"><a class="reference internal" href="api/index.html#common-headers">Common Headers</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="models.html">Database Models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="models.html#user-model">User Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#user-activity-model">User Activity Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#usage-statistics-model">Usage Statistics Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#character-override-collection-model">Character Override Collection Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#character-override-model">Character Override Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#database-schema">Database Schema</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="models.html#entity-relationship-diagram">Entity Relationship Diagram</a></li>
-<li class="toctree-l3"><a class="reference internal" href="models.html#indexes">Indexes</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#migrations">Migrations</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="utilities.html#module-webapp.utils.auth_utils">Authentication Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utilities.html#module-webapp.utils.text_utils">Text Processing Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utilities.html#module-webapp.utils.page_utils">Page Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utilities.html#module-handwriting_synthesis.hand.character_override_utils">Character Override Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="utilities.html#example-usage">Example Usage</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="utilities.html#activity-logging">Activity Logging</a></li>
-<li class="toctree-l3"><a class="reference internal" href="utilities.html#generation-tracking">Generation Tracking</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="utilities.html#custom-decorators">Custom Decorators</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="utilities.html#admin-required">Admin Required</a></li>
-<li class="toctree-l3"><a class="reference internal" href="utilities.html#rate-limiting">Rate Limiting</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Database Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a></li>
 </ul>
 
         </div>
@@ -215,11 +74,155 @@
 <h1 id="index">Index</h1>
 
 <div class="genindex-jumpbox">
- <a href="#H"><strong>H</strong></a>
+ <a href="#_"><strong>_</strong></a>
+ | <a href="#A"><strong>A</strong></a>
+ | <a href="#B"><strong>B</strong></a>
+ | <a href="#C"><strong>C</strong></a>
+ | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
+ | <a href="#F"><strong>F</strong></a>
+ | <a href="#G"><strong>G</strong></a>
+ | <a href="#H"><strong>H</strong></a>
+ | <a href="#I"><strong>I</strong></a>
+ | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
+ | <a href="#P"><strong>P</strong></a>
+ | <a href="#Q"><strong>Q</strong></a>
+ | <a href="#R"><strong>R</strong></a>
+ | <a href="#S"><strong>S</strong></a>
+ | <a href="#T"><strong>T</strong></a>
+ | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
  | <a href="#W"><strong>W</strong></a>
  
 </div>
+<h2 id="_">_</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.CharacterOverride.__init__">__init__() (webapp.models.CharacterOverride method)</a>
+
+      <ul>
+        <li><a href="models.html#webapp.models.CharacterOverrideCollection.__init__">(webapp.models.CharacterOverrideCollection method)</a>
+</li>
+        <li><a href="models.html#webapp.models.UsageStatistics.__init__">(webapp.models.UsageStatistics method)</a>
+</li>
+        <li><a href="models.html#webapp.models.User.__init__">(webapp.models.User method)</a>
+</li>
+        <li><a href="models.html#webapp.models.UserActivity.__init__">(webapp.models.UserActivity method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="A">A</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.User.activities">activities (webapp.models.User attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.UserActivity.activity_type">activity_type (webapp.models.UserActivity attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="B">B</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.CharacterOverride.baseline_offset">baseline_offset (webapp.models.CharacterOverride attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.UsageStatistics.batch_generations">batch_generations (webapp.models.UsageStatistics attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="C">C</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.CharacterOverride.character">character (webapp.models.CharacterOverride attribute)</a>
+</li>
+      <li><a href="models.html#webapp.models.CharacterOverrideCollection.character_overrides">character_overrides (webapp.models.CharacterOverrideCollection attribute)</a>
+</li>
+      <li><a href="models.html#webapp.models.CharacterOverride">CharacterOverride (class in webapp.models)</a>
+</li>
+      <li><a href="models.html#webapp.models.CharacterOverrideCollection">CharacterOverrideCollection (class in webapp.models)</a>
+</li>
+      <li><a href="models.html#webapp.models.User.check_password">check_password() (webapp.models.User method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.CharacterOverride.collection_id">collection_id (webapp.models.CharacterOverride attribute)</a>
+</li>
+      <li><a href="models.html#webapp.models.CharacterOverride.created_at">created_at (webapp.models.CharacterOverride attribute)</a>
+
+      <ul>
+        <li><a href="models.html#webapp.models.CharacterOverrideCollection.created_at">(webapp.models.CharacterOverrideCollection attribute)</a>
+</li>
+        <li><a href="models.html#webapp.models.User.created_at">(webapp.models.User attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="models.html#webapp.models.CharacterOverrideCollection.created_by">created_by (webapp.models.CharacterOverrideCollection attribute)</a>
+</li>
+      <li><a href="models.html#webapp.models.CharacterOverrideCollection.creator">creator (webapp.models.CharacterOverrideCollection attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="D">D</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.UsageStatistics.date">date (webapp.models.UsageStatistics attribute)</a>
+</li>
+      <li><a href="models.html#webapp.models.User.default_bias">default_bias (webapp.models.User attribute)</a>
+</li>
+      <li><a href="models.html#webapp.models.User.default_stroke_color">default_stroke_color (webapp.models.User attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.User.default_stroke_width">default_stroke_width (webapp.models.User attribute)</a>
+</li>
+      <li><a href="models.html#webapp.models.User.default_style">default_style (webapp.models.User attribute)</a>
+</li>
+      <li><a href="models.html#webapp.models.CharacterOverrideCollection.description">description (webapp.models.CharacterOverrideCollection attribute)</a>
+
+      <ul>
+        <li><a href="models.html#webapp.models.UserActivity.description">(webapp.models.UserActivity attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.UserActivity.extra_data">extra_data (webapp.models.UserActivity attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="F">F</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.User.full_name">full_name (webapp.models.User attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="G">G</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.CharacterOverrideCollection.get_character_count">get_character_count() (webapp.models.CharacterOverrideCollection method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.CharacterOverrideCollection.get_unique_characters">get_unique_characters() (webapp.models.CharacterOverrideCollection method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -230,6 +233,44 @@
         <li><a href="utilities.html#module-handwriting_synthesis.hand.character_override_utils">module</a>
 </li>
       </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.CharacterOverride.id">id (webapp.models.CharacterOverride attribute)</a>
+
+      <ul>
+        <li><a href="models.html#webapp.models.CharacterOverrideCollection.id">(webapp.models.CharacterOverrideCollection attribute)</a>
+</li>
+        <li><a href="models.html#webapp.models.UsageStatistics.id">(webapp.models.UsageStatistics attribute)</a>
+</li>
+        <li><a href="models.html#webapp.models.User.id">(webapp.models.User attribute)</a>
+</li>
+        <li><a href="models.html#webapp.models.UserActivity.id">(webapp.models.UserActivity attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.UserActivity.ip_address">ip_address (webapp.models.UserActivity attribute)</a>
+</li>
+      <li><a href="models.html#webapp.models.CharacterOverrideCollection.is_active">is_active (webapp.models.CharacterOverrideCollection attribute)</a>
+
+      <ul>
+        <li><a href="models.html#webapp.models.User.is_active">(webapp.models.User attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="models.html#webapp.models.User.is_admin">is_admin() (webapp.models.User method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.User.last_login">last_login (webapp.models.User attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -251,6 +292,130 @@
         <li><a href="utilities.html#module-webapp.utils.text_utils">webapp.utils.text_utils</a>
 </li>
       </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.CharacterOverrideCollection.name">name (webapp.models.CharacterOverrideCollection attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="P">P</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.User.password_hash">password_hash (webapp.models.User attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Q">Q</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.CharacterOverride.query">query (webapp.models.CharacterOverride attribute)</a>
+
+      <ul>
+        <li><a href="models.html#webapp.models.CharacterOverrideCollection.query">(webapp.models.CharacterOverrideCollection attribute)</a>
+</li>
+        <li><a href="models.html#webapp.models.UsageStatistics.query">(webapp.models.UsageStatistics attribute)</a>
+</li>
+        <li><a href="models.html#webapp.models.User.query">(webapp.models.User attribute)</a>
+</li>
+        <li><a href="models.html#webapp.models.UserActivity.query">(webapp.models.UserActivity attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="R">R</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.User.role">role (webapp.models.User attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="S">S</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.User.set_password">set_password() (webapp.models.User method)</a>
+</li>
+      <li><a href="models.html#webapp.models.User.statistics">statistics (webapp.models.User attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.CharacterOverride.svg_data">svg_data (webapp.models.CharacterOverride attribute)</a>
+</li>
+      <li><a href="models.html#webapp.models.UsageStatistics.svg_generations">svg_generations (webapp.models.UsageStatistics attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="T">T</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.UserActivity.timestamp">timestamp (webapp.models.UserActivity attribute)</a>
+</li>
+      <li><a href="models.html#webapp.models.UsageStatistics.total_characters_generated">total_characters_generated (webapp.models.UsageStatistics attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.UsageStatistics.total_lines_generated">total_lines_generated (webapp.models.UsageStatistics attribute)</a>
+</li>
+      <li><a href="models.html#webapp.models.UsageStatistics.total_processing_time">total_processing_time (webapp.models.UsageStatistics attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="U">U</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.User.update_last_login">update_last_login() (webapp.models.User method)</a>
+</li>
+      <li><a href="models.html#webapp.models.CharacterOverride.updated_at">updated_at (webapp.models.CharacterOverride attribute)</a>
+
+      <ul>
+        <li><a href="models.html#webapp.models.CharacterOverrideCollection.updated_at">(webapp.models.CharacterOverrideCollection attribute)</a>
+</li>
+        <li><a href="models.html#webapp.models.UsageStatistics.updated_at">(webapp.models.UsageStatistics attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="models.html#webapp.models.UsageStatistics">UsageStatistics (class in webapp.models)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.User">User (class in webapp.models)</a>
+</li>
+      <li><a href="models.html#webapp.models.UserActivity.user_agent">user_agent (webapp.models.UserActivity attribute)</a>
+</li>
+      <li><a href="models.html#webapp.models.UsageStatistics.user_id">user_id (webapp.models.UsageStatistics attribute)</a>
+
+      <ul>
+        <li><a href="models.html#webapp.models.UserActivity.user_id">(webapp.models.UserActivity attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="models.html#webapp.models.UserActivity">UserActivity (class in webapp.models)</a>
+</li>
+      <li><a href="models.html#webapp.models.User.username">username (webapp.models.User attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.CharacterOverride.viewbox_height">viewbox_height (webapp.models.CharacterOverride attribute)</a>
+</li>
+      <li><a href="models.html#webapp.models.CharacterOverride.viewbox_width">viewbox_width (webapp.models.CharacterOverride attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#webapp.models.CharacterOverride.viewbox_x">viewbox_x (webapp.models.CharacterOverride attribute)</a>
+</li>
+      <li><a href="models.html#webapp.models.CharacterOverride.viewbox_y">viewbox_y (webapp.models.CharacterOverride attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 

@@ -6,10 +6,9 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin API &mdash; WriteBot API Documentation</title>
+  <title>Admin API &mdash; WriteBot 1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=63af810f" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -45,62 +44,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../introduction.html#what-is-writebot">What is WriteBot?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../introduction.html#features">Features</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#handwriting-generation">Handwriting Generation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#user-management">User Management</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#admin-dashboard">Admin Dashboard</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../introduction.html#architecture">Architecture</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#technology-stack">Technology Stack</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#project-structure">Project Structure</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../introduction.html#getting-started">Getting Started</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#installation">Installation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#configuration">Configuration</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#api-authentication">API Authentication</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="authentication.html">Authentication</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="authentication.html#login">Login</a></li>
-<li class="toctree-l3"><a class="reference internal" href="authentication.html#logout">Logout</a></li>
-<li class="toctree-l3"><a class="reference internal" href="authentication.html#session-management">Session Management</a></li>
-<li class="toctree-l3"><a class="reference internal" href="authentication.html#checking-authentication-status">Checking Authentication Status</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="generation.html">Generation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="generation.html#generate-svg">Generate SVG</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generation.html#generate-legacy">Generate (Legacy)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generation.html#generate-with-metadata">Generate with Metadata</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generation.html#parameter-details">Parameter Details</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="generation.html#bias-parameter">Bias Parameter</a></li>
-<li class="toctree-l4"><a class="reference internal" href="generation.html#color-parameter">Color Parameter</a></li>
-<li class="toctree-l4"><a class="reference internal" href="generation.html#line-height">Line Height</a></li>
-<li class="toctree-l4"><a class="reference internal" href="generation.html#character-overrides">Character Overrides</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="generation.html#error-handling">Error Handling</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="batch.html">Batch Generation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="batch.html#batch-generate">Batch Generate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="batch.html#download-template">Download Template</a></li>
-<li class="toctree-l3"><a class="reference internal" href="batch.html#streaming-batch-generation">Streaming Batch Generation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="batch.html#download-batch-results">Download Batch Results</a></li>
-<li class="toctree-l3"><a class="reference internal" href="batch.html#get-individual-batch-file">Get Individual Batch File</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="styles.html">Styles</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="styles.html#list-styles">List Styles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="styles.html#style-preview">Style Preview</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="authentication.html">Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generation.html">Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="batch.html">Batch Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="styles.html">Styles</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Admin API</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#dashboard">Dashboard</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#admin-dashboard">Admin Dashboard</a></li>
@@ -124,71 +73,12 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="character_overrides.html">Character Overrides</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="character_overrides.html#collections">Collections</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#list-collections">List Collections</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#create-collection">Create Collection</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#view-collection">View Collection</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#edit-collection">Edit Collection</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#delete-collection">Delete Collection</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#upload-character">Upload Character</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#batch-upload">Batch Upload</a></li>
+<li class="toctree-l2"><a class="reference internal" href="character_overrides.html">Character Overrides</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#api-overview">API Overview</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="character_overrides.html#character-management">Character Management</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#delete-character-variant">Delete Character Variant</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#preview-character">Preview Character</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="character_overrides.html#api-endpoint">API Endpoint</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#get-collections-api">Get Collections (API)</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="character_overrides.html#usage-in-generation">Usage in Generation</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="index.html#api-overview">API Overview</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="index.html#base-url">Base URL</a></li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#authentication">Authentication</a></li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#response-format">Response Format</a></li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#http-status-codes">HTTP Status Codes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#rate-limiting">Rate Limiting</a></li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#common-headers">Common Headers</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../models.html">Database Models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#user-model">User Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#user-activity-model">User Activity Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#usage-statistics-model">Usage Statistics Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#character-override-collection-model">Character Override Collection Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#character-override-model">Character Override Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#database-schema">Database Schema</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../models.html#entity-relationship-diagram">Entity Relationship Diagram</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../models.html#indexes">Indexes</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#migrations">Migrations</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../utilities.html">Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../utilities.html#module-webapp.utils.auth_utils">Authentication Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utilities.html#module-webapp.utils.text_utils">Text Processing Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utilities.html#module-webapp.utils.page_utils">Page Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utilities.html#module-handwriting_synthesis.hand.character_override_utils">Character Override Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utilities.html#example-usage">Example Usage</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../utilities.html#activity-logging">Activity Logging</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../utilities.html#generation-tracking">Generation Tracking</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../utilities.html#custom-decorators">Custom Decorators</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../utilities.html#admin-required">Admin Required</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../utilities.html#rate-limiting">Rate Limiting</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../models.html">Database Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utilities.html">Utilities</a></li>
 </ul>
 
         </div>
@@ -227,36 +117,178 @@
 <h2>Dashboard<a class="headerlink" href="#dashboard" title="Link to this heading"></a></h2>
 <section id="admin-dashboard">
 <h3>Admin Dashboard<a class="headerlink" href="#admin-dashboard" title="Link to this heading"></a></h3>
+<dl class="http get">
+<dt class="sig sig-object http" id="get--admin-">
+<span class="sig-name descname"><span class="pre">GET</span> </span><span class="sig-name descname"><span class="pre">/admin/</span></span><a class="headerlink" href="#get--admin-" title="Link to this definition"></a></dt>
+<dd><p>View the admin dashboard with overview statistics and recent activities.</p>
+<p><strong>Example Response:</strong></p>
+<p>Returns an HTML page with:</p>
+<ul class="simple">
+<li><p>Total users, active users, and admin users</p></li>
+<li><p>Statistics for the last 7 days</p></li>
+<li><p>Recent user activities (last 50)</p></li>
+<li><p>Quick links to user management and system monitoring</p></li>
+</ul>
+<p><strong>Status Codes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> - Success</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">403</span> <span class="pre">Forbidden</span></code> - Not an admin</p></li>
+</ul>
+</dd></dl>
+
 </section>
 </section>
 <section id="users">
 <h2>Users<a class="headerlink" href="#users" title="Link to this heading"></a></h2>
 <section id="list-users">
 <h3>List Users<a class="headerlink" href="#list-users" title="Link to this heading"></a></h3>
+<dl class="http get">
+<dt class="sig sig-object http" id="get--admin-users">
+<span class="sig-name descname"><span class="pre">GET</span> </span><span class="sig-name descname"><span class="pre">/admin/users</span></span><a class="headerlink" href="#get--admin-users" title="Link to this definition"></a></dt>
+<dd><p>Get all users in the system.</p>
+<p><strong>Status Codes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> - Success</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">403</span> <span class="pre">Forbidden</span></code> - Not an admin</p></li>
+</ul>
+</dd></dl>
+
 </section>
 <section id="create-user">
 <h3>Create User<a class="headerlink" href="#create-user" title="Link to this heading"></a></h3>
+<dl class="http post">
+<dt class="sig sig-object http" id="post--admin-users-create">
+<span class="sig-name descname"><span class="pre">POST</span> </span><span class="sig-name descname"><span class="pre">/admin/users/create</span></span><a class="headerlink" href="#post--admin-users-create" title="Link to this definition"></a></dt>
+<dd><p>Create a new user account.</p>
+<p><strong>Form Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">username</span></code> (string, required) - Unique username</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">password</span></code> (string, required) - User password</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">full_name</span></code> (string, optional) - Full name</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">role</span></code> (string, required) - “user” or “admin”</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_active</span></code> (boolean, optional) - Active status</p></li>
+</ul>
+</dd></dl>
+
 </section>
 <section id="view-user">
 <h3>View User<a class="headerlink" href="#view-user" title="Link to this heading"></a></h3>
+<dl class="http get">
+<dt class="sig sig-object http" id="get--admin-users-(int-user_id)">
+<span class="sig-name descname"><span class="pre">GET</span> </span><span class="sig-name descname"><span class="pre">/admin/users/</span></span><span class="sig-paren">(</span><em class="property"><span class="pre">int:</span> </em><em class="sig-param"><span class="pre">user_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#get--admin-users-(int-user_id)" title="Link to this definition"></a></dt>
+<dd><p>View detailed information about a specific user.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code> (integer) - The user ID</p></li>
+</ul>
+<p><strong>Example Response:</strong></p>
+<p>Returns an HTML page with:</p>
+<ul class="simple">
+<li><p>User profile information (username, full name, email, role)</p></li>
+<li><p>Account status (active/inactive)</p></li>
+<li><p>User statistics (total generations, last login, registration date)</p></li>
+<li><p>Recent activity history</p></li>
+<li><p>Edit and delete actions</p></li>
+</ul>
+<p><strong>Status Codes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> - Success</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">403</span> <span class="pre">Forbidden</span></code> - Not an admin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">404</span> <span class="pre">Not</span> <span class="pre">Found</span></code> - User not found</p></li>
+</ul>
+</dd></dl>
+
 </section>
 <section id="update-user">
 <h3>Update User<a class="headerlink" href="#update-user" title="Link to this heading"></a></h3>
+<dl class="http post">
+<dt class="sig sig-object http" id="post--admin-users-(int-user_id)-edit">
+<span class="sig-name descname"><span class="pre">POST</span> </span><span class="sig-name descname"><span class="pre">/admin/users/</span></span><span class="sig-paren">(</span><em class="property"><span class="pre">int:</span> </em><em class="sig-param"><span class="pre">user_id</span></em><span class="sig-paren">)</span><span class="sig-name descname"><span class="pre">/edit</span></span><a class="headerlink" href="#post--admin-users-(int-user_id)-edit" title="Link to this definition"></a></dt>
+<dd><p>Update an existing user account.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code> (integer) - The user ID</p></li>
+</ul>
+<p><strong>Form Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">username</span></code> (string, optional) - Update username</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">password</span></code> (string, optional) - New password (leave blank to keep current)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">full_name</span></code> (string, optional) - Update full name</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">email</span></code> (string, optional) - Update email address</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">role</span></code> (string, required) - “user” or “admin”</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_active</span></code> (boolean, optional) - Active status</p></li>
+</ul>
+<p><strong>Status Codes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">302</span> <span class="pre">Found</span></code> - Update successful, redirects to user list</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> - Validation errors, returns form with errors</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">403</span> <span class="pre">Forbidden</span></code> - Not an admin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">404</span> <span class="pre">Not</span> <span class="pre">Found</span></code> - User not found</p></li>
+</ul>
+</dd></dl>
+
 </section>
 <section id="delete-user">
 <h3>Delete User<a class="headerlink" href="#delete-user" title="Link to this heading"></a></h3>
+<dl class="http post">
+<dt class="sig sig-object http" id="post--admin-users-(int-user_id)-delete">
+<span class="sig-name descname"><span class="pre">POST</span> </span><span class="sig-name descname"><span class="pre">/admin/users/</span></span><span class="sig-paren">(</span><em class="property"><span class="pre">int:</span> </em><em class="sig-param"><span class="pre">user_id</span></em><span class="sig-paren">)</span><span class="sig-name descname"><span class="pre">/delete</span></span><a class="headerlink" href="#post--admin-users-(int-user_id)-delete" title="Link to this definition"></a></dt>
+<dd><p>Delete a user account.</p>
+</dd></dl>
+
 </section>
 </section>
 <section id="statistics">
 <h2>Statistics<a class="headerlink" href="#statistics" title="Link to this heading"></a></h2>
 <section id="view-statistics">
 <h3>View Statistics<a class="headerlink" href="#view-statistics" title="Link to this heading"></a></h3>
+<dl class="http get">
+<dt class="sig sig-object http" id="get--admin-statistics">
+<span class="sig-name descname"><span class="pre">GET</span> </span><span class="sig-name descname"><span class="pre">/admin/statistics</span></span><a class="headerlink" href="#get--admin-statistics" title="Link to this definition"></a></dt>
+<dd><p>Get system-wide statistics.</p>
+<p><strong>Example Response:</strong></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;total_generations&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1234</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;total_users&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">45</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;active_users_7d&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">23</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;total_characters_generated&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">567890</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </section>
 </section>
 <section id="activities">
 <h2>Activities<a class="headerlink" href="#activities" title="Link to this heading"></a></h2>
 <section id="view-activities">
 <h3>View Activities<a class="headerlink" href="#view-activities" title="Link to this heading"></a></h3>
+<dl class="http get">
+<dt class="sig sig-object http" id="get--admin-activities">
+<span class="sig-name descname"><span class="pre">GET</span> </span><span class="sig-name descname"><span class="pre">/admin/activities</span></span><a class="headerlink" href="#get--admin-activities" title="Link to this definition"></a></dt>
+<dd><p>Get user activity log.</p>
+<p><strong>Query Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">page</span></code> (integer, optional) - Page number (default: 1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">per_page</span></code> (integer, optional) - Items per page (default: 50)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_id</span></code> (integer, optional) - Filter by user ID</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span></code> (string, optional) - Filter by activity type</p></li>
+</ul>
+<p><strong>Activity Types:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">login</span></code> - User login</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">logout</span></code> - User logout</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">generate</span></code> - Text generation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">batch</span></code> - Batch generation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">admin_action</span></code> - Admin action</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">page_view</span></code> - Page view</p></li>
+</ul>
+</dd></dl>
+
 </section>
 </section>
 </section>
