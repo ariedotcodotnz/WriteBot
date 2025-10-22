@@ -6,6 +6,31 @@ Administrative endpoints for user management and system monitoring. All endpoint
 .. note::
    All admin endpoints require authentication with an admin user account.
 
+Dashboard
+---------
+
+Admin Dashboard
+~~~~~~~~~~~~~~~
+
+.. http:get:: /admin/
+
+   View the admin dashboard with overview statistics and recent activities.
+
+   **Example Response:**
+
+   Returns an HTML page with:
+
+   * Total users, active users, and admin users
+   * Statistics for the last 7 days
+   * Recent user activities (last 50)
+   * Quick links to user management and system monitoring
+
+   **Status Codes:**
+
+   * ``200 OK`` - Success
+   * ``401 Unauthorized`` - Not authenticated
+   * ``403 Forbidden`` - Not an admin
+
 Users
 -----
 
@@ -37,12 +62,61 @@ Create User
    * ``role`` (string, required) - "user" or "admin"
    * ``is_active`` (boolean, optional) - Active status
 
+View User
+~~~~~~~~~
+
+.. http:get:: /admin/users/(int:user_id)
+
+   View detailed information about a specific user.
+
+   **Parameters:**
+
+   * ``user_id`` (integer) - The user ID
+
+   **Example Response:**
+
+   Returns an HTML page with:
+
+   * User profile information (username, full name, email, role)
+   * Account status (active/inactive)
+   * User statistics (total generations, last login, registration date)
+   * Recent activity history
+   * Edit and delete actions
+
+   **Status Codes:**
+
+   * ``200 OK`` - Success
+   * ``401 Unauthorized`` - Not authenticated
+   * ``403 Forbidden`` - Not an admin
+   * ``404 Not Found`` - User not found
+
 Update User
 ~~~~~~~~~~~
 
 .. http:post:: /admin/users/(int:user_id)/edit
 
-   Update an existing user.
+   Update an existing user account.
+
+   **Parameters:**
+
+   * ``user_id`` (integer) - The user ID
+
+   **Form Parameters:**
+
+   * ``username`` (string, optional) - Update username
+   * ``password`` (string, optional) - New password (leave blank to keep current)
+   * ``full_name`` (string, optional) - Update full name
+   * ``email`` (string, optional) - Update email address
+   * ``role`` (string, required) - "user" or "admin"
+   * ``is_active`` (boolean, optional) - Active status
+
+   **Status Codes:**
+
+   * ``302 Found`` - Update successful, redirects to user list
+   * ``200 OK`` - Validation errors, returns form with errors
+   * ``401 Unauthorized`` - Not authenticated
+   * ``403 Forbidden`` - Not an admin
+   * ``404 Not Found`` - User not found
 
 Delete User
 ~~~~~~~~~~~
