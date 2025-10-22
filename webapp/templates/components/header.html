@@ -7,10 +7,18 @@
     <ul class="bx--header__menu-bar" aria-label="User Menu">
       {% if current_user.is_authenticated %}
         <li>
-          <a class="bx--header__menu-item" href="{{ url_for('admin.dashboard') }}" title="Dashboard">
-            Dashboard
+          <a class="bx--header__menu-item" href="/" title="Home">
+            Home
           </a>
         </li>
+                  {% if current_user.is_admin() %}
+        <li>
+          <a class="bx--header__menu-item" href="{{ url_for('admin.dashboard') }}" title="Admin">
+            Admin
+          </a>
+        </li>
+              {% endif %}
+
         <li>
           <a class="bx--header__menu-item" href="{{ url_for('auth.logout') }}" title="Logout">
             Logout ({{ current_user.username }})

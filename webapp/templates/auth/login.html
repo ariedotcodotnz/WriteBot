@@ -3,13 +3,127 @@
 {% block title %}Login - WriteBot{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" />
+<style>
+    .login-container {
+        max-width: 420px;
+        margin: 100px auto;
+        padding: 40px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .login-header h1 {
+        font-size: 28px;
+        margin-bottom: 8px;
+        color: #161616;
+    }
+
+    .login-header p {
+        color: #525252;
+        font-size: 14px;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #161616;
+        font-size: 14px;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="password"] {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        font-size: 14px;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+    }
+
+    .form-group input[type="text"]:focus,
+    .form-group input[type="password"]:focus {
+        outline: none;
+        border-color: #0f62fe;
+        box-shadow: 0 0 0 2px rgba(15, 98, 254, 0.1);
+    }
+
+    .form-check {
+        display: flex;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .form-check input[type="checkbox"] {
+        margin-right: 8px;
+    }
+
+    .form-check label {
+        font-size: 14px;
+        color: #525252;
+        cursor: pointer;
+    }
+
+    .btn-login {
+        width: 100%;
+        padding: 12px;
+        background-color: #0f62fe;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .btn-login:hover {
+        background-color: #0353e9;
+    }
+
+    .btn-login:active {
+        background-color: #002d9c;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .alert-error {
+        background-color: #fff1f1;
+        border: 1px solid #da1e28;
+        color: #da1e28;
+    }
+
+    .alert-success {
+        background-color: #defbe6;
+        border: 1px solid #24a148;
+        color: #24a148;
+    }
+
+    body {
+        background-color: #f4f4f4;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="login-container">
     <div class="login-header">
-        <div class="login-header__logo">✍️</div>
         <h1>WriteBot</h1>
         <p>Sign in to your account</p>
     </div>
@@ -17,110 +131,30 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="alert alert-{{ category }}" role="alert">
+                <div class="alert alert-{{ category }}">
                     {{ message }}
                 </div>
             {% endfor %}
         {% endif %}
     {% endwith %}
 
-    <form method="POST" action="{{ url_for('auth.login') }}" id="loginForm">
+    <form method="POST" action="{{ url_for('auth.login') }}">
         <div class="form-group">
             <label for="username">Username</label>
-            <input type="text"
-                   id="username"
-                   name="username"
-                   required
-                   autofocus
-                   autocomplete="username"
-                   placeholder="Enter your username">
+            <input type="text" id="username" name="username" required autofocus>
         </div>
 
         <div class="form-group">
             <label for="password">Password</label>
-            <div class="password-wrapper">
-                <input type="password"
-                       id="password"
-                       name="password"
-                       required
-                       autocomplete="current-password"
-                       placeholder="Enter your password">
-                <button type="button"
-                        class="password-toggle"
-                        onclick="togglePassword()"
-                        aria-label="Toggle password visibility"
-                        title="Show/hide password">
-                    👁️
-                </button>
-            </div>
+            <input type="password" id="password" name="password" required>
         </div>
 
         <div class="form-check">
             <input type="checkbox" id="remember" name="remember">
-            <label for="remember">Remember me for 30 days</label>
+            <label for="remember">Remember me</label>
         </div>
 
-        <button type="submit" class="btn-login" id="loginBtn">Sign In</button>
+        <button type="submit" class="btn-login">Sign In</button>
     </form>
-
-    <div class="security-badge">
-        Your connection is secure and encrypted
-    </div>
-
-    {% if config.get('ALLOW_REGISTRATION') %}
-    <div class="login-footer">
-        <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a></p>
-    </div>
-    {% endif %}
 </div>
-
-<script>
-    // Toggle password visibility
-    function togglePassword() {
-        const passwordInput = document.getElementById('password');
-        const toggleBtn = document.querySelector('.password-toggle');
-
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            toggleBtn.textContent = '🙈';
-            toggleBtn.setAttribute('aria-label', 'Hide password');
-        } else {
-            passwordInput.type = 'password';
-            toggleBtn.textContent = '👁️';
-            toggleBtn.setAttribute('aria-label', 'Show password');
-        }
-    }
-
-    // Add loading state to button on submit
-    document.getElementById('loginForm').addEventListener('submit', function() {
-        const btn = document.getElementById('loginBtn');
-        btn.classList.add('loading');
-        btn.disabled = true;
-    });
-
-    // Auto-dismiss success alerts after 5 seconds
-    document.addEventListener('DOMContentLoaded', function() {
-        const successAlerts = document.querySelectorAll('.alert-success');
-        successAlerts.forEach(alert => {
-            setTimeout(() => {
-                alert.style.transition = 'opacity 0.5s ease';
-                alert.style.opacity = '0';
-                setTimeout(() => {
-                    alert.remove();
-                }, 500);
-            }, 5000);
-        });
-    });
-
-    // Focus management for better UX
-    document.addEventListener('DOMContentLoaded', function() {
-        const usernameInput = document.getElementById('username');
-        const passwordInput = document.getElementById('password');
-
-        // If username is filled, focus on password
-        if (usernameInput.value.trim() !== '') {
-            passwordInput.focus();
-        }
-    });
-</script>
 {% endblock %}

@@ -8,8 +8,8 @@ for handwriting synthesis via web API.
 import os
 import sys
 from flask import Flask, jsonify, send_from_directory, render_template
-from flask_login import LoginManager
-
+from flask_login import LoginManager, login_required
+# from flask_minify import minify, decorators
 # Ensure project root is in sys.path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 if PROJECT_ROOT not in sys.path:
@@ -30,6 +30,9 @@ from webapp.routes import generation_bp, batch_bp, style_bp
 
 # Initialize Flask app
 app = Flask(__name__, static_folder="static", static_url_path="/static")
+# Init Flask-Squeeze
+# initializing minify for html, js and cssless
+# minify(app=app, html=True, js=True, cssless=True, static=True,passive=True)
 
 # Configuration
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', '0ea55211309ed371c3d266185fb4123f')
@@ -113,6 +116,7 @@ def security():
 
 @app.route('/docs/')
 @app.route('/docs/<path:filename>')
+@login_required
 def serve_docs(filename='index.html'):
     """Serve Sphinx documentation."""
     docs_dir = os.path.join(PROJECT_ROOT, 'docs', 'build', 'html')

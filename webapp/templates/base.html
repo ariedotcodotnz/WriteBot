@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 
   <!-- Carbon Design System -->
-  <link rel="stylesheet" href="https://unpkg.com/carbon-components@10.58.0/css/carbon-components.min.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/carbon-components.min.css') }}" />
 
   <!-- Custom Styles -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
@@ -52,7 +52,7 @@
   <div id="notif" class="notification-container"></div>
 
   <!-- Scripts -->
-  <script src="https://unpkg.com/carbon-components@10.58.0/scripts/carbon-components.min.js"></script>
+  <script src="{{ url_for('static', filename='js/carbon-components.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
   {% block extra_js %}{% endblock %}

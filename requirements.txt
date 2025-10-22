@@ -15,5 +15,6 @@ Flask-WTF>=1.1.1
 WTForms>=3.0.1
 email-validator>=2.0.0
 Flask-Compress>=1.13
+Flask-Caching
 
 # Note: For documentation dependencies, see docs/requirements.txt
