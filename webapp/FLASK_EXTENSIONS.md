@@ -2,6 +2,16 @@
 
 This document explains how to use the Flask extensions integrated into WriteBot.
 
+## Quick Fix: UnicodeDecodeError
+
+**If you're experiencing `UnicodeDecodeError: 'utf-8' codec can't decode byte 0xb5...`:**
+
+This error was caused by Flask-Minify trying to minify binary content (SVG files, images). The fix has been applied:
+- **Flask-Minify is now disabled by default**
+- The error should no longer occur
+- If you want HTML minification, set `MINIFY_HTML=true` environment variable (optional)
+- See the [Flask-Minify section](#flask-minify) for more details
+
 ## Overview
 
 The following Flask extensions have been integrated:
@@ -143,28 +153,44 @@ def api_endpoint():
 
 ## Flask-Minify
 
-Flask-Minify automatically minifies HTML, CSS, and JavaScript responses.
+Flask-Minify can minify HTML, CSS, and JavaScript responses.
 
 ### Configuration
 
-Configured in `webapp/app.py` with:
-- HTML minification: Enabled
-- JavaScript minification: Enabled
-- CSS/LESS minification: Enabled
+**Important Note**: Flask-Minify is **disabled by default** to prevent issues with binary content (SVG, images, etc.).
+
+The default Flask-Minify configuration had issues with binary responses causing `UnicodeDecodeError`. To avoid this:
+
+1. **HTML minification is opt-in**: Set environment variable `MINIFY_HTML=true` to enable
+2. **Only HTML responses are minified**: SVG, JSON, images, and other content types are skipped
+3. **Content-type checking**: The custom implementation checks response content type before minifying
+
+To enable HTML minification:
+```bash
+# Linux/Mac
+export MINIFY_HTML=true
+
+# Windows
+set MINIFY_HTML=true
+```
 
 ### Usage
 
-Minification is automatic for all responses. No additional code needed.
+When enabled, minification only applies to `text/html` responses. All other content types (including `image/svg+xml`) are automatically skipped to prevent Unicode errors.
 
-To disable minification for specific endpoints:
-```python
-from flask_minify import decorators
+The implementation automatically handles:
+- Binary content (SVG, images, PDFs)
+- JSON responses
+- Text responses with non-UTF-8 encoding
+- Responses with `direct_passthrough` enabled
 
-@app.route('/api/raw')
-@decorators.bypass_minification
-def raw_endpoint():
-    return html_content
-```
+### Troubleshooting UnicodeDecodeError
+
+If you encounter `UnicodeDecodeError: 'utf-8' codec can't decode byte...`:
+
+1. **Ensure MINIFY_HTML is not set** or set to `false` (default behavior)
+2. **Check your responses**: Make sure SVG and image endpoints set proper content types
+3. **Use Flask-Assets** for static file minification instead of runtime minification
 
 ## Flask-Assets
 

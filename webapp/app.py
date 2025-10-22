@@ -106,10 +106,40 @@ if Limiter is not None and get_remote_address is not None:
     except Exception:
         pass
 
-# Initialize Flask-Minify
-if Minify is not None:
+# Initialize Flask-Minify with content-type checking
+# Disabled by default to avoid issues with binary content (SVG, images)
+# To enable, set MINIFY_HTML environment variable to 'true'
+if Minify is not None and os.environ.get('MINIFY_HTML', '').lower() == 'true':
     try:
-        Minify(app=app, html=True, js=True, cssless=True)
+        # Add after_request handler to selectively minify based on content type
+        @app.after_request
+        def selective_minify(response):
+            """Only minify text/html responses to avoid binary content issues."""
+            # Only process successful responses
+            if response.status_code != 200:
+                return response
+
+            # Check if content type is HTML
+            content_type = response.content_type or ''
+            if 'text/html' not in content_type.lower():
+                return response
+
+            # Try to minify HTML only
+            try:
+                if response.direct_passthrough:
+                    return response
+
+                html = response.get_data(as_text=True)
+                # Simple HTML minification (remove extra whitespace)
+                import re
+                html = re.sub(r'>\s+<', '><', html)
+                html = re.sub(r'\s+', ' ', html)
+                response.set_data(html)
+            except (UnicodeDecodeError, AttributeError):
+                # If we can't decode, skip minification
+                pass
+
+            return response
     except Exception:
         pass
 
