@@ -334,8 +334,7 @@ def _draw(
     # Add metadata comment if character overrides are enabled
     if character_override_collection_id is not None and overrides_dict:
         try:
-            desc = dwg.desc(f"Character overrides enabled: collection {character_override_collection_id} with {len(overrides_dict)} characters")
-            dwg.add(desc)
+            dwg.set_desc(desc=f"Character overrides enabled: collection {character_override_collection_id} with {len(overrides_dict)} characters")
         except Exception as e:
             print(f"Note: Could not add override metadata comment: {e}")
 
