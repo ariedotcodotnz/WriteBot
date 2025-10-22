@@ -79,9 +79,26 @@ def track_generation(lines_count=0, chars_count=0, processing_time=0.0, is_batch
         if not stats:
             stats = UsageStatistics(
                 user_id=current_user.id,
-                date=today
+                date=today,
+                svg_generations=0,
+                batch_generations=0,
+                total_lines_generated=0,
+                total_characters_generated=0,
+                total_processing_time=0.0
             )
             db.session.add(stats)
+
+        # Ensure all numeric fields are initialized (handle potential NULL values in existing records)
+        if stats.batch_generations is None:
+            stats.batch_generations = 0
+        if stats.svg_generations is None:
+            stats.svg_generations = 0
+        if stats.total_lines_generated is None:
+            stats.total_lines_generated = 0
+        if stats.total_characters_generated is None:
+            stats.total_characters_generated = 0
+        if stats.total_processing_time is None:
+            stats.total_processing_time = 0.0
 
         # Update statistics
         if is_batch:
