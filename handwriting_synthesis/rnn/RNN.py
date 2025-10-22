@@ -1,5 +1,7 @@
 from __future__ import print_function
 
+import warnings
+
 import numpy as np
 import tensorflow as tf
 import tensorflow.compat.v1 as tfcompat
@@ -9,6 +11,10 @@ from handwriting_synthesis.rnn import LSTMAttentionCell
 from handwriting_synthesis.rnn.operations import rnn_free_run
 from handwriting_synthesis.tf import BaseModel
 from handwriting_synthesis.tf.utils import time_distributed_dense_layer
+
+# Suppress TensorFlow deprecation warnings for intentional TF1 compatibility mode usage
+warnings.filterwarnings('ignore', category=UserWarning, module='tensorflow')
+warnings.filterwarnings('ignore', category=DeprecationWarning, module='tensorflow')
 
 tfcompat.disable_v2_behavior()
 

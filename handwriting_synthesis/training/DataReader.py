@@ -1,12 +1,17 @@
 from __future__ import print_function
 
 import os
+import warnings
 
 import numpy as np
 import tensorflow.compat.v1 as tfcompat
 
 from handwriting_synthesis.data_frame import DataFrame
 from handwriting_synthesis.training.batch_generator import batch_generator
+
+# Suppress TensorFlow deprecation warnings for intentional TF1 compatibility mode usage
+warnings.filterwarnings('ignore', category=UserWarning, module='tensorflow')
+warnings.filterwarnings('ignore', category=DeprecationWarning, module='tensorflow')
 
 tfcompat.disable_v2_behavior()
 
