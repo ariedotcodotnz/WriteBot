@@ -159,11 +159,103 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../models.html">Database Models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#user-model">User Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#user-activity-model">User Activity Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#usage-statistics-model">Usage Statistics Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#character-override-collection-model">Character Override Collection Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#character-override-model">Character Override Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models.html#user-model">User Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models.html#webapp.models.User"><code class="docutils literal notranslate"><span class="pre">User</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.id"><code class="docutils literal notranslate"><span class="pre">User.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.username"><code class="docutils literal notranslate"><span class="pre">User.username</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.password_hash"><code class="docutils literal notranslate"><span class="pre">User.password_hash</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.full_name"><code class="docutils literal notranslate"><span class="pre">User.full_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.role"><code class="docutils literal notranslate"><span class="pre">User.role</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.is_active"><code class="docutils literal notranslate"><span class="pre">User.is_active</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.created_at"><code class="docutils literal notranslate"><span class="pre">User.created_at</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.last_login"><code class="docutils literal notranslate"><span class="pre">User.last_login</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.default_style"><code class="docutils literal notranslate"><span class="pre">User.default_style</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.default_bias"><code class="docutils literal notranslate"><span class="pre">User.default_bias</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.default_stroke_color"><code class="docutils literal notranslate"><span class="pre">User.default_stroke_color</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.default_stroke_width"><code class="docutils literal notranslate"><span class="pre">User.default_stroke_width</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.activities"><code class="docutils literal notranslate"><span class="pre">User.activities</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.statistics"><code class="docutils literal notranslate"><span class="pre">User.statistics</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.set_password"><code class="docutils literal notranslate"><span class="pre">User.set_password()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.check_password"><code class="docutils literal notranslate"><span class="pre">User.check_password()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.is_admin"><code class="docutils literal notranslate"><span class="pre">User.is_admin()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.update_last_login"><code class="docutils literal notranslate"><span class="pre">User.update_last_login()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.__init__"><code class="docutils literal notranslate"><span class="pre">User.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.query"><code class="docutils literal notranslate"><span class="pre">User.query</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models.html#user-activity-model">User Activity Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models.html#webapp.models.UserActivity"><code class="docutils literal notranslate"><span class="pre">UserActivity</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UserActivity.id"><code class="docutils literal notranslate"><span class="pre">UserActivity.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UserActivity.user_id"><code class="docutils literal notranslate"><span class="pre">UserActivity.user_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UserActivity.activity_type"><code class="docutils literal notranslate"><span class="pre">UserActivity.activity_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UserActivity.description"><code class="docutils literal notranslate"><span class="pre">UserActivity.description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UserActivity.ip_address"><code class="docutils literal notranslate"><span class="pre">UserActivity.ip_address</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UserActivity.user_agent"><code class="docutils literal notranslate"><span class="pre">UserActivity.user_agent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UserActivity.timestamp"><code class="docutils literal notranslate"><span class="pre">UserActivity.timestamp</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UserActivity.extra_data"><code class="docutils literal notranslate"><span class="pre">UserActivity.extra_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UserActivity.__init__"><code class="docutils literal notranslate"><span class="pre">UserActivity.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UserActivity.query"><code class="docutils literal notranslate"><span class="pre">UserActivity.query</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models.html#usage-statistics-model">Usage Statistics Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics"><code class="docutils literal notranslate"><span class="pre">UsageStatistics</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.id"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.user_id"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.user_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.date"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.date</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.svg_generations"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.svg_generations</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.batch_generations"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.batch_generations</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.total_lines_generated"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.total_lines_generated</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.total_characters_generated"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.total_characters_generated</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.total_processing_time"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.total_processing_time</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.updated_at"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.updated_at</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.__init__"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.query"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.query</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models.html#character-override-collection-model">Character Override Collection Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.id"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.name"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.description"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.created_by"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.created_by</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.created_at"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.created_at</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.updated_at"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.updated_at</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.is_active"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.is_active</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.character_overrides"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.character_overrides</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.creator"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.creator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.get_character_count"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.get_character_count()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.get_unique_characters"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.get_unique_characters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.__init__"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.query"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.query</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models.html#character-override-model">Character Override Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride"><code class="docutils literal notranslate"><span class="pre">CharacterOverride</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.id"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.collection_id"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.collection_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.character"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.character</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.svg_data"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.svg_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.viewbox_x"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.viewbox_x</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.viewbox_y"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.viewbox_y</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.viewbox_width"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.viewbox_width</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.viewbox_height"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.viewbox_height</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.baseline_offset"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.baseline_offset</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.created_at"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.created_at</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.updated_at"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.updated_at</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.__init__"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.query"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.query</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../models.html#database-schema">Database Schema</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../models.html#entity-relationship-diagram">Entity Relationship Diagram</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../models.html#indexes">Indexes</a></li>
@@ -221,18 +313,182 @@
 <p>Generate multiple handwritten texts from CSV files.</p>
 <section id="batch-generate">
 <h2>Batch Generate<a class="headerlink" href="#batch-generate" title="Link to this heading"></a></h2>
+<dl class="http post">
+<dt class="sig sig-object http" id="post--api-batch">
+<span class="sig-name descname"><span class="pre">POST</span> </span><span class="sig-name descname"><span class="pre">/api/batch</span></span><a class="headerlink" href="#post--api-batch" title="Link to this definition"></a></dt>
+<dd><p>Process batch generation from CSV file.</p>
+<p><strong>Example Request:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="nf">POST</span> <span class="nn">/api/batch</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Host</span><span class="o">:</span> <span class="l">localhost:5000</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">multipart/form-data</span>
+<span class="na">Cookie</span><span class="o">:</span> <span class="l">session=...</span>
+
+--boundary
+Content-Disposition: form-data; name=&quot;csv_file&quot;; filename=&quot;data.csv&quot;
+Content-Type: text/csv
+
+text,style_id,bias
+&quot;Hello World&quot;,1,0.75
+&quot;Test generation&quot;,2,0.8
+--boundary--
+</pre></div>
+</div>
+<p><strong>Form Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">csv_file</span></code> (file, required) - CSV file with generation data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">zip_format</span></code> (boolean, optional) - Return as ZIP file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output_format</span></code> (string, optional) - “svg” or “png”</p></li>
+</ul>
+<p><strong>CSV Format:</strong></p>
+<p>Required columns:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">text</span></code> - Text to generate</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">style_id</span></code> (optional) - Style ID, defaults to 1</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bias</span></code> (optional) - Bias value, defaults to 0.75</p></li>
+</ul>
+<p><strong>Example Response:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">200</span> <span class="ne">OK</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/zip</span>
+<span class="na">Content-Disposition</span><span class="o">:</span> <span class="l">attachment; filename=&quot;batch_results.zip&quot;</span>
+
+[Binary ZIP content]
+</pre></div>
+</div>
+<p><strong>Status Codes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> - Batch generation successful</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">400</span> <span class="pre">Bad</span> <span class="pre">Request</span></code> - Invalid CSV file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+</ul>
+</dd></dl>
+
 </section>
 <section id="download-template">
 <h2>Download Template<a class="headerlink" href="#download-template" title="Link to this heading"></a></h2>
+<dl class="http get">
+<dt class="sig sig-object http" id="get--api-template-csv">
+<span class="sig-name descname"><span class="pre">GET</span> </span><span class="sig-name descname"><span class="pre">/api/template-csv</span></span><a class="headerlink" href="#get--api-template-csv" title="Link to this definition"></a></dt>
+<dd><p>Download a CSV template for batch generation.</p>
+<p><strong>Example Response:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">200</span> <span class="ne">OK</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">text/csv</span>
+<span class="na">Content-Disposition</span><span class="o">:</span> <span class="l">attachment; filename=&quot;batch_template.csv&quot;</span>
+
+text,style_id,bias,color
+&quot;Sample text here&quot;,1,0.75,#000000
+</pre></div>
+</div>
+</dd></dl>
+
 </section>
 <section id="streaming-batch-generation">
 <h2>Streaming Batch Generation<a class="headerlink" href="#streaming-batch-generation" title="Link to this heading"></a></h2>
+<dl class="http post">
+<dt class="sig sig-object http" id="post--api-batch-stream">
+<span class="sig-name descname"><span class="pre">POST</span> </span><span class="sig-name descname"><span class="pre">/api/batch/stream</span></span><a class="headerlink" href="#post--api-batch-stream" title="Link to this definition"></a></dt>
+<dd><p>Stream batch generation progress in real-time.</p>
+<p><strong>Example Request:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="nf">POST</span> <span class="nn">/api/batch/stream</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Host</span><span class="o">:</span> <span class="l">localhost:5000</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">multipart/form-data</span>
+<span class="na">Cookie</span><span class="o">:</span> <span class="l">session=...</span>
+</pre></div>
+</div>
+<p><strong>Example Response:</strong></p>
+<p>Server-Sent Events stream:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>data: {&quot;progress&quot;: 0, &quot;status&quot;: &quot;starting&quot;}
+
+data: {&quot;progress&quot;: 25, &quot;status&quot;: &quot;processing&quot;, &quot;current&quot;: 1, &quot;total&quot;: 4}
+
+data: {&quot;progress&quot;: 100, &quot;status&quot;: &quot;complete&quot;, &quot;job_id&quot;: &quot;abc123&quot;}
+</pre></div>
+</div>
+<p><strong>Status Codes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> - Stream started successfully</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">400</span> <span class="pre">Bad</span> <span class="pre">Request</span></code> - Invalid CSV file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+</ul>
+</dd></dl>
+
 </section>
 <section id="download-batch-results">
 <h2>Download Batch Results<a class="headerlink" href="#download-batch-results" title="Link to this heading"></a></h2>
+<dl class="http get">
+<dt class="sig sig-object http" id="get--api-batch-result-(job_id)">
+<span class="sig-name descname"><span class="pre">GET</span> </span><span class="sig-name descname"><span class="pre">/api/batch/result/</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">job_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#get--api-batch-result-(job_id)" title="Link to this definition"></a></dt>
+<dd><p>Download the complete batch generation results as a ZIP file.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">job_id</span></code> (string) - The batch job ID returned from streaming batch generation</p></li>
+</ul>
+<p><strong>Example Request:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="nf">GET</span> <span class="nn">/api/batch/result/abc123</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Host</span><span class="o">:</span> <span class="l">localhost:5000</span>
+<span class="na">Cookie</span><span class="o">:</span> <span class="l">session=...</span>
+</pre></div>
+</div>
+<p><strong>Example Response:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">200</span> <span class="ne">OK</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/zip</span>
+<span class="na">Content-Disposition</span><span class="o">:</span> <span class="l">attachment; filename=&quot;writebot_batch_abc123.zip&quot;</span>
+
+[Binary ZIP content with all generated SVG files]
+</pre></div>
+</div>
+<p><strong>Status Codes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> - Results found and returned</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">404</span> <span class="pre">Not</span> <span class="pre">Found</span></code> - Job ID not found or results expired</p></li>
+</ul>
+<p><strong>Notes:</strong></p>
+<ul class="simple">
+<li><p>Results are stored temporarily and may be cleaned up after some time</p></li>
+<li><p>The ZIP file contains all SVG files generated in the batch</p></li>
+</ul>
+</dd></dl>
+
 </section>
 <section id="get-individual-batch-file">
 <h2>Get Individual Batch File<a class="headerlink" href="#get-individual-batch-file" title="Link to this heading"></a></h2>
+<dl class="http get">
+<dt class="sig sig-object http" id="get--api-batch-result-(job_id)-file-(filename)">
+<span class="sig-name descname"><span class="pre">GET</span> </span><span class="sig-name descname"><span class="pre">/api/batch/result/</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">job_id</span></em><span class="sig-paren">)</span><span class="sig-name descname"><span class="pre">/file/</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">filename</span></em><span class="sig-paren">)</span><a class="headerlink" href="#get--api-batch-result-(job_id)-file-(filename)" title="Link to this definition"></a></dt>
+<dd><p>Retrieve a single generated file from a batch job for preview purposes.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">job_id</span></code> (string) - The batch job ID</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">filename</span></code> (string) - The filename of the individual file</p></li>
+</ul>
+<p><strong>Example Request:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="nf">GET</span> <span class="nn">/api/batch/result/abc123/file/sample_0.svg</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Host</span><span class="o">:</span> <span class="l">localhost:5000</span>
+<span class="na">Cookie</span><span class="o">:</span> <span class="l">session=...</span>
+</pre></div>
+</div>
+<p><strong>Example Response:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">200</span> <span class="ne">OK</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">image/svg+xml</span>
+
+<span class="nt">&lt;svg</span><span class="w"> </span><span class="na">xmlns=</span><span class="s">&quot;http://www.w3.org/2000/svg&quot;</span><span class="err">...</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="cm">&lt;!-- SVG content --&gt;</span>
+<span class="nt">&lt;/svg&gt;</span>
+</pre></div>
+</div>
+<p><strong>Status Codes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> - File found and returned</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">404</span> <span class="pre">Not</span> <span class="pre">Found</span></code> - Job or file not found</p></li>
+</ul>
+<p><strong>Security:</strong></p>
+<ul class="simple">
+<li><p>Path traversal is prevented - only files in the job’s output directory can be accessed</p></li>
+<li><p>Files are served with appropriate MIME types (SVG, PNG, etc.)</p></li>
+</ul>
+</dd></dl>
+
 </section>
 </section>
 

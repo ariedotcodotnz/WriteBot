@@ -159,11 +159,103 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../models.html">Database Models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#user-model">User Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#user-activity-model">User Activity Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#usage-statistics-model">Usage Statistics Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#character-override-collection-model">Character Override Collection Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#character-override-model">Character Override Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models.html#user-model">User Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models.html#webapp.models.User"><code class="docutils literal notranslate"><span class="pre">User</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.id"><code class="docutils literal notranslate"><span class="pre">User.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.username"><code class="docutils literal notranslate"><span class="pre">User.username</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.password_hash"><code class="docutils literal notranslate"><span class="pre">User.password_hash</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.full_name"><code class="docutils literal notranslate"><span class="pre">User.full_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.role"><code class="docutils literal notranslate"><span class="pre">User.role</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.is_active"><code class="docutils literal notranslate"><span class="pre">User.is_active</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.created_at"><code class="docutils literal notranslate"><span class="pre">User.created_at</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.last_login"><code class="docutils literal notranslate"><span class="pre">User.last_login</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.default_style"><code class="docutils literal notranslate"><span class="pre">User.default_style</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.default_bias"><code class="docutils literal notranslate"><span class="pre">User.default_bias</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.default_stroke_color"><code class="docutils literal notranslate"><span class="pre">User.default_stroke_color</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.default_stroke_width"><code class="docutils literal notranslate"><span class="pre">User.default_stroke_width</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.activities"><code class="docutils literal notranslate"><span class="pre">User.activities</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.statistics"><code class="docutils literal notranslate"><span class="pre">User.statistics</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.set_password"><code class="docutils literal notranslate"><span class="pre">User.set_password()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.check_password"><code class="docutils literal notranslate"><span class="pre">User.check_password()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.is_admin"><code class="docutils literal notranslate"><span class="pre">User.is_admin()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.update_last_login"><code class="docutils literal notranslate"><span class="pre">User.update_last_login()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.__init__"><code class="docutils literal notranslate"><span class="pre">User.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.User.query"><code class="docutils literal notranslate"><span class="pre">User.query</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models.html#user-activity-model">User Activity Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models.html#webapp.models.UserActivity"><code class="docutils literal notranslate"><span class="pre">UserActivity</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UserActivity.id"><code class="docutils literal notranslate"><span class="pre">UserActivity.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UserActivity.user_id"><code class="docutils literal notranslate"><span class="pre">UserActivity.user_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UserActivity.activity_type"><code class="docutils literal notranslate"><span class="pre">UserActivity.activity_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UserActivity.description"><code class="docutils literal notranslate"><span class="pre">UserActivity.description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UserActivity.ip_address"><code class="docutils literal notranslate"><span class="pre">UserActivity.ip_address</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UserActivity.user_agent"><code class="docutils literal notranslate"><span class="pre">UserActivity.user_agent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UserActivity.timestamp"><code class="docutils literal notranslate"><span class="pre">UserActivity.timestamp</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UserActivity.extra_data"><code class="docutils literal notranslate"><span class="pre">UserActivity.extra_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UserActivity.__init__"><code class="docutils literal notranslate"><span class="pre">UserActivity.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UserActivity.query"><code class="docutils literal notranslate"><span class="pre">UserActivity.query</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models.html#usage-statistics-model">Usage Statistics Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics"><code class="docutils literal notranslate"><span class="pre">UsageStatistics</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.id"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.user_id"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.user_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.date"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.date</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.svg_generations"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.svg_generations</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.batch_generations"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.batch_generations</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.total_lines_generated"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.total_lines_generated</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.total_characters_generated"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.total_characters_generated</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.total_processing_time"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.total_processing_time</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.updated_at"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.updated_at</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.__init__"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.UsageStatistics.query"><code class="docutils literal notranslate"><span class="pre">UsageStatistics.query</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models.html#character-override-collection-model">Character Override Collection Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.id"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.name"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.description"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.created_by"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.created_by</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.created_at"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.created_at</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.updated_at"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.updated_at</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.is_active"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.is_active</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.character_overrides"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.character_overrides</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.creator"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.creator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.get_character_count"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.get_character_count()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.get_unique_characters"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.get_unique_characters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.__init__"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverrideCollection.query"><code class="docutils literal notranslate"><span class="pre">CharacterOverrideCollection.query</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models.html#character-override-model">Character Override Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride"><code class="docutils literal notranslate"><span class="pre">CharacterOverride</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.id"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.collection_id"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.collection_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.character"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.character</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.svg_data"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.svg_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.viewbox_x"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.viewbox_x</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.viewbox_y"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.viewbox_y</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.viewbox_width"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.viewbox_width</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.viewbox_height"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.viewbox_height</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.baseline_offset"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.baseline_offset</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.created_at"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.created_at</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.updated_at"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.updated_at</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.__init__"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models.html#webapp.models.CharacterOverride.query"><code class="docutils literal notranslate"><span class="pre">CharacterOverride.query</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="../models.html#database-schema">Database Schema</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../models.html#entity-relationship-diagram">Entity Relationship Diagram</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../models.html#indexes">Indexes</a></li>
@@ -221,12 +313,155 @@
 <p>Generate handwritten text from input strings. The API supports both single and batch generation.</p>
 <section id="generate-svg">
 <h2>Generate SVG<a class="headerlink" href="#generate-svg" title="Link to this heading"></a></h2>
+<dl class="http post">
+<dt class="sig sig-object http" id="post--api-v1-generate-svg">
+<span class="sig-name descname"><span class="pre">POST</span> </span><span class="sig-name descname"><span class="pre">/api/v1/generate/svg</span></span><a class="headerlink" href="#post--api-v1-generate-svg" title="Link to this definition"></a></dt>
+<dd><p>Generate handwritten text and return as SVG.</p>
+<p><strong>Example Request:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="nf">POST</span> <span class="nn">/api/v1/generate/svg</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Host</span><span class="o">:</span> <span class="l">localhost:5000</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json</span>
+<span class="na">Cookie</span><span class="o">:</span> <span class="l">session=...</span>
+
+<span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;text&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Hello, World!&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;style_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;bias&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.75</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;color&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#000000&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;line_height&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">60</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;view_width&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">800</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;view_height&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">600</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;character_override_collection_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>JSON Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">text</span></code> (string, required) - The text to generate</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">style_id</span></code> (integer, optional) - Handwriting style ID (default: 1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bias</span></code> (float, optional) - Bias value 0.0-1.0 (default: 0.75)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">color</span></code> (string, optional) - Stroke color hex code (default: “#000000”)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">line_height</span></code> (integer, optional) - Line height in pixels (default: 60)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">view_width</span></code> (integer, optional) - SVG viewport width (default: 800)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">view_height</span></code> (integer, optional) - SVG viewport height (default: 600)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">character_override_collection_id</span></code> (integer, optional) - Character override collection ID</p></li>
+</ul>
+<p><strong>Example Response:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">200</span> <span class="ne">OK</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json</span>
+
+<span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;svg&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;svg xmlns=\&quot;http://www.w3.org/2000/svg\&quot;...&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;metadata&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;processing_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.234</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;num_lines&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;num_characters&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">13</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;style_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;bias&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.75</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Status Codes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> - Generation successful</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">400</span> <span class="pre">Bad</span> <span class="pre">Request</span></code> - Invalid parameters</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">500</span> <span class="pre">Internal</span> <span class="pre">Server</span> <span class="pre">Error</span></code> - Generation failed</p></li>
+</ul>
+</dd></dl>
+
 </section>
 <section id="generate-legacy">
 <h2>Generate (Legacy)<a class="headerlink" href="#generate-legacy" title="Link to this heading"></a></h2>
+<dl class="http post">
+<dt class="sig sig-object http" id="post--api-generate">
+<span class="sig-name descname"><span class="pre">POST</span> </span><span class="sig-name descname"><span class="pre">/api/generate</span></span><a class="headerlink" href="#post--api-generate" title="Link to this definition"></a></dt>
+<dd><p>Legacy generation endpoint. Returns SVG content directly.</p>
+<p><strong>Example Request:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="nf">POST</span> <span class="nn">/api/generate</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Host</span><span class="o">:</span> <span class="l">localhost:5000</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json</span>
+<span class="na">Cookie</span><span class="o">:</span> <span class="l">session=...</span>
+
+<span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;text&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;WriteBot&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;style_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;bias&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.8</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>JSON Parameters:</strong></p>
+<p>Same as <code class="docutils literal notranslate"><span class="pre">/api/v1/generate/svg</span></code></p>
+<p><strong>Example Response:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">200</span> <span class="ne">OK</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">image/svg+xml</span>
+
+<span class="nt">&lt;svg</span><span class="w"> </span><span class="na">xmlns=</span><span class="s">&quot;http://www.w3.org/2000/svg&quot;</span><span class="w"> </span><span class="na">viewBox=</span><span class="s">&quot;0 0 800 200&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;path</span><span class="w"> </span><span class="na">d=</span><span class="s">&quot;M 10,50 L 20,55 ...&quot;</span><span class="w"> </span><span class="na">stroke=</span><span class="s">&quot;#000&quot;</span><span class="w"> </span><span class="na">fill=</span><span class="s">&quot;none&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/svg&gt;</span>
+</pre></div>
+</div>
+<p><strong>Status Codes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> - Generation successful</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">400</span> <span class="pre">Bad</span> <span class="pre">Request</span></code> - Invalid parameters</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+</ul>
+</dd></dl>
+
 </section>
 <section id="generate-with-metadata">
 <h2>Generate with Metadata<a class="headerlink" href="#generate-with-metadata" title="Link to this heading"></a></h2>
+<dl class="http post">
+<dt class="sig sig-object http" id="post--api-v1-generate">
+<span class="sig-name descname"><span class="pre">POST</span> </span><span class="sig-name descname"><span class="pre">/api/v1/generate</span></span><a class="headerlink" href="#post--api-v1-generate" title="Link to this definition"></a></dt>
+<dd><p>Generate handwritten text with detailed metadata.</p>
+<p><strong>Example Request:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="nf">POST</span> <span class="nn">/api/v1/generate</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Host</span><span class="o">:</span> <span class="l">localhost:5000</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json</span>
+<span class="na">Cookie</span><span class="o">:</span> <span class="l">session=...</span>
+
+<span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;text&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Handwriting synthesis&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;style_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>JSON Parameters:</strong></p>
+<p>Same as <code class="docutils literal notranslate"><span class="pre">/api/v1/generate/svg</span></code></p>
+<p><strong>Example Response:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">200</span> <span class="ne">OK</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json</span>
+
+<span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;success&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;svg&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;svg...&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;metadata&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;text_length&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">21</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;num_strokes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">145</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;bounding_box&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;width&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">650</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;height&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;generation_params&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;style_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;bias&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.75</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;color&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#000000&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Status Codes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> - Generation successful</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">400</span> <span class="pre">Bad</span> <span class="pre">Request</span></code> - Invalid parameters</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+</ul>
+</dd></dl>
+
 </section>
 <section id="parameter-details">
 <h2>Parameter Details<a class="headerlink" href="#parameter-details" title="Link to this heading"></a></h2>

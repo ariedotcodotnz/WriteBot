@@ -3,10 +3,9 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../">
 <head>
-  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Styles &mdash; WriteBot API Documentation</title>
+  <title>Overview: module code &mdash; WriteBot API Documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=63af810f" />
@@ -19,9 +18,7 @@
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Admin API" href="admin.html" />
-    <link rel="prev" title="Batch Generation" href="batch.html" /> 
+    <link rel="search" title="Search" href="../search.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -44,7 +41,7 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../introduction.html#what-is-writebot">What is WriteBot?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../introduction.html#features">Features</a><ul>
@@ -66,94 +63,94 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="authentication.html">Authentication</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="authentication.html#login">Login</a></li>
-<li class="toctree-l3"><a class="reference internal" href="authentication.html#logout">Logout</a></li>
-<li class="toctree-l3"><a class="reference internal" href="authentication.html#session-management">Session Management</a></li>
-<li class="toctree-l3"><a class="reference internal" href="authentication.html#checking-authentication-status">Checking Authentication Status</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/authentication.html">Authentication</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/authentication.html#login">Login</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/authentication.html#logout">Logout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/authentication.html#session-management">Session Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/authentication.html#checking-authentication-status">Checking Authentication Status</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="generation.html">Generation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="generation.html#generate-svg">Generate SVG</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generation.html#generate-legacy">Generate (Legacy)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generation.html#generate-with-metadata">Generate with Metadata</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generation.html#parameter-details">Parameter Details</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="generation.html#bias-parameter">Bias Parameter</a></li>
-<li class="toctree-l4"><a class="reference internal" href="generation.html#color-parameter">Color Parameter</a></li>
-<li class="toctree-l4"><a class="reference internal" href="generation.html#line-height">Line Height</a></li>
-<li class="toctree-l4"><a class="reference internal" href="generation.html#character-overrides">Character Overrides</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/generation.html">Generation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/generation.html#generate-svg">Generate SVG</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/generation.html#generate-legacy">Generate (Legacy)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/generation.html#generate-with-metadata">Generate with Metadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/generation.html#parameter-details">Parameter Details</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/generation.html#bias-parameter">Bias Parameter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/generation.html#color-parameter">Color Parameter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/generation.html#line-height">Line Height</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/generation.html#character-overrides">Character Overrides</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="generation.html#error-handling">Error Handling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/generation.html#error-handling">Error Handling</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="batch.html">Batch Generation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="batch.html#batch-generate">Batch Generate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="batch.html#download-template">Download Template</a></li>
-<li class="toctree-l3"><a class="reference internal" href="batch.html#streaming-batch-generation">Streaming Batch Generation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="batch.html#download-batch-results">Download Batch Results</a></li>
-<li class="toctree-l3"><a class="reference internal" href="batch.html#get-individual-batch-file">Get Individual Batch File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/batch.html">Batch Generation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/batch.html#batch-generate">Batch Generate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/batch.html#download-template">Download Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/batch.html#streaming-batch-generation">Streaming Batch Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/batch.html#download-batch-results">Download Batch Results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/batch.html#get-individual-batch-file">Get Individual Batch File</a></li>
 </ul>
 </li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Styles</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#list-styles">List Styles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#style-preview">Style Preview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/styles.html">Styles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/styles.html#list-styles">List Styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/styles.html#style-preview">Style Preview</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="admin.html">Admin API</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="admin.html#dashboard">Dashboard</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#admin-dashboard">Admin Dashboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/admin.html">Admin API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/admin.html#dashboard">Dashboard</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/admin.html#admin-dashboard">Admin Dashboard</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="admin.html#users">Users</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#list-users">List Users</a></li>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#create-user">Create User</a></li>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#view-user">View User</a></li>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#update-user">Update User</a></li>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#delete-user">Delete User</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/admin.html#users">Users</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/admin.html#list-users">List Users</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/admin.html#create-user">Create User</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/admin.html#view-user">View User</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/admin.html#update-user">Update User</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/admin.html#delete-user">Delete User</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="admin.html#statistics">Statistics</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#view-statistics">View Statistics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/admin.html#statistics">Statistics</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/admin.html#view-statistics">View Statistics</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="admin.html#activities">Activities</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#view-activities">View Activities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/admin.html#activities">Activities</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/admin.html#view-activities">View Activities</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="character_overrides.html">Character Overrides</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="character_overrides.html#collections">Collections</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#list-collections">List Collections</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#create-collection">Create Collection</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#view-collection">View Collection</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#edit-collection">Edit Collection</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#delete-collection">Delete Collection</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#upload-character">Upload Character</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#batch-upload">Batch Upload</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/character_overrides.html">Character Overrides</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/character_overrides.html#collections">Collections</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/character_overrides.html#list-collections">List Collections</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/character_overrides.html#create-collection">Create Collection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/character_overrides.html#view-collection">View Collection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/character_overrides.html#edit-collection">Edit Collection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/character_overrides.html#delete-collection">Delete Collection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/character_overrides.html#upload-character">Upload Character</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/character_overrides.html#batch-upload">Batch Upload</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="character_overrides.html#character-management">Character Management</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#delete-character-variant">Delete Character Variant</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#preview-character">Preview Character</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/character_overrides.html#character-management">Character Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/character_overrides.html#delete-character-variant">Delete Character Variant</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/character_overrides.html#preview-character">Preview Character</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="character_overrides.html#api-endpoint">API Endpoint</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#get-collections-api">Get Collections (API)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/character_overrides.html#api-endpoint">API Endpoint</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/character_overrides.html#get-collections-api">Get Collections (API)</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="character_overrides.html#usage-in-generation">Usage in Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/character_overrides.html#usage-in-generation">Usage in Generation</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="index.html#api-overview">API Overview</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="index.html#base-url">Base URL</a></li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#authentication">Authentication</a></li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#response-format">Response Format</a></li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#http-status-codes">HTTP Status Codes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#rate-limiting">Rate Limiting</a></li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#common-headers">Common Headers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#api-overview">API Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#base-url">Base URL</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#authentication">Authentication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#response-format">Response Format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#http-status-codes">HTTP Status Codes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#rate-limiting">Rate Limiting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#common-headers">Common Headers</a></li>
 </ul>
 </li>
 </ul>
@@ -297,10 +294,8 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="index.html">API Reference</a></li>
-      <li class="breadcrumb-item active">Styles</li>
+      <li class="breadcrumb-item active">Overview: module code</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/api/styles.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -308,94 +303,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="styles">
-<h1>Styles<a class="headerlink" href="#styles" title="Link to this heading"></a></h1>
-<p>Manage and retrieve handwriting styles.</p>
-<section id="list-styles">
-<h2>List Styles<a class="headerlink" href="#list-styles" title="Link to this heading"></a></h2>
-<dl class="http get">
-<dt class="sig sig-object http" id="get--api-styles">
-<span class="sig-name descname"><span class="pre">GET</span> </span><span class="sig-name descname"><span class="pre">/api/styles</span></span><a class="headerlink" href="#get--api-styles" title="Link to this definition"></a></dt>
-<dd><p>Get all available handwriting styles.</p>
-<p><strong>Example Request:</strong></p>
-<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="nf">GET</span> <span class="nn">/api/styles</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
-<span class="na">Host</span><span class="o">:</span> <span class="l">localhost:5000</span>
-<span class="na">Cookie</span><span class="o">:</span> <span class="l">session=...</span>
-</pre></div>
-</div>
-<p><strong>Example Response:</strong></p>
-<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">200</span> <span class="ne">OK</span>
-<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json</span>
-
-<span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;styles&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Style 1&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Default handwriting style&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;preview_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/api/style-preview/1&quot;</span>
-<span class="w">        </span><span class="p">},</span>
-<span class="w">        </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Style 2&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Cursive style&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;preview_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/api/style-preview/2&quot;</span>
-<span class="w">        </span><span class="p">}</span>
-<span class="w">    </span><span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p><strong>Status Codes:</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> - Success</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+  <h1>All modules for which code is available</h1>
+<ul><li><a href="webapp/models.html">webapp.models</a></li>
 </ul>
-</dd></dl>
-
-</section>
-<section id="style-preview">
-<h2>Style Preview<a class="headerlink" href="#style-preview" title="Link to this heading"></a></h2>
-<dl class="http get">
-<dt class="sig sig-object http" id="get--api-style-preview-(int-style_id)">
-<span class="sig-name descname"><span class="pre">GET</span> </span><span class="sig-name descname"><span class="pre">/api/style-preview/</span></span><span class="sig-paren">(</span><em class="property"><span class="pre">int:</span> </em><em class="sig-param"><span class="pre">style_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#get--api-style-preview-(int-style_id)" title="Link to this definition"></a></dt>
-<dd><p>Get a preview image for a specific style.</p>
-<p><strong>Parameters:</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">style_id</span></code> - The style ID</p></li>
-</ul>
-<p><strong>Example Request:</strong></p>
-<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="nf">GET</span> <span class="nn">/api/style-preview/1</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
-<span class="na">Host</span><span class="o">:</span> <span class="l">localhost:5000</span>
-<span class="na">Cookie</span><span class="o">:</span> <span class="l">session=...</span>
-</pre></div>
-</div>
-<p><strong>Example Response:</strong></p>
-<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">200</span> <span class="ne">OK</span>
-<span class="na">Content-Type</span><span class="o">:</span> <span class="l">image/svg+xml</span>
-
-<span class="nt">&lt;svg</span><span class="w"> </span><span class="na">xmlns=</span><span class="s">&quot;http://www.w3.org/2000/svg&quot;</span><span class="err">...</span><span class="nt">&gt;</span>
-<span class="w">  </span><span class="cm">&lt;!-- Preview SVG content --&gt;</span>
-<span class="nt">&lt;/svg&gt;</span>
-</pre></div>
-</div>
-<p><strong>Status Codes:</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> - Success</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">404</span> <span class="pre">Not</span> <span class="pre">Found</span></code> - Style not found</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
-</ul>
-</dd></dl>
-
-</section>
-</section>
-
 
            </div>
           </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="batch.html" class="btn btn-neutral float-left" title="Batch Generation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="admin.html" class="btn btn-neutral float-right" title="Admin API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-    </div>
+          <footer>
 
   <hr/>
 
