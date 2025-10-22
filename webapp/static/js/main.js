@@ -4,6 +4,7 @@ let lastMetadata = {};
 let STYLE_LIST = [];
 let SELECTED_STYLE_ID = null;
 let CSV_FILE = null;
+let CHARACTER_OVERRIDE_COLLECTIONS = [];
 
 // Lightbox Functions
 function openLightbox(svgContent) {
@@ -163,6 +164,33 @@ async function loadStyles() {
   }
 }
 
+// Load Character Override Collections
+async function loadCharacterOverrideCollections() {
+  const sel = document.getElementById('characterOverrideCollection');
+  if (!sel) return; // Element might not exist
+
+  sel.innerHTML = '<option value="">None (use AI)</option>';
+
+  try {
+    const res = await fetch('/admin/character-overrides/api/collections');
+    if (!res.ok) {
+      throw new Error('Failed to load collections');
+    }
+    const collections = await res.json();
+    CHARACTER_OVERRIDE_COLLECTIONS = collections || [];
+
+    collections.forEach(collection => {
+      const opt = document.createElement('option');
+      opt.value = String(collection.id);
+      opt.textContent = `${collection.name} (${collection.unique_characters} chars, ${collection.character_count} variants)`;
+      sel.appendChild(opt);
+    });
+  } catch (e) {
+    console.error('Failed to load character override collections:', e);
+    // Keep the default "None" option
+  }
+}
+
 // Custom Dropdown Functions
 function selectStyle(styleId) {
   SELECTED_STYLE_ID = styleId;
@@ -269,6 +297,7 @@ async function generate() {
   const background = document.getElementById('background').value;
   const orientation = document.getElementById('orientation').value;
   const legibility = document.getElementById('legibility').value;
+  const characterOverrideCollectionId = document.getElementById('characterOverrideCollection').value;
   const biases = document.getElementById('biases').value;
   const stylesOverride = document.getElementById('styles').value;
   const globalStyle = SELECTED_STYLE_ID ? String(SELECTED_STYLE_ID) : '';
@@ -309,6 +338,7 @@ async function generate() {
     background: background || undefined,
     orientation,
     legibility,
+    character_override_collection_id: characterOverrideCollectionId ? Number(characterOverrideCollectionId) : undefined,
     global_scale: globalScale ? Number(globalScale) : undefined,
     page_width: pageWidth ? Number(pageWidth) : undefined,
     page_height: pageHeight ? Number(pageHeight) : undefined,
@@ -634,6 +664,7 @@ function setupZoomControl() {
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     loadStyles();
+    loadCharacterOverrideCollections();
     syncCustomSizeVisibility();
     setupCsvDragDrop();
     setupZoomControl();
