@@ -106,7 +106,7 @@ def _draw(
 
     line_height_px = _to_px(line_height, units) if line_height is not None else default_line_height_px
     # Ensure all lines fit vertically
-    max_line_height_px = content_height_px / max(1, len(strokes) + 0)
+    max_line_height_px = content_height_px / max(1, len(line_segments) + 0)
     line_height_px = min(line_height_px, max_line_height_px)
 
     # Empty line spacing: if not specified, use regular line_height_px
