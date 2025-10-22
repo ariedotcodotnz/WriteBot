@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - WriteBot{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-container {
+        max-width: 1400px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+    }
+
+    .admin-header h1 {
+        font-size: 32px;
+        color: #161616;
+    }
+
+    .admin-nav {
+        background: white;
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .admin-nav a {
+        display: inline-block;
+        padding: 8px 16px;
+        margin-right: 8px;
+        text-decoration: none;
+        color: #0f62fe;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+    }
+
+    .admin-nav a:hover {
+        background-color: #e8e8e8;
+    }
+
+    .admin-nav a.active {
+        background-color: #0f62fe;
+        color: white;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 24px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-card .stat-label {
+        font-size: 14px;
+        color: #525252;
+        margin-bottom: 8px;
+    }
+
+    .stat-card .stat-value {
+        font-size: 36px;
+        font-weight: 600;
+        color: #161616;
+    }
+
+    .activity-section {
+        background: white;
+        padding: 24px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 24px;
+    }
+
+    .activity-section h2 {
+        font-size: 20px;
+        margin-bottom: 20px;
+        color: #161616;
+    }
+
+    .activity-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .activity-table th {
+        text-align: left;
+        padding: 12px;
+        background-color: #f4f4f4;
+        font-weight: 500;
+        font-size: 14px;
+        color: #161616;
+    }
+
+    .activity-table td {
+        padding: 12px;
+        border-bottom: 1px solid #e0e0e0;
+        font-size: 14px;
+        color: #525252;
+    }
+
+    .activity-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .badge-login { background-color: #d0e2ff; color: #0043ce; }
+    .badge-logout { background-color: #e0e0e0; color: #525252; }
+    .badge-generate { background-color: #d2f4ea; color: #005d5d; }
+    .badge-batch { background-color: #fdd13a; color: #684e00; }
+    .badge-admin { background-color: #ffcfe1; color: #9f1853; }
+
+    .top-users-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .top-users-table th {
+        text-align: left;
+        padding: 12px;
+        background-color: #f4f4f4;
+        font-weight: 500;
+        font-size: 14px;
+        color: #161616;
+    }
+
+    .top-users-table td {
+        padding: 12px;
+        border-bottom: 1px solid #e0e0e0;
+        font-size: 14px;
+        color: #525252;
+    }
+
+    .btn-primary {
+        padding: 10px 20px;
+        background-color: #0f62fe;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .btn-primary:hover {
+        background-color: #0353e9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Admin Dashboard</h1>
+        <a href="{{ url_for('index') }}" class="btn-primary">Back to App</a>
+    </div>
+
+    <div class="admin-nav">
+        <a href="{{ url_for('admin.dashboard') }}" class="active">Dashboard</a>
+        <a href="{{ url_for('admin.users') }}">Users</a>
+        <a href="{{ url_for('admin.activities') }}">Activity Log</a>
+        <a href="{{ url_for('admin.statistics') }}">Statistics</a>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value">{{ total_users }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Active Users</div>
+            <div class="stat-value">{{ active_users }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Admin Users</div>
+            <div class="stat-value">{{ admin_users }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Generations (7d)</div>
+            <div class="stat-value">{{ stats_7d.svg_generations + stats_7d.batch_generations }}</div>
+        </div>
+    </div>
+
+    <div class="activity-section">
+        <h2>Top Users (Last 30 Days)</h2>
+        {% if top_users %}
+        <table class="top-users-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Full Name</th>
+                    <th>Total Generations</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in top_users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.full_name or '-' }}</td>
+                    <td>{{ user.total_generations }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: #525252;">No activity yet.</p>
+        {% endif %}
+    </div>
+
+    <div class="activity-section">
+        <h2>Recent Activity</h2>
+        {% if recent_activities %}
+        <table class="activity-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Activity</th>
+                    <th>Description</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for activity in recent_activities %}
+                <tr>
+                    <td>{{ activity.user.username }}</td>
+                    <td><span class="badge badge-{{ activity.activity_type }}">{{ activity.activity_type }}</span></td>
+                    <td>{{ activity.description or '-' }}</td>
+                    <td>{{ activity.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: #525252;">No recent activities.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

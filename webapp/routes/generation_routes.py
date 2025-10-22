@@ -4,8 +4,10 @@ import os
 import sys
 import shutil
 import tempfile
+import time
 from typing import Any, Dict
 from flask import Blueprint, jsonify, request, Response
+from flask_login import login_required
 
 # Ensure project root is in sys.path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -237,45 +239,90 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> tuple[str, Dict[
 
 
 @generation_bp.route("/api/v1/generate", methods=["POST"])
+@login_required
 def api_v1_generate():
     """Generate handwriting and return SVG with metadata."""
+    from webapp.utils.auth_utils import log_activity, track_generation
+
     try:
         payload = request.get_json(force=True)
     except Exception:
         return jsonify({"error": "Invalid JSON"}), 400
 
+    start_time = time.time()
     try:
         svg_text, meta = _generate_svg_text_from_payload(payload or {})
+
+        # Track statistics
+        processing_time = time.time() - start_time
+        lines_count = meta.get('lines', {}).get('input_count', 0)
+        text_content = payload.get('text', '') if isinstance(payload, dict) else ''
+        chars_count = len(text_content)
+
+        track_generation(lines_count=lines_count, chars_count=chars_count,
+                         processing_time=processing_time, is_batch=False)
+        log_activity('generate', f'Generated {lines_count} lines')
+
         return jsonify({"svg": svg_text, "meta": meta})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
 
 @generation_bp.route("/api/v1/generate/svg", methods=["POST"])
+@login_required
 def api_v1_generate_svg():
     """Generate handwriting and return raw SVG."""
+    from webapp.utils.auth_utils import log_activity, track_generation
+
     try:
         payload = request.get_json(force=True)
     except Exception:
         return jsonify({"error": "Invalid JSON"}), 400
 
+    start_time = time.time()
     try:
-        svg_text, _ = _generate_svg_text_from_payload(payload or {})
+        svg_text, meta = _generate_svg_text_from_payload(payload or {})
+
+        # Track statistics
+        processing_time = time.time() - start_time
+        lines_count = meta.get('lines', {}).get('input_count', 0)
+        text_content = payload.get('text', '') if isinstance(payload, dict) else ''
+        chars_count = len(text_content)
+
+        track_generation(lines_count=lines_count, chars_count=chars_count,
+                         processing_time=processing_time, is_batch=False)
+        log_activity('generate', f'Generated {lines_count} lines (SVG only)')
+
         return Response(svg_text, mimetype="image/svg+xml")
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
 
 @generation_bp.route("/api/generate", methods=["POST"])
+@login_required
 def generate_svg():
     """Legacy generation endpoint (for backwards compatibility)."""
+    from webapp.utils.auth_utils import log_activity, track_generation
+
     try:
         payload = request.get_json(force=True)
     except Exception:
         return jsonify({"error": "Invalid JSON"}), 400
 
+    start_time = time.time()
     try:
-        svg_text, _ = _generate_svg_text_from_payload(payload or {})
+        svg_text, meta = _generate_svg_text_from_payload(payload or {})
+
+        # Track statistics
+        processing_time = time.time() - start_time
+        lines_count = meta.get('lines', {}).get('input_count', 0)
+        text_content = payload.get('text', '') if isinstance(payload, dict) else ''
+        chars_count = len(text_content)
+
+        track_generation(lines_count=lines_count, chars_count=chars_count,
+                         processing_time=processing_time, is_batch=False)
+        log_activity('generate', f'Generated {lines_count} lines (legacy)')
+
         return Response(svg_text, mimetype="image/svg+xml")
     except Exception as e:
         return jsonify({"error": str(e)}), 400
