@@ -1,0 +1,307 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Database Models &mdash; WriteBot API Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=63af810f" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Utilities" href="utilities.html" />
+    <link rel="prev" title="Character Overrides" href="api/character_overrides.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            WriteBot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#what-is-writebot">What is WriteBot?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#features">Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#handwriting-generation">Handwriting Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#user-management">User Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#admin-dashboard">Admin Dashboard</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#architecture">Architecture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#technology-stack">Technology Stack</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#project-structure">Project Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#getting-started">Getting Started</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#installation">Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#configuration">Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#api-authentication">API Authentication</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/authentication.html">Authentication</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/authentication.html#login">Login</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/authentication.html#logout">Logout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/authentication.html#session-management">Session Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/authentication.html#checking-authentication-status">Checking Authentication Status</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/generation.html">Generation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/generation.html#generate-svg">Generate SVG</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/generation.html#generate-legacy">Generate (Legacy)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/generation.html#generate-with-metadata">Generate with Metadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/generation.html#parameter-details">Parameter Details</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/generation.html#bias-parameter">Bias Parameter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/generation.html#color-parameter">Color Parameter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/generation.html#line-height">Line Height</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/generation.html#character-overrides">Character Overrides</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/generation.html#error-handling">Error Handling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/batch.html">Batch Generation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/batch.html#batch-generate">Batch Generate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/batch.html#download-template">Download Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/batch.html#streaming-batch-generation">Streaming Batch Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/batch.html#download-batch-results">Download Batch Results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/batch.html#get-individual-batch-file">Get Individual Batch File</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/styles.html">Styles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/styles.html#list-styles">List Styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/styles.html#style-preview">Style Preview</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/admin.html">Admin API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/admin.html#dashboard">Dashboard</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#admin-dashboard">Admin Dashboard</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/admin.html#users">Users</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#list-users">List Users</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#create-user">Create User</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#view-user">View User</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#update-user">Update User</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#delete-user">Delete User</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/admin.html#statistics">Statistics</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#view-statistics">View Statistics</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/admin.html#activities">Activities</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#view-activities">View Activities</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/character_overrides.html">Character Overrides</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/character_overrides.html#collections">Collections</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#list-collections">List Collections</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#create-collection">Create Collection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#view-collection">View Collection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#edit-collection">Edit Collection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#delete-collection">Delete Collection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#upload-character">Upload Character</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#batch-upload">Batch Upload</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/character_overrides.html#character-management">Character Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#delete-character-variant">Delete Character Variant</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#preview-character">Preview Character</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/character_overrides.html#api-endpoint">API Endpoint</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#get-collections-api">Get Collections (API)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/character_overrides.html#usage-in-generation">Usage in Generation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/index.html#api-overview">API Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#base-url">Base URL</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#authentication">Authentication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#response-format">Response Format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#http-status-codes">HTTP Status Codes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#rate-limiting">Rate Limiting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#common-headers">Common Headers</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Database Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#user-model">User Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-activity-model">User Activity Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#usage-statistics-model">Usage Statistics Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#character-override-collection-model">Character Override Collection Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#character-override-model">Character Override Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#database-schema">Database Schema</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#entity-relationship-diagram">Entity Relationship Diagram</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#indexes">Indexes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#migrations">Migrations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html#module-webapp.utils.auth_utils">Authentication Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html#module-webapp.utils.text_utils">Text Processing Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html#module-webapp.utils.page_utils">Page Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html#module-handwriting_synthesis.hand.character_override_utils">Character Override Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html#example-usage">Example Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utilities.html#activity-logging">Activity Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utilities.html#generation-tracking">Generation Tracking</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html#custom-decorators">Custom Decorators</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utilities.html#admin-required">Admin Required</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utilities.html#rate-limiting">Rate Limiting</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">WriteBot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Database Models</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/models.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="database-models">
+<h1>Database Models<a class="headerlink" href="#database-models" title="Link to this heading"></a></h1>
+<p>WriteBot uses SQLAlchemy for database management. All models are defined in <code class="docutils literal notranslate"><span class="pre">webapp/models.py</span></code>.</p>
+<section id="user-model">
+<span id="module-webapp.models"></span><h2>User Model<a class="headerlink" href="#user-model" title="Link to this heading"></a></h2>
+</section>
+<section id="user-activity-model">
+<h2>User Activity Model<a class="headerlink" href="#user-activity-model" title="Link to this heading"></a></h2>
+</section>
+<section id="usage-statistics-model">
+<h2>Usage Statistics Model<a class="headerlink" href="#usage-statistics-model" title="Link to this heading"></a></h2>
+</section>
+<section id="character-override-collection-model">
+<h2>Character Override Collection Model<a class="headerlink" href="#character-override-collection-model" title="Link to this heading"></a></h2>
+</section>
+<section id="character-override-model">
+<h2>Character Override Model<a class="headerlink" href="#character-override-model" title="Link to this heading"></a></h2>
+</section>
+<section id="database-schema">
+<h2>Database Schema<a class="headerlink" href="#database-schema" title="Link to this heading"></a></h2>
+<section id="entity-relationship-diagram">
+<h3>Entity Relationship Diagram<a class="headerlink" href="#entity-relationship-diagram" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>User
+├── UserActivity (one-to-many)
+├── UsageStatistics (one-to-many)
+└── CharacterOverrideCollection (one-to-many, via created_by)
+
+CharacterOverrideCollection
+└── CharacterOverride (one-to-many)
+</pre></div>
+</div>
+</section>
+<section id="indexes">
+<h3>Indexes<a class="headerlink" href="#indexes" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">User.username</span></code> - Unique index</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">UserActivity.user_id</span></code> - Index for faster queries</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">UserActivity.timestamp</span></code> - Index for date-based queries</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">UsageStatistics.(user_id,</span> <span class="pre">date)</span></code> - Composite unique index</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CharacterOverride.(collection_id,</span> <span class="pre">character)</span></code> - Composite index</p></li>
+</ul>
+</section>
+</section>
+<section id="migrations">
+<h2>Migrations<a class="headerlink" href="#migrations" title="Link to this heading"></a></h2>
+<p>Database migrations are handled using SQLAlchemy’s <code class="docutils literal notranslate"><span class="pre">create_all()</span></code> method. To initialize the database:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">webapp.app</span><span class="w"> </span><span class="kn">import</span> <span class="n">app</span><span class="p">,</span> <span class="n">db</span>
+<span class="k">with</span> <span class="n">app</span><span class="o">.</span><span class="n">app_context</span><span class="p">():</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">create_all</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Or run the initialization script:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>webapp.init_db
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="api/character_overrides.html" class="btn btn-neutral float-left" title="Character Overrides" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="utilities.html" class="btn btn-neutral float-right" title="Utilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Arie Joe.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,359 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Utilities &mdash; WriteBot API Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=63af810f" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Database Models" href="models.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            WriteBot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#what-is-writebot">What is WriteBot?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#features">Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#handwriting-generation">Handwriting Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#user-management">User Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#admin-dashboard">Admin Dashboard</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#architecture">Architecture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#technology-stack">Technology Stack</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#project-structure">Project Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#getting-started">Getting Started</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#installation">Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#configuration">Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="introduction.html#api-authentication">API Authentication</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/authentication.html">Authentication</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/authentication.html#login">Login</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/authentication.html#logout">Logout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/authentication.html#session-management">Session Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/authentication.html#checking-authentication-status">Checking Authentication Status</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/generation.html">Generation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/generation.html#generate-svg">Generate SVG</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/generation.html#generate-legacy">Generate (Legacy)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/generation.html#generate-with-metadata">Generate with Metadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/generation.html#parameter-details">Parameter Details</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/generation.html#bias-parameter">Bias Parameter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/generation.html#color-parameter">Color Parameter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/generation.html#line-height">Line Height</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/generation.html#character-overrides">Character Overrides</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/generation.html#error-handling">Error Handling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/batch.html">Batch Generation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/batch.html#batch-generate">Batch Generate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/batch.html#download-template">Download Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/batch.html#streaming-batch-generation">Streaming Batch Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/batch.html#download-batch-results">Download Batch Results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/batch.html#get-individual-batch-file">Get Individual Batch File</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/styles.html">Styles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/styles.html#list-styles">List Styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/styles.html#style-preview">Style Preview</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/admin.html">Admin API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/admin.html#dashboard">Dashboard</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#admin-dashboard">Admin Dashboard</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/admin.html#users">Users</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#list-users">List Users</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#create-user">Create User</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#view-user">View User</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#update-user">Update User</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#delete-user">Delete User</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/admin.html#statistics">Statistics</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#view-statistics">View Statistics</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/admin.html#activities">Activities</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#view-activities">View Activities</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/character_overrides.html">Character Overrides</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/character_overrides.html#collections">Collections</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#list-collections">List Collections</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#create-collection">Create Collection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#view-collection">View Collection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#edit-collection">Edit Collection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#delete-collection">Delete Collection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#upload-character">Upload Character</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#batch-upload">Batch Upload</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/character_overrides.html#character-management">Character Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#delete-character-variant">Delete Character Variant</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#preview-character">Preview Character</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/character_overrides.html#api-endpoint">API Endpoint</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#get-collections-api">Get Collections (API)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/character_overrides.html#usage-in-generation">Usage in Generation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/index.html#api-overview">API Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#base-url">Base URL</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#authentication">Authentication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#response-format">Response Format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#http-status-codes">HTTP Status Codes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#rate-limiting">Rate Limiting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#common-headers">Common Headers</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Database Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="models.html#user-model">User Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#user-activity-model">User Activity Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#usage-statistics-model">Usage Statistics Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#character-override-collection-model">Character Override Collection Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#character-override-model">Character Override Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#database-schema">Database Schema</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#entity-relationship-diagram">Entity Relationship Diagram</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#indexes">Indexes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#migrations">Migrations</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-webapp.utils.auth_utils">Authentication Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-webapp.utils.text_utils">Text Processing Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-webapp.utils.page_utils">Page Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-handwriting_synthesis.hand.character_override_utils">Character Override Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-usage">Example Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#activity-logging">Activity Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#generation-tracking">Generation Tracking</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#custom-decorators">Custom Decorators</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#admin-required">Admin Required</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rate-limiting">Rate Limiting</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">WriteBot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Utilities</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/utilities.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="utilities">
+<h1>Utilities<a class="headerlink" href="#utilities" title="Link to this heading"></a></h1>
+<p>Helper functions and utilities used throughout WriteBot.</p>
+<section id="module-webapp.utils.auth_utils">
+<span id="authentication-utilities"></span><h2>Authentication Utilities<a class="headerlink" href="#module-webapp.utils.auth_utils" title="Link to this heading"></a></h2>
+</section>
+<section id="module-webapp.utils.text_utils">
+<span id="text-processing-utilities"></span><h2>Text Processing Utilities<a class="headerlink" href="#module-webapp.utils.text_utils" title="Link to this heading"></a></h2>
+<p>Text processing utilities for handwriting generation.</p>
+<p><strong>Functions:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sanitize_text(text)</span></code> - Remove problematic characters</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">split_into_lines(text,</span> <span class="pre">max_width)</span></code> - Split text into lines</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">estimate_width(text,</span> <span class="pre">style)</span></code> - Estimate text width</p></li>
+</ul>
+</section>
+<section id="module-webapp.utils.page_utils">
+<span id="page-utilities"></span><h2>Page Utilities<a class="headerlink" href="#module-webapp.utils.page_utils" title="Link to this heading"></a></h2>
+<p>Utilities for pagination and page management.</p>
+<p><strong>Functions:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">paginate(query,</span> <span class="pre">page,</span> <span class="pre">per_page)</span></code> - Paginate database query</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_page_range(current_page,</span> <span class="pre">total_pages)</span></code> - Get page number range</p></li>
+</ul>
+</section>
+<section id="module-handwriting_synthesis.hand.character_override_utils">
+<span id="character-override-utilities"></span><h2>Character Override Utilities<a class="headerlink" href="#module-handwriting_synthesis.hand.character_override_utils" title="Link to this heading"></a></h2>
+<p>Utilities for applying character overrides to generated handwriting.</p>
+<p><strong>Functions:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">apply_character_overrides(svg_data,</span> <span class="pre">overrides)</span></code> - Replace characters with custom SVG</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">parse_character_svg(svg_content)</span></code> - Parse and validate character SVG</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">merge_character_into_svg(target_svg,</span> <span class="pre">char_svg,</span> <span class="pre">position)</span></code> - Merge character SVG</p></li>
+</ul>
+</section>
+<section id="example-usage">
+<h2>Example Usage<a class="headerlink" href="#example-usage" title="Link to this heading"></a></h2>
+<section id="activity-logging">
+<h3>Activity Logging<a class="headerlink" href="#activity-logging" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">webapp.utils.auth_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">log_activity</span>
+
+<span class="c1"># Log a generation</span>
+<span class="n">log_activity</span><span class="p">(</span>
+    <span class="s1">&#39;generate&#39;</span><span class="p">,</span>
+    <span class="sa">f</span><span class="s1">&#39;Generated text: </span><span class="si">{</span><span class="n">text</span><span class="p">[:</span><span class="mi">50</span><span class="p">]</span><span class="si">}</span><span class="s1">...&#39;</span><span class="p">,</span>
+    <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;text_length&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">),</span> <span class="s1">&#39;style_id&#39;</span><span class="p">:</span> <span class="n">style_id</span><span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="generation-tracking">
+<h3>Generation Tracking<a class="headerlink" href="#generation-tracking" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">webapp.utils.auth_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">track_generation</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="c1"># ... perform generation ...</span>
+<span class="n">processing_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+
+<span class="n">track_generation</span><span class="p">(</span>
+    <span class="n">lines_count</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">chars_count</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">),</span>
+    <span class="n">processing_time</span><span class="o">=</span><span class="n">processing_time</span><span class="p">,</span>
+    <span class="n">is_batch</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="custom-decorators">
+<h2>Custom Decorators<a class="headerlink" href="#custom-decorators" title="Link to this heading"></a></h2>
+<section id="admin-required">
+<h3>Admin Required<a class="headerlink" href="#admin-required" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">&#64;admin_required</span></code> decorator checks if the current user has admin privileges:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">flask_login</span><span class="w"> </span><span class="kn">import</span> <span class="n">current_user</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">flask</span><span class="w"> </span><span class="kn">import</span> <span class="n">abort</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">admin_required</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">decorated_function</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">current_user</span><span class="o">.</span><span class="n">is_authenticated</span><span class="p">:</span>
+            <span class="n">abort</span><span class="p">(</span><span class="mi">401</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">current_user</span><span class="o">.</span><span class="n">is_admin</span><span class="p">():</span>
+            <span class="n">abort</span><span class="p">(</span><span class="mi">403</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">decorated_function</span>
+</pre></div>
+</div>
+</section>
+<section id="rate-limiting">
+<h3>Rate Limiting<a class="headerlink" href="#rate-limiting" title="Link to this heading"></a></h3>
+<p>While not currently implemented, rate limiting can be added using decorators:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">flask_limiter</span><span class="w"> </span><span class="kn">import</span> <span class="n">Limiter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">flask_limiter.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_remote_address</span>
+
+<span class="n">limiter</span> <span class="o">=</span> <span class="n">Limiter</span><span class="p">(</span>
+    <span class="n">app</span><span class="p">,</span>
+    <span class="n">key_func</span><span class="o">=</span><span class="n">get_remote_address</span><span class="p">,</span>
+    <span class="n">default_limits</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;200 per day&quot;</span><span class="p">,</span> <span class="s2">&quot;50 per hour&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/api/generate&quot;</span><span class="p">)</span>
+<span class="nd">@limiter</span><span class="o">.</span><span class="n">limit</span><span class="p">(</span><span class="s2">&quot;10 per minute&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate</span><span class="p">():</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="models.html" class="btn btn-neutral float-left" title="Database Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Arie Joe.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

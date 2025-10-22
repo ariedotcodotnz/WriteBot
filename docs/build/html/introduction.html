@@ -1,0 +1,346 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Introduction &mdash; WriteBot API Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=63af810f" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Reference" href="api/index.html" />
+    <link rel="prev" title="WriteBot API Documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            WriteBot
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#what-is-writebot">What is WriteBot?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#features">Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#handwriting-generation">Handwriting Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-management">User Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#admin-dashboard">Admin Dashboard</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#architecture">Architecture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#technology-stack">Technology Stack</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#project-structure">Project Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting Started</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#configuration">Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#api-authentication">API Authentication</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/authentication.html">Authentication</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/authentication.html#login">Login</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/authentication.html#logout">Logout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/authentication.html#session-management">Session Management</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/authentication.html#checking-authentication-status">Checking Authentication Status</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/generation.html">Generation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/generation.html#generate-svg">Generate SVG</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/generation.html#generate-legacy">Generate (Legacy)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/generation.html#generate-with-metadata">Generate with Metadata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/generation.html#parameter-details">Parameter Details</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/generation.html#bias-parameter">Bias Parameter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/generation.html#color-parameter">Color Parameter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/generation.html#line-height">Line Height</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/generation.html#character-overrides">Character Overrides</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/generation.html#error-handling">Error Handling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/batch.html">Batch Generation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/batch.html#batch-generate">Batch Generate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/batch.html#download-template">Download Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/batch.html#streaming-batch-generation">Streaming Batch Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/batch.html#download-batch-results">Download Batch Results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/batch.html#get-individual-batch-file">Get Individual Batch File</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/styles.html">Styles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/styles.html#list-styles">List Styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/styles.html#style-preview">Style Preview</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/admin.html">Admin API</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/admin.html#dashboard">Dashboard</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#admin-dashboard">Admin Dashboard</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/admin.html#users">Users</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#list-users">List Users</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#create-user">Create User</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#view-user">View User</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#update-user">Update User</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#delete-user">Delete User</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/admin.html#statistics">Statistics</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#view-statistics">View Statistics</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/admin.html#activities">Activities</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/admin.html#view-activities">View Activities</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/character_overrides.html">Character Overrides</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/character_overrides.html#collections">Collections</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#list-collections">List Collections</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#create-collection">Create Collection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#view-collection">View Collection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#edit-collection">Edit Collection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#delete-collection">Delete Collection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#upload-character">Upload Character</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#batch-upload">Batch Upload</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/character_overrides.html#character-management">Character Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#delete-character-variant">Delete Character Variant</a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#preview-character">Preview Character</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/character_overrides.html#api-endpoint">API Endpoint</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/character_overrides.html#get-collections-api">Get Collections (API)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/character_overrides.html#usage-in-generation">Usage in Generation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/index.html#api-overview">API Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#base-url">Base URL</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#authentication">Authentication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#response-format">Response Format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#http-status-codes">HTTP Status Codes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#rate-limiting">Rate Limiting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#common-headers">Common Headers</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">Database Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="models.html#user-model">User Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#user-activity-model">User Activity Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#usage-statistics-model">Usage Statistics Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#character-override-collection-model">Character Override Collection Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#character-override-model">Character Override Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#database-schema">Database Schema</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="models.html#entity-relationship-diagram">Entity Relationship Diagram</a></li>
+<li class="toctree-l3"><a class="reference internal" href="models.html#indexes">Indexes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#migrations">Migrations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utilities.html">Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html#module-webapp.utils.auth_utils">Authentication Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html#module-webapp.utils.text_utils">Text Processing Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html#module-webapp.utils.page_utils">Page Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html#module-handwriting_synthesis.hand.character_override_utils">Character Override Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html#example-usage">Example Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utilities.html#activity-logging">Activity Logging</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utilities.html#generation-tracking">Generation Tracking</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html#custom-decorators">Custom Decorators</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="utilities.html#admin-required">Admin Required</a></li>
+<li class="toctree-l3"><a class="reference internal" href="utilities.html#rate-limiting">Rate Limiting</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">WriteBot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Introduction</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/introduction.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h1>
+<section id="what-is-writebot">
+<h2>What is WriteBot?<a class="headerlink" href="#what-is-writebot" title="Link to this heading"></a></h2>
+<p>WriteBot is a Flask-based web application that uses deep learning to generate realistic handwritten text. It leverages recurrent neural networks (RNNs) with attention mechanisms to synthesize handwriting from any input text.</p>
+</section>
+<section id="features">
+<h2>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h2>
+<section id="handwriting-generation">
+<h3>Handwriting Generation<a class="headerlink" href="#handwriting-generation" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Single Generation</strong>: Generate individual handwritten text in SVG format</p></li>
+<li><p><strong>Batch Generation</strong>: Process multiple texts from CSV files</p></li>
+<li><p><strong>Multiple Styles</strong>: Choose from various handwriting styles</p></li>
+<li><p><strong>Character Overrides</strong>: Replace AI-generated characters with custom hand-drawn variants</p></li>
+</ul>
+</section>
+<section id="user-management">
+<h3>User Management<a class="headerlink" href="#user-management" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Authentication</strong>: Secure login system with Flask-Login</p></li>
+<li><p><strong>User Roles</strong>: Admin and regular user roles</p></li>
+<li><p><strong>Activity Tracking</strong>: Log all user actions</p></li>
+<li><p><strong>Usage Statistics</strong>: Track generation metrics</p></li>
+</ul>
+</section>
+<section id="admin-dashboard">
+<h3>Admin Dashboard<a class="headerlink" href="#admin-dashboard" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>User Management</strong>: Create, edit, and delete users</p></li>
+<li><p><strong>Activity Monitoring</strong>: View all user activities</p></li>
+<li><p><strong>Statistics</strong>: Analyze usage patterns</p></li>
+<li><p><strong>Character Override Collections</strong>: Manage custom character sets</p></li>
+</ul>
+</section>
+</section>
+<section id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading"></a></h2>
+<section id="technology-stack">
+<h3>Technology Stack<a class="headerlink" href="#technology-stack" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Backend</strong>: Flask (Python)</p></li>
+<li><p><strong>Database</strong>: SQLAlchemy (SQLite/PostgreSQL)</p></li>
+<li><p><strong>ML Framework</strong>: TensorFlow</p></li>
+<li><p><strong>Frontend</strong>: Vanilla JavaScript</p></li>
+<li><p><strong>Authentication</strong>: Flask-Login</p></li>
+<li><p><strong>Documentation</strong>: Sphinx</p></li>
+</ul>
+</section>
+<section id="project-structure">
+<h3>Project Structure<a class="headerlink" href="#project-structure" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>WriteBot/
+├── webapp/
+│   ├── routes/          # API endpoints
+│   ├── models.py        # Database models
+│   ├── utils/           # Utility functions
+│   ├── templates/       # Jinja2 templates
+│   └── static/          # CSS, JS, assets
+├── handwriting_synthesis/  # ML models
+├── docs/                # Sphinx documentation
+└── app.py              # Main application
+</pre></div>
+</div>
+</section>
+</section>
+<section id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h2>
+<section id="installation">
+<h3>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>Clone the repository</p></li>
+<li><p>Install dependencies: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-r</span> <span class="pre">requirements.txt</span></code></p></li>
+<li><p>Initialize the database: <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">webapp.init_db</span></code></p></li>
+<li><p>Run the application: <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">webapp.app</span></code></p></li>
+</ol>
+</section>
+<section id="configuration">
+<h3>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h3>
+<p>Set the following environment variables:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SECRET_KEY</span></code>: Flask secret key for sessions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DATABASE_URL</span></code>: Database connection string</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FLASK_ENV</span></code>: Set to <code class="docutils literal notranslate"><span class="pre">development</span></code> or <code class="docutils literal notranslate"><span class="pre">production</span></code></p></li>
+</ul>
+</section>
+<section id="api-authentication">
+<h3>API Authentication<a class="headerlink" href="#api-authentication" title="Link to this heading"></a></h3>
+<p>All API endpoints (except health check) require authentication. Use the login endpoint to obtain a session:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:5000/auth/login<span class="w"> </span><span class="se">\\</span>
+<span class="w">     </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/x-www-form-urlencoded&quot;</span><span class="w"> </span><span class="se">\\</span>
+<span class="w">     </span>-d<span class="w"> </span><span class="s2">&quot;username=your_username&amp;password=your_password&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="WriteBot API Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api/index.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Arie Joe.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
