@@ -3,4 +3,26 @@
     <span class="bx--header__name--prefix"></span>
     WriteBot
   </a>
+  <nav class="bx--header__nav" aria-label="User Navigation">
+    <ul class="bx--header__menu-bar" aria-label="User Menu">
+      {% if current_user.is_authenticated %}
+        <li>
+          <a class="bx--header__menu-item" href="{{ url_for('admin.dashboard') }}" title="Dashboard">
+            Dashboard
+          </a>
+        </li>
+        <li>
+          <a class="bx--header__menu-item" href="{{ url_for('auth.logout') }}" title="Logout">
+            Logout ({{ current_user.username }})
+          </a>
+        </li>
+      {% else %}
+        <li>
+          <a class="bx--header__menu-item" href="{{ url_for('auth.login') }}" title="Login">
+            Login
+          </a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
 </header>
