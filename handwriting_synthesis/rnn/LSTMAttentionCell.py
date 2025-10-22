@@ -1,4 +1,5 @@
 from collections import namedtuple
+import warnings
 
 import numpy as np
 import tensorflow as tf
@@ -7,6 +8,10 @@ import tensorflow.compat.v1.distributions as tfd
 import tensorflow_probability as tfp
 
 from handwriting_synthesis.tf.utils import dense_layer, shape
+
+# Suppress TensorFlow deprecation warnings for intentional TF1 compatibility mode usage
+warnings.filterwarnings('ignore', category=UserWarning, module='tensorflow')
+warnings.filterwarnings('ignore', category=DeprecationWarning, module='tensorflow')
 
 tfcompat.disable_v2_behavior()
 
@@ -41,6 +46,11 @@ class LSTMAttentionCell(tfcompat.nn.rnn_cell.RNNCell):
         self.num_output_mixture_components = num_output_mixture_components
         self.output_units = 6 * self.num_output_mixture_components + 1
         self.bias = bias
+
+        # Create LSTM cells once during initialization to avoid deprecation warnings
+        self.cell1 = tfcompat.nn.rnn_cell.LSTMCell(self.lstm_size)
+        self.cell2 = tfcompat.nn.rnn_cell.LSTMCell(self.lstm_size)
+        self.cell3 = tfcompat.nn.rnn_cell.LSTMCell(self.lstm_size)
 
     @property
     def state_size(self):
@@ -81,8 +91,7 @@ class LSTMAttentionCell(tfcompat.nn.rnn_cell.RNNCell):
         with tfcompat.variable_scope(scope or type(self).__name__, reuse=tfcompat.AUTO_REUSE):
             # lstm 1
             s1_in = tf.concat([state.w, inputs], axis=1)
-            cell1 = tfcompat.nn.rnn_cell.LSTMCell(self.lstm_size)
-            s1_out, s1_state = cell1(s1_in, state=(state.c1, state.h1))
+            s1_out, s1_state = self.cell1(s1_in, state=(state.c1, state.h1))
 
             # attention
             attention_inputs = tf.concat([state.w, inputs, s1_out], axis=1)
@@ -105,13 +114,11 @@ class LSTMAttentionCell(tfcompat.nn.rnn_cell.RNNCell):
 
             # lstm 2
             s2_in = tf.concat([inputs, s1_out, w], axis=1)
-            cell2 = tfcompat.nn.rnn_cell.LSTMCell(self.lstm_size)
-            s2_out, s2_state = cell2(s2_in, state=(state.c2, state.h2))
+            s2_out, s2_state = self.cell2(s2_in, state=(state.c2, state.h2))
 
             # lstm 3
             s3_in = tf.concat([inputs, s2_out, w], axis=1)
-            cell3 = tfcompat.nn.rnn_cell.LSTMCell(self.lstm_size)
-            s3_out, s3_state = cell3(s3_in, state=(state.c3, state.h3))
+            s3_out, s3_state = self.cell3(s3_in, state=(state.c3, state.h3))
 
             new_state = LSTMAttentionCellState(
                 s1_state.h,

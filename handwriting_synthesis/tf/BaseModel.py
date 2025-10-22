@@ -4,6 +4,7 @@ import logging
 import os
 import pprint as pp
 import time
+import warnings
 from collections import deque
 from datetime import datetime
 
@@ -13,6 +14,10 @@ import tensorflow.compat.v1 as tfcompat
 
 from handwriting_synthesis.config import checkpoint_path, prediction_path
 from handwriting_synthesis.tf.utils import shape
+
+# Suppress TensorFlow deprecation warnings for intentional TF1 compatibility mode usage
+warnings.filterwarnings('ignore', category=UserWarning, module='tensorflow')
+warnings.filterwarnings('ignore', category=DeprecationWarning, module='tensorflow')
 
 tfcompat.disable_v2_behavior()
 
