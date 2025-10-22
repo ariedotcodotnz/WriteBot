@@ -1077,7 +1077,11 @@ Use \\ on its own line to insert blank space."></textarea>
                 </div>
                 <div class="form-group">
                   <label for="lineHeight" class="bx--label">Line Height</label>
-                  <input id="lineHeight" class="bx--text-input" type="number" placeholder="Auto" />
+                  <input id="lineHeight" class="bx--text-input" type="number" placeholder="Auto" title="Spacing between regular lines" />
+                </div>
+                <div class="form-group">
+                  <label for="emptyLineSpacing" class="bx--label">Empty Line Spacing</label>
+                  <input id="emptyLineSpacing" class="bx--text-input" type="number" placeholder="Auto" title="Spacing for empty/blank lines" />
                 </div>
                 <div class="form-group">
                   <label for="globalScale" class="bx--label">Global Scale</label>
@@ -1086,6 +1090,20 @@ Use \\ on its own line to insert blank space."></textarea>
                 <div class="form-group">
                   <label for="background" class="bx--label">Background</label>
                   <input id="background" class="bx--text-input" type="text" placeholder="white" />
+                </div>
+              </div>
+
+              <!-- Writing Size Settings -->
+              <div class="form-grid mt-3">
+                <div class="form-group">
+                  <label style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input id="autoSize" type="checkbox" checked style="width: auto;" />
+                    <span class="bx--label" style="margin: 0;">Auto Size (fit to line height)</span>
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label for="manualSizeScale" class="bx--label">Manual Size Scale</label>
+                  <input id="manualSizeScale" class="bx--text-input" type="number" step="0.1" placeholder="1.0" disabled title="Scale for writing size when Auto Size is disabled" />
                 </div>
               </div>
 
@@ -1611,6 +1629,11 @@ Use \\ on its own line to insert blank space."></textarea>
       const denoise = document.getElementById('denoise').value;
       const globalScale = document.getElementById('globalScale').value;
 
+      // New spacing and sizing options
+      const emptyLineSpacing = document.getElementById('emptyLineSpacing').value;
+      const autoSize = document.getElementById('autoSize').checked;
+      const manualSizeScale = document.getElementById('manualSizeScale').value;
+
       // Chunked generation options
       const useChunked = document.getElementById('useChunked').checked;
       const adaptiveChunking = document.getElementById('adaptiveChunking').checked;
@@ -1644,6 +1667,10 @@ Use \\ on its own line to insert blank space."></textarea>
         wrap_utilization: wrapUtil ? Number(wrapUtil) : undefined,
         x_stretch: xStretch ? Number(xStretch) : undefined,
         denoise: denoise || undefined,
+        // New spacing and sizing options
+        empty_line_spacing: emptyLineSpacing ? Number(emptyLineSpacing) : undefined,
+        auto_size: autoSize,
+        manual_size_scale: manualSizeScale ? Number(manualSizeScale) : undefined,
         // Chunked generation options
         use_chunked: useChunked,
         adaptive_chunking: adaptiveChunking,
@@ -1958,7 +1985,14 @@ Use \\ on its own line to insert blank space."></textarea>
       setupZoomControl();
       
       document.getElementById('pageSize').addEventListener('change', syncCustomSizeVisibility);
-      
+
+      // Toggle manual size scale input based on auto size checkbox
+      const autoSizeCheckbox = document.getElementById('autoSize');
+      const manualSizeScaleInput = document.getElementById('manualSizeScale');
+      autoSizeCheckbox.addEventListener('change', () => {
+        manualSizeScaleInput.disabled = autoSizeCheckbox.checked;
+      });
+
       // Add keyboard shortcuts
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
