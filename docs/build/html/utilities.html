@@ -47,7 +47,12 @@
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Database Models</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#module-webapp.utils.auth_utils">Authentication Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-webapp.utils.auth_utils">Authentication Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#webapp.utils.auth_utils.admin_required"><code class="docutils literal notranslate"><span class="pre">admin_required()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#webapp.utils.auth_utils.log_activity"><code class="docutils literal notranslate"><span class="pre">log_activity()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#webapp.utils.auth_utils.track_generation"><code class="docutils literal notranslate"><span class="pre">track_generation()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#module-webapp.utils.text_utils">Text Processing Utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-webapp.utils.page_utils">Page Utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-handwriting_synthesis.hand.character_override_utils">Character Override Utilities</a></li>
@@ -94,6 +99,74 @@
 <p>Helper functions and utilities used throughout WriteBot.</p>
 <section id="module-webapp.utils.auth_utils">
 <span id="authentication-utilities"></span><h2>Authentication Utilities<a class="headerlink" href="#module-webapp.utils.auth_utils" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="webapp.utils.auth_utils.admin_required">
+<span class="sig-prename descclassname"><span class="pre">webapp.utils.auth_utils.</span></span><span class="sig-name descname"><span class="pre">admin_required</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/webapp/utils/auth_utils.html#admin_required"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#webapp.utils.auth_utils.admin_required" title="Link to this definition"></a></dt>
+<dd><p>Decorator to require admin role for a route.
+Use this in addition to &#64;login_required.</p>
+<p>Decorator to require admin role for a route.</p>
+<p>Usage:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/admin/dashboard&#39;</span><span class="p">)</span>
+<span class="nd">@login_required</span>
+<span class="nd">@admin_required</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">admin_dashboard</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;admin/dashboard.html&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="webapp.utils.auth_utils.log_activity">
+<span class="sig-prename descclassname"><span class="pre">webapp.utils.auth_utils.</span></span><span class="sig-name descname"><span class="pre">log_activity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">activity_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/webapp/utils/auth_utils.html#log_activity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#webapp.utils.auth_utils.log_activity" title="Link to this definition"></a></dt>
+<dd><p>Log user activity to the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>activity_type</strong> – Type of activity (‘login’, ‘logout’, ‘generate’, ‘batch’, ‘admin_action’)</p></li>
+<li><p><strong>description</strong> – Optional description of the activity</p></li>
+<li><p><strong>metadata</strong> – Optional dictionary of additional metadata</p></li>
+</ul>
+</dd>
+</dl>
+<p>Log user activity to the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>activity_type</strong> – Type of activity (‘login’, ‘logout’, ‘generate’, etc.)</p></li>
+<li><p><strong>description</strong> – Optional description of the activity</p></li>
+<li><p><strong>metadata</strong> – Optional dictionary of additional metadata</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="webapp.utils.auth_utils.track_generation">
+<span class="sig-prename descclassname"><span class="pre">webapp.utils.auth_utils.</span></span><span class="sig-name descname"><span class="pre">track_generation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lines_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chars_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processing_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_batch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/webapp/utils/auth_utils.html#track_generation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#webapp.utils.auth_utils.track_generation" title="Link to this definition"></a></dt>
+<dd><p>Track generation statistics for the current user.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lines_count</strong> – Number of lines generated</p></li>
+<li><p><strong>chars_count</strong> – Number of characters generated</p></li>
+<li><p><strong>processing_time</strong> – Processing time in seconds</p></li>
+<li><p><strong>is_batch</strong> – Whether this is a batch generation</p></li>
+</ul>
+</dd>
+</dl>
+<p>Track generation statistics for the current user.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lines_count</strong> – Number of lines generated</p></li>
+<li><p><strong>chars_count</strong> – Number of characters generated</p></li>
+<li><p><strong>processing_time</strong> – Processing time in seconds</p></li>
+<li><p><strong>is_batch</strong> – Whether this is a batch generation</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-webapp.utils.text_utils">
 <span id="text-processing-utilities"></span><h2>Text Processing Utilities<a class="headerlink" href="#module-webapp.utils.text_utils" title="Link to this heading"></a></h2>

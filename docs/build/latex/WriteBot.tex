@@ -2501,19 +2501,1098 @@ WriteBot uses SQLAlchemy for database management. All models are defined in \sph
 \index{module@\spxentry{module}!webapp.models@\spxentry{webapp.models}}\index{webapp.models@\spxentry{webapp.models}!module@\spxentry{module}}
 
 \section{User Model}
-\label{\detokenize{models:user-model}}\label{\detokenize{models:module-webapp.models}}
+\label{\detokenize{models:user-model}}\label{\detokenize{models:module-webapp.models}}\index{User (class in webapp.models)@\spxentry{User}\spxextra{class in webapp.models}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{webapp.models.}}\sphinxbfcode{\sphinxupquote{User}}}
+{\sphinxparam{\DUrole{o}{**}\DUrole{n}{kwargs}}}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Bases: \sphinxcode{\sphinxupquote{UserMixin}}, \sphinxcode{\sphinxupquote{Model}}
+
+\sphinxAtStartPar
+User model for authentication and authorization.
+
+\sphinxAtStartPar
+User account model with authentication and role management.
+
+\sphinxAtStartPar
+\sphinxstylestrong{Attributes:}
+\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{id}} \sphinxhyphen{} Unique user ID
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{username}} \sphinxhyphen{} Unique username
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{password\_hash}} \sphinxhyphen{} Hashed password
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{full\_name}} \sphinxhyphen{} User’s full name
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{role}} \sphinxhyphen{} User role (“user” or “admin”)
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{is\_active}} \sphinxhyphen{} Active status
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{created\_at}} \sphinxhyphen{} Account creation timestamp
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{last\_login}} \sphinxhyphen{} Last login timestamp
+
+\end{itemize}
+
+\sphinxAtStartPar
+\sphinxstylestrong{Methods:}
+\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{set\_password(password)}} \sphinxhyphen{} Hash and set password
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{check\_password(password)}} \sphinxhyphen{} Verify password
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{is\_admin()}} \sphinxhyphen{} Check if user has admin role
+
+\end{itemize}
+\index{id (webapp.models.User attribute)@\spxentry{id}\spxextra{webapp.models.User attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User.id}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{id}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{username (webapp.models.User attribute)@\spxentry{username}\spxextra{webapp.models.User attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User.username}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{username}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{password\_hash (webapp.models.User attribute)@\spxentry{password\_hash}\spxextra{webapp.models.User attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User.password_hash}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{password\_hash}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{full\_name (webapp.models.User attribute)@\spxentry{full\_name}\spxextra{webapp.models.User attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User.full_name}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{full\_name}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{role (webapp.models.User attribute)@\spxentry{role}\spxextra{webapp.models.User attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User.role}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{role}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{is\_active (webapp.models.User attribute)@\spxentry{is\_active}\spxextra{webapp.models.User attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User.is_active}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{is\_active}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{created\_at (webapp.models.User attribute)@\spxentry{created\_at}\spxextra{webapp.models.User attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User.created_at}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{created\_at}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{last\_login (webapp.models.User attribute)@\spxentry{last\_login}\spxextra{webapp.models.User attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User.last_login}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{last\_login}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{default\_style (webapp.models.User attribute)@\spxentry{default\_style}\spxextra{webapp.models.User attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User.default_style}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{default\_style}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{default\_bias (webapp.models.User attribute)@\spxentry{default\_bias}\spxextra{webapp.models.User attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User.default_bias}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{default\_bias}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{default\_stroke\_color (webapp.models.User attribute)@\spxentry{default\_stroke\_color}\spxextra{webapp.models.User attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User.default_stroke_color}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{default\_stroke\_color}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{default\_stroke\_width (webapp.models.User attribute)@\spxentry{default\_stroke\_width}\spxextra{webapp.models.User attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User.default_stroke_width}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{default\_stroke\_width}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{activities (webapp.models.User attribute)@\spxentry{activities}\spxextra{webapp.models.User attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User.activities}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{activities}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{statistics (webapp.models.User attribute)@\spxentry{statistics}\spxextra{webapp.models.User attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User.statistics}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{statistics}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{set\_password() (webapp.models.User method)@\spxentry{set\_password()}\spxextra{webapp.models.User method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User.set_password}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxbfcode{\sphinxupquote{set\_password}}}
+{\sphinxparam{\DUrole{n}{password}}}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Hash and set the user’s password.
+
+\end{fulllineitems}
+
+\index{check\_password() (webapp.models.User method)@\spxentry{check\_password()}\spxextra{webapp.models.User method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User.check_password}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxbfcode{\sphinxupquote{check\_password}}}
+{\sphinxparam{\DUrole{n}{password}}}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Verify the user’s password.
+
+\end{fulllineitems}
+
+\index{is\_admin() (webapp.models.User method)@\spxentry{is\_admin()}\spxextra{webapp.models.User method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User.is_admin}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxbfcode{\sphinxupquote{is\_admin}}}
+{}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Check if user has admin role.
+
+\end{fulllineitems}
+
+\index{update\_last\_login() (webapp.models.User method)@\spxentry{update\_last\_login()}\spxextra{webapp.models.User method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User.update_last_login}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxbfcode{\sphinxupquote{update\_last\_login}}}
+{}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Update the last login timestamp.
+
+\end{fulllineitems}
+
+\index{\_\_init\_\_() (webapp.models.User method)@\spxentry{\_\_init\_\_()}\spxextra{webapp.models.User method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User.__init__}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxbfcode{\sphinxupquote{\_\_init\_\_}}}
+{\sphinxparam{\DUrole{o}{**}\DUrole{n}{kwargs}}}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+A simple constructor that allows initialization from kwargs.
+
+\sphinxAtStartPar
+Sets attributes on the constructed instance using the names and
+values in \sphinxcode{\sphinxupquote{kwargs}}.
+
+\sphinxAtStartPar
+Only keys that are present as
+attributes of the instance’s class are allowed. These could be,
+for example, any mapped columns or relationships.
+
+\end{fulllineitems}
+
+\index{query (webapp.models.User attribute)@\spxentry{query}\spxextra{webapp.models.User attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.User.query}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{query}}\sphinxbfcode{\sphinxupquote{\DUrole{p}{:}\DUrole{w}{ }t.ClassVar\DUrole{p}{{[}}Query\DUrole{p}{{]}}}}}
+\pysigstopsignatures
+\sphinxAtStartPar
+A SQLAlchemy query for a model. Equivalent to \sphinxcode{\sphinxupquote{db.session.query(Model)}}. Can be
+customized per\sphinxhyphen{}model by overriding \sphinxcode{\sphinxupquote{query\_class}}.
+
+\begin{sphinxadmonition}{warning}{Warning:}
+\sphinxAtStartPar
+The query interface is considered legacy in SQLAlchemy. Prefer using
+\sphinxcode{\sphinxupquote{session.execute(select())}} instead.
+\end{sphinxadmonition}
+
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
+
 
 \section{User Activity Model}
-\label{\detokenize{models:user-activity-model}}
+\label{\detokenize{models:user-activity-model}}\index{UserActivity (class in webapp.models)@\spxentry{UserActivity}\spxextra{class in webapp.models}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UserActivity}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{webapp.models.}}\sphinxbfcode{\sphinxupquote{UserActivity}}}
+{\sphinxparam{\DUrole{o}{**}\DUrole{n}{kwargs}}}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Bases: \sphinxcode{\sphinxupquote{Model}}
+
+\sphinxAtStartPar
+Log of user activities for auditing.
+
+\sphinxAtStartPar
+Tracks user actions for auditing and analytics.
+
+\sphinxAtStartPar
+\sphinxstylestrong{Activity Types:}
+\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{login}} \sphinxhyphen{} User login
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{logout}} \sphinxhyphen{} User logout
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{generate}} \sphinxhyphen{} Single generation
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{batch}} \sphinxhyphen{} Batch generation
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{admin\_action}} \sphinxhyphen{} Admin action
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{page\_view}} \sphinxhyphen{} Page view
+
+\end{itemize}
+\index{id (webapp.models.UserActivity attribute)@\spxentry{id}\spxextra{webapp.models.UserActivity attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UserActivity.id}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{id}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{user\_id (webapp.models.UserActivity attribute)@\spxentry{user\_id}\spxextra{webapp.models.UserActivity attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UserActivity.user_id}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{user\_id}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{activity\_type (webapp.models.UserActivity attribute)@\spxentry{activity\_type}\spxextra{webapp.models.UserActivity attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UserActivity.activity_type}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{activity\_type}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{description (webapp.models.UserActivity attribute)@\spxentry{description}\spxextra{webapp.models.UserActivity attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UserActivity.description}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{description}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{ip\_address (webapp.models.UserActivity attribute)@\spxentry{ip\_address}\spxextra{webapp.models.UserActivity attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UserActivity.ip_address}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{ip\_address}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{user\_agent (webapp.models.UserActivity attribute)@\spxentry{user\_agent}\spxextra{webapp.models.UserActivity attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UserActivity.user_agent}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{user\_agent}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{timestamp (webapp.models.UserActivity attribute)@\spxentry{timestamp}\spxextra{webapp.models.UserActivity attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UserActivity.timestamp}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{timestamp}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{extra\_data (webapp.models.UserActivity attribute)@\spxentry{extra\_data}\spxextra{webapp.models.UserActivity attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UserActivity.extra_data}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{extra\_data}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{\_\_init\_\_() (webapp.models.UserActivity method)@\spxentry{\_\_init\_\_()}\spxextra{webapp.models.UserActivity method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UserActivity.__init__}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxbfcode{\sphinxupquote{\_\_init\_\_}}}
+{\sphinxparam{\DUrole{o}{**}\DUrole{n}{kwargs}}}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+A simple constructor that allows initialization from kwargs.
+
+\sphinxAtStartPar
+Sets attributes on the constructed instance using the names and
+values in \sphinxcode{\sphinxupquote{kwargs}}.
+
+\sphinxAtStartPar
+Only keys that are present as
+attributes of the instance’s class are allowed. These could be,
+for example, any mapped columns or relationships.
+
+\end{fulllineitems}
+
+\index{query (webapp.models.UserActivity attribute)@\spxentry{query}\spxextra{webapp.models.UserActivity attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UserActivity.query}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{query}}\sphinxbfcode{\sphinxupquote{\DUrole{p}{:}\DUrole{w}{ }t.ClassVar\DUrole{p}{{[}}Query\DUrole{p}{{]}}}}}
+\pysigstopsignatures
+\sphinxAtStartPar
+A SQLAlchemy query for a model. Equivalent to \sphinxcode{\sphinxupquote{db.session.query(Model)}}. Can be
+customized per\sphinxhyphen{}model by overriding \sphinxcode{\sphinxupquote{query\_class}}.
+
+\begin{sphinxadmonition}{warning}{Warning:}
+\sphinxAtStartPar
+The query interface is considered legacy in SQLAlchemy. Prefer using
+\sphinxcode{\sphinxupquote{session.execute(select())}} instead.
+\end{sphinxadmonition}
+
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
+
 
 \section{Usage Statistics Model}
-\label{\detokenize{models:usage-statistics-model}}
+\label{\detokenize{models:usage-statistics-model}}\index{UsageStatistics (class in webapp.models)@\spxentry{UsageStatistics}\spxextra{class in webapp.models}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UsageStatistics}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{webapp.models.}}\sphinxbfcode{\sphinxupquote{UsageStatistics}}}
+{\sphinxparam{\DUrole{o}{**}\DUrole{n}{kwargs}}}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Bases: \sphinxcode{\sphinxupquote{Model}}
+
+\sphinxAtStartPar
+Usage statistics per user for generation tracking.
+
+\sphinxAtStartPar
+Daily usage statistics per user.
+
+\sphinxAtStartPar
+\sphinxstylestrong{Metrics:}
+\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{svg\_generations}} \sphinxhyphen{} Number of single generations
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{batch\_generations}} \sphinxhyphen{} Number of batch jobs
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{total\_lines\_generated}} \sphinxhyphen{} Total lines generated
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{total\_characters\_generated}} \sphinxhyphen{} Total characters generated
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{total\_processing\_time}} \sphinxhyphen{} Total processing time (seconds)
+
+\end{itemize}
+\index{id (webapp.models.UsageStatistics attribute)@\spxentry{id}\spxextra{webapp.models.UsageStatistics attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UsageStatistics.id}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{id}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{user\_id (webapp.models.UsageStatistics attribute)@\spxentry{user\_id}\spxextra{webapp.models.UsageStatistics attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UsageStatistics.user_id}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{user\_id}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{date (webapp.models.UsageStatistics attribute)@\spxentry{date}\spxextra{webapp.models.UsageStatistics attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UsageStatistics.date}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{date}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{svg\_generations (webapp.models.UsageStatistics attribute)@\spxentry{svg\_generations}\spxextra{webapp.models.UsageStatistics attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UsageStatistics.svg_generations}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{svg\_generations}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{batch\_generations (webapp.models.UsageStatistics attribute)@\spxentry{batch\_generations}\spxextra{webapp.models.UsageStatistics attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UsageStatistics.batch_generations}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{batch\_generations}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{total\_lines\_generated (webapp.models.UsageStatistics attribute)@\spxentry{total\_lines\_generated}\spxextra{webapp.models.UsageStatistics attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UsageStatistics.total_lines_generated}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{total\_lines\_generated}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{total\_characters\_generated (webapp.models.UsageStatistics attribute)@\spxentry{total\_characters\_generated}\spxextra{webapp.models.UsageStatistics attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UsageStatistics.total_characters_generated}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{total\_characters\_generated}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{total\_processing\_time (webapp.models.UsageStatistics attribute)@\spxentry{total\_processing\_time}\spxextra{webapp.models.UsageStatistics attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UsageStatistics.total_processing_time}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{total\_processing\_time}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{updated\_at (webapp.models.UsageStatistics attribute)@\spxentry{updated\_at}\spxextra{webapp.models.UsageStatistics attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UsageStatistics.updated_at}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{updated\_at}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{\_\_init\_\_() (webapp.models.UsageStatistics method)@\spxentry{\_\_init\_\_()}\spxextra{webapp.models.UsageStatistics method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UsageStatistics.__init__}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxbfcode{\sphinxupquote{\_\_init\_\_}}}
+{\sphinxparam{\DUrole{o}{**}\DUrole{n}{kwargs}}}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+A simple constructor that allows initialization from kwargs.
+
+\sphinxAtStartPar
+Sets attributes on the constructed instance using the names and
+values in \sphinxcode{\sphinxupquote{kwargs}}.
+
+\sphinxAtStartPar
+Only keys that are present as
+attributes of the instance’s class are allowed. These could be,
+for example, any mapped columns or relationships.
+
+\end{fulllineitems}
+
+\index{query (webapp.models.UsageStatistics attribute)@\spxentry{query}\spxextra{webapp.models.UsageStatistics attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.UsageStatistics.query}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{query}}\sphinxbfcode{\sphinxupquote{\DUrole{p}{:}\DUrole{w}{ }t.ClassVar\DUrole{p}{{[}}Query\DUrole{p}{{]}}}}}
+\pysigstopsignatures
+\sphinxAtStartPar
+A SQLAlchemy query for a model. Equivalent to \sphinxcode{\sphinxupquote{db.session.query(Model)}}. Can be
+customized per\sphinxhyphen{}model by overriding \sphinxcode{\sphinxupquote{query\_class}}.
+
+\begin{sphinxadmonition}{warning}{Warning:}
+\sphinxAtStartPar
+The query interface is considered legacy in SQLAlchemy. Prefer using
+\sphinxcode{\sphinxupquote{session.execute(select())}} instead.
+\end{sphinxadmonition}
+
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
+
 
 \section{Character Override Collection Model}
-\label{\detokenize{models:character-override-collection-model}}
+\label{\detokenize{models:character-override-collection-model}}\index{CharacterOverrideCollection (class in webapp.models)@\spxentry{CharacterOverrideCollection}\spxextra{class in webapp.models}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverrideCollection}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{webapp.models.}}\sphinxbfcode{\sphinxupquote{CharacterOverrideCollection}}}
+{\sphinxparam{\DUrole{o}{**}\DUrole{n}{kwargs}}}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Bases: \sphinxcode{\sphinxupquote{Model}}
+
+\sphinxAtStartPar
+Collection of manual character overrides for handwriting generation.
+
+\sphinxAtStartPar
+Collection of custom hand\sphinxhyphen{}drawn character variants.
+
+\sphinxAtStartPar
+\sphinxstylestrong{Methods:}
+\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{get\_character\_count()}} \sphinxhyphen{} Get total number of variants
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{get\_unique\_characters()}} \sphinxhyphen{} Get list of unique characters
+
+\end{itemize}
+\index{id (webapp.models.CharacterOverrideCollection attribute)@\spxentry{id}\spxextra{webapp.models.CharacterOverrideCollection attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverrideCollection.id}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{id}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{name (webapp.models.CharacterOverrideCollection attribute)@\spxentry{name}\spxextra{webapp.models.CharacterOverrideCollection attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverrideCollection.name}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{name}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{description (webapp.models.CharacterOverrideCollection attribute)@\spxentry{description}\spxextra{webapp.models.CharacterOverrideCollection attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverrideCollection.description}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{description}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{created\_by (webapp.models.CharacterOverrideCollection attribute)@\spxentry{created\_by}\spxextra{webapp.models.CharacterOverrideCollection attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverrideCollection.created_by}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{created\_by}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{created\_at (webapp.models.CharacterOverrideCollection attribute)@\spxentry{created\_at}\spxextra{webapp.models.CharacterOverrideCollection attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverrideCollection.created_at}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{created\_at}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{updated\_at (webapp.models.CharacterOverrideCollection attribute)@\spxentry{updated\_at}\spxextra{webapp.models.CharacterOverrideCollection attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverrideCollection.updated_at}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{updated\_at}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{is\_active (webapp.models.CharacterOverrideCollection attribute)@\spxentry{is\_active}\spxextra{webapp.models.CharacterOverrideCollection attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverrideCollection.is_active}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{is\_active}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{character\_overrides (webapp.models.CharacterOverrideCollection attribute)@\spxentry{character\_overrides}\spxextra{webapp.models.CharacterOverrideCollection attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverrideCollection.character_overrides}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{character\_overrides}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{creator (webapp.models.CharacterOverrideCollection attribute)@\spxentry{creator}\spxextra{webapp.models.CharacterOverrideCollection attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverrideCollection.creator}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{creator}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{get\_character\_count() (webapp.models.CharacterOverrideCollection method)@\spxentry{get\_character\_count()}\spxextra{webapp.models.CharacterOverrideCollection method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverrideCollection.get_character_count}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxbfcode{\sphinxupquote{get\_character\_count}}}
+{}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Get the total number of character variants in this collection.
+
+\end{fulllineitems}
+
+\index{get\_unique\_characters() (webapp.models.CharacterOverrideCollection method)@\spxentry{get\_unique\_characters()}\spxextra{webapp.models.CharacterOverrideCollection method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverrideCollection.get_unique_characters}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxbfcode{\sphinxupquote{get\_unique\_characters}}}
+{}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Get a list of unique characters that have overrides in this collection.
+
+\end{fulllineitems}
+
+\index{\_\_init\_\_() (webapp.models.CharacterOverrideCollection method)@\spxentry{\_\_init\_\_()}\spxextra{webapp.models.CharacterOverrideCollection method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverrideCollection.__init__}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxbfcode{\sphinxupquote{\_\_init\_\_}}}
+{\sphinxparam{\DUrole{o}{**}\DUrole{n}{kwargs}}}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+A simple constructor that allows initialization from kwargs.
+
+\sphinxAtStartPar
+Sets attributes on the constructed instance using the names and
+values in \sphinxcode{\sphinxupquote{kwargs}}.
+
+\sphinxAtStartPar
+Only keys that are present as
+attributes of the instance’s class are allowed. These could be,
+for example, any mapped columns or relationships.
+
+\end{fulllineitems}
+
+\index{query (webapp.models.CharacterOverrideCollection attribute)@\spxentry{query}\spxextra{webapp.models.CharacterOverrideCollection attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverrideCollection.query}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{query}}\sphinxbfcode{\sphinxupquote{\DUrole{p}{:}\DUrole{w}{ }t.ClassVar\DUrole{p}{{[}}Query\DUrole{p}{{]}}}}}
+\pysigstopsignatures
+\sphinxAtStartPar
+A SQLAlchemy query for a model. Equivalent to \sphinxcode{\sphinxupquote{db.session.query(Model)}}. Can be
+customized per\sphinxhyphen{}model by overriding \sphinxcode{\sphinxupquote{query\_class}}.
+
+\begin{sphinxadmonition}{warning}{Warning:}
+\sphinxAtStartPar
+The query interface is considered legacy in SQLAlchemy. Prefer using
+\sphinxcode{\sphinxupquote{session.execute(select())}} instead.
+\end{sphinxadmonition}
+
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
+
 
 \section{Character Override Model}
-\label{\detokenize{models:character-override-model}}
+\label{\detokenize{models:character-override-model}}\index{CharacterOverride (class in webapp.models)@\spxentry{CharacterOverride}\spxextra{class in webapp.models}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverride}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxbfcode{\sphinxupquote{class\DUrole{w}{ }}}\sphinxcode{\sphinxupquote{webapp.models.}}\sphinxbfcode{\sphinxupquote{CharacterOverride}}}
+{\sphinxparam{\DUrole{o}{**}\DUrole{n}{kwargs}}}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Bases: \sphinxcode{\sphinxupquote{Model}}
+
+\sphinxAtStartPar
+Individual character override with SVG data.
+
+\sphinxAtStartPar
+Individual character variant with SVG data.
+
+\sphinxAtStartPar
+\sphinxstylestrong{Attributes:}
+\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{character}} \sphinxhyphen{} The character (single letter/symbol)
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{svg\_data}} \sphinxhyphen{} SVG content
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{viewbox\_x}} \sphinxhyphen{} ViewBox X coordinate
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{viewbox\_y}} \sphinxhyphen{} ViewBox Y coordinate
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{viewbox\_width}} \sphinxhyphen{} ViewBox width
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{viewbox\_height}} \sphinxhyphen{} ViewBox height
+
+\item {} 
+\sphinxAtStartPar
+\sphinxcode{\sphinxupquote{baseline\_offset}} \sphinxhyphen{} Vertical offset adjustment
+
+\end{itemize}
+\index{id (webapp.models.CharacterOverride attribute)@\spxentry{id}\spxextra{webapp.models.CharacterOverride attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverride.id}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{id}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{collection\_id (webapp.models.CharacterOverride attribute)@\spxentry{collection\_id}\spxextra{webapp.models.CharacterOverride attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverride.collection_id}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{collection\_id}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{character (webapp.models.CharacterOverride attribute)@\spxentry{character}\spxextra{webapp.models.CharacterOverride attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverride.character}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{character}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{svg\_data (webapp.models.CharacterOverride attribute)@\spxentry{svg\_data}\spxextra{webapp.models.CharacterOverride attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverride.svg_data}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{svg\_data}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{viewbox\_x (webapp.models.CharacterOverride attribute)@\spxentry{viewbox\_x}\spxextra{webapp.models.CharacterOverride attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverride.viewbox_x}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{viewbox\_x}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{viewbox\_y (webapp.models.CharacterOverride attribute)@\spxentry{viewbox\_y}\spxextra{webapp.models.CharacterOverride attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverride.viewbox_y}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{viewbox\_y}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{viewbox\_width (webapp.models.CharacterOverride attribute)@\spxentry{viewbox\_width}\spxextra{webapp.models.CharacterOverride attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverride.viewbox_width}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{viewbox\_width}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{viewbox\_height (webapp.models.CharacterOverride attribute)@\spxentry{viewbox\_height}\spxextra{webapp.models.CharacterOverride attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverride.viewbox_height}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{viewbox\_height}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{baseline\_offset (webapp.models.CharacterOverride attribute)@\spxentry{baseline\_offset}\spxextra{webapp.models.CharacterOverride attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverride.baseline_offset}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{baseline\_offset}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{created\_at (webapp.models.CharacterOverride attribute)@\spxentry{created\_at}\spxextra{webapp.models.CharacterOverride attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverride.created_at}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{created\_at}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{updated\_at (webapp.models.CharacterOverride attribute)@\spxentry{updated\_at}\spxextra{webapp.models.CharacterOverride attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverride.updated_at}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{updated\_at}}}
+\pysigstopsignatures
+\end{fulllineitems}
+
+\index{\_\_init\_\_() (webapp.models.CharacterOverride method)@\spxentry{\_\_init\_\_()}\spxextra{webapp.models.CharacterOverride method}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverride.__init__}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxbfcode{\sphinxupquote{\_\_init\_\_}}}
+{\sphinxparam{\DUrole{o}{**}\DUrole{n}{kwargs}}}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+A simple constructor that allows initialization from kwargs.
+
+\sphinxAtStartPar
+Sets attributes on the constructed instance using the names and
+values in \sphinxcode{\sphinxupquote{kwargs}}.
+
+\sphinxAtStartPar
+Only keys that are present as
+attributes of the instance’s class are allowed. These could be,
+for example, any mapped columns or relationships.
+
+\end{fulllineitems}
+
+\index{query (webapp.models.CharacterOverride attribute)@\spxentry{query}\spxextra{webapp.models.CharacterOverride attribute}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{models:webapp.models.CharacterOverride.query}}
+\pysigstartsignatures
+\pysigline
+{\sphinxbfcode{\sphinxupquote{query}}\sphinxbfcode{\sphinxupquote{\DUrole{p}{:}\DUrole{w}{ }t.ClassVar\DUrole{p}{{[}}Query\DUrole{p}{{]}}}}}
+\pysigstopsignatures
+\sphinxAtStartPar
+A SQLAlchemy query for a model. Equivalent to \sphinxcode{\sphinxupquote{db.session.query(Model)}}. Can be
+customized per\sphinxhyphen{}model by overriding \sphinxcode{\sphinxupquote{query\_class}}.
+
+\begin{sphinxadmonition}{warning}{Warning:}
+\sphinxAtStartPar
+The query interface is considered legacy in SQLAlchemy. Prefer using
+\sphinxcode{\sphinxupquote{session.execute(select())}} instead.
+\end{sphinxadmonition}
+
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
+
 
 \section{Database Schema}
 \label{\detokenize{models:database-schema}}
@@ -2584,7 +3663,149 @@ Helper functions and utilities used throughout WriteBot.
 
 
 \section{Authentication Utilities}
-\label{\detokenize{utilities:module-webapp.utils.auth_utils}}\label{\detokenize{utilities:authentication-utilities}}\index{module@\spxentry{module}!webapp.utils.auth\_utils@\spxentry{webapp.utils.auth\_utils}}\index{webapp.utils.auth\_utils@\spxentry{webapp.utils.auth\_utils}!module@\spxentry{module}}
+\label{\detokenize{utilities:module-webapp.utils.auth_utils}}\label{\detokenize{utilities:authentication-utilities}}\index{module@\spxentry{module}!webapp.utils.auth\_utils@\spxentry{webapp.utils.auth\_utils}}\index{webapp.utils.auth\_utils@\spxentry{webapp.utils.auth\_utils}!module@\spxentry{module}}\index{admin\_required() (in module webapp.utils.auth\_utils)@\spxentry{admin\_required()}\spxextra{in module webapp.utils.auth\_utils}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{utilities:webapp.utils.auth_utils.admin_required}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxcode{\sphinxupquote{webapp.utils.auth\_utils.}}\sphinxbfcode{\sphinxupquote{admin\_required}}}
+{\sphinxparam{\DUrole{n}{f}}}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Decorator to require admin role for a route.
+Use this in addition to @login\_required.
+
+\sphinxAtStartPar
+Decorator to require admin role for a route.
+
+\sphinxAtStartPar
+Usage:
+
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+\PYG{n+nd}{@app}\PYG{o}{.}\PYG{n}{route}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{/admin/dashboard}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+\PYG{n+nd}{@login\PYGZus{}required}
+\PYG{n+nd}{@admin\PYGZus{}required}
+\PYG{k}{def}\PYG{+w}{ }\PYG{n+nf}{admin\PYGZus{}dashboard}\PYG{p}{(}\PYG{p}{)}\PYG{p}{:}
+    \PYG{k}{return} \PYG{n}{render\PYGZus{}template}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}}\PYG{l+s+s1}{admin/dashboard.html}\PYG{l+s+s1}{\PYGZsq{}}\PYG{p}{)}
+\end{sphinxVerbatim}
+
+\end{fulllineitems}
+
+\index{log\_activity() (in module webapp.utils.auth\_utils)@\spxentry{log\_activity()}\spxextra{in module webapp.utils.auth\_utils}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{utilities:webapp.utils.auth_utils.log_activity}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxcode{\sphinxupquote{webapp.utils.auth\_utils.}}\sphinxbfcode{\sphinxupquote{log\_activity}}}
+{\sphinxparam{\DUrole{n}{activity\_type}}\sphinxparamcomma \sphinxparam{\DUrole{n}{description}\DUrole{o}{=}\DUrole{default_value}{None}}\sphinxparamcomma \sphinxparam{\DUrole{n}{metadata}\DUrole{o}{=}\DUrole{default_value}{None}}}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Log user activity to the database.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{activity\_type}} \textendash{} Type of activity (‘login’, ‘logout’, ‘generate’, ‘batch’, ‘admin\_action’)
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{description}} \textendash{} Optional description of the activity
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{metadata}} \textendash{} Optional dictionary of additional metadata
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\sphinxAtStartPar
+Log user activity to the database.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{activity\_type}} \textendash{} Type of activity (‘login’, ‘logout’, ‘generate’, etc.)
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{description}} \textendash{} Optional description of the activity
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{metadata}} \textendash{} Optional dictionary of additional metadata
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{track\_generation() (in module webapp.utils.auth\_utils)@\spxentry{track\_generation()}\spxextra{in module webapp.utils.auth\_utils}}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{utilities:webapp.utils.auth_utils.track_generation}}
+\pysigstartsignatures
+\pysiglinewithargsret
+{\sphinxcode{\sphinxupquote{webapp.utils.auth\_utils.}}\sphinxbfcode{\sphinxupquote{track\_generation}}}
+{\sphinxparam{\DUrole{n}{lines\_count}\DUrole{o}{=}\DUrole{default_value}{0}}\sphinxparamcomma \sphinxparam{\DUrole{n}{chars\_count}\DUrole{o}{=}\DUrole{default_value}{0}}\sphinxparamcomma \sphinxparam{\DUrole{n}{processing\_time}\DUrole{o}{=}\DUrole{default_value}{0.0}}\sphinxparamcomma \sphinxparam{\DUrole{n}{is\_batch}\DUrole{o}{=}\DUrole{default_value}{False}}}
+{}
+\pysigstopsignatures
+\sphinxAtStartPar
+Track generation statistics for the current user.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{lines\_count}} \textendash{} Number of lines generated
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{chars\_count}} \textendash{} Number of characters generated
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{processing\_time}} \textendash{} Processing time in seconds
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{is\_batch}} \textendash{} Whether this is a batch generation
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\sphinxAtStartPar
+Track generation statistics for the current user.
+\begin{quote}\begin{description}
+\sphinxlineitem{Parameters}\begin{itemize}
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{lines\_count}} \textendash{} Number of lines generated
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{chars\_count}} \textendash{} Number of characters generated
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{processing\_time}} \textendash{} Processing time in seconds
+
+\item {} 
+\sphinxAtStartPar
+\sphinxstyleliteralstrong{\sphinxupquote{is\_batch}} \textendash{} Whether this is a batch generation
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+
 
 \section{Text Processing Utilities}
 \label{\detokenize{utilities:module-webapp.utils.text_utils}}\label{\detokenize{utilities:text-processing-utilities}}\index{module@\spxentry{module}!webapp.utils.text\_utils@\spxentry{webapp.utils.text\_utils}}\index{webapp.utils.text\_utils@\spxentry{webapp.utils.text\_utils}!module@\spxentry{module}}

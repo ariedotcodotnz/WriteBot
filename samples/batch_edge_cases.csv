@@ -1,0 +1,5 @@
+filename,text,styles,biases,stroke_colors,stroke_widths
+edge_empty.svg,"Empty overrides should be ignored and not crash",,,,
+edge_partial.svg,"Partial lists are ok",9| |12,0.8|,black| |#555,2||2
+edge_wrap.svg,"This is a very very very very very very very very long line that should wrap reasonably across the canvas and still render.",7,,,
+
