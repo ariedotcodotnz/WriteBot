@@ -1,0 +1,520 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="bx--grid">
+      <!-- Main Configuration Panel -->
+      <div class="bx--row">
+        <div class="bx--col-lg-16">
+          <div class="section-header">
+            <h1 class="section-title">
+              Handwriting Synthesis
+            </h1>
+          </div>
+        </div>
+      </div>
+
+      <div class="bx--row">
+        <!-- Left Column: Input & Configuration -->
+        <div class="bx--col-lg-8 bx--col-md-8">
+          <!-- Text Input Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Text Input</h3>
+            </div>
+            <div class="bx--form">
+              <div class="bx--form-item">
+                <label for="text" class="bx--label">Content</label>
+                <div class="bx--text-area__wrapper">
+                  <textarea id="text" class="bx--text-area" rows="6" 
+                    placeholder="Enter your text here. Each line will become a new paragraph.
+Use \\ on its own line to insert blank space."></textarea>
+                </div>
+                <div class="bx--form__helper-text text-small mt-1">
+                  Text will automatically wrap based on page settings.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Style Configuration Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Style Configuration</h3>
+            </div>
+            <div class="bx--form">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="styleSelect" class="bx--label">Base Style</label>
+                  <div class="bx--select">
+                    <select id="styleSelect" class="bx--select-input">
+                      <option value="">Loading styles...</option>
+                    </select>
+                    <svg class="bx--select__arrow" width="10" height="6" viewBox="0 0 10 6">
+                      <path d="M5 6L0 0h10z" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="legibility" class="bx--label">Legibility</label>
+                  <div class="bx--select">
+                    <select id="legibility" class="bx--select-input">
+                      <option value="natural">Natural</option>
+                      <option value="normal" selected>Normal</option>
+                      <option value="high">High</option>
+                    </select>
+                    <svg class="bx--select__arrow" width="10" height="6" viewBox="0 0 10 6">
+                      <path d="M5 6L0 0h10z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Advanced Style Options -->
+              <details class="mt-2">
+                <summary style="cursor: pointer; font-weight: 500; color: var(--interactive-01);">
+                  Advanced Style Options
+                </summary>
+                <div class="form-grid mt-2">
+                  <div class="form-group">
+                    <label for="biases" class="bx--label">Biases</label>
+                    <input id="biases" class="bx--text-input" type="text" placeholder="0.75|0.75|0.6" />
+                  </div>
+                  <div class="form-group">
+                    <label for="styles" class="bx--label">Per-line Styles</label>
+                    <input id="styles" class="bx--text-input" type="text" placeholder="9|9|12" />
+                  </div>
+                  <div class="form-group">
+                    <label for="strokeColors" class="bx--label">Stroke Colors</label>
+                    <input id="strokeColors" class="bx--text-input" type="text" placeholder="black|#333|red" />
+                  </div>
+                  <div class="form-group">
+                    <label for="strokeWidths" class="bx--label">Stroke Widths</label>
+                    <input id="strokeWidths" class="bx--text-input" type="text" placeholder="2|2|2" />
+                  </div>
+                  <div class="form-group">
+                    <label for="xStretch" class="bx--label">Horizontal Stretch</label>
+                    <input id="xStretch" class="bx--text-input" type="number" step="0.05" placeholder="1.0" />
+                  </div>
+                  <div class="form-group">
+                    <label for="denoise" class="bx--label">Denoise</label>
+                    <div class="bx--select">
+                      <select id="denoise" class="bx--select-input">
+                        <option value="true" selected>Enabled</option>
+                        <option value="false">Disabled</option>
+                      </select>
+                      <svg class="bx--select__arrow" width="10" height="6" viewBox="0 0 10 6">
+                        <path d="M5 6L0 0h10z" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <!-- Page Settings Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Page Settings</h3>
+            </div>
+            <div class="bx--form">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="pageSize" class="bx--label">Page Size</label>
+                  <div class="bx--select">
+                    <select id="pageSize" class="bx--select-input">
+                      <option value="A4">A4 (210 × 297 mm)</option>
+                      <option value="A5">A5 (148 × 210 mm)</option>
+                      <option value="Letter">Letter (8.5 × 11")</option>
+                      <option value="Legal">Legal (8.5 × 14")</option>
+                      <option value="custom">Custom Size</option>
+                    </select>
+                    <svg class="bx--select__arrow" width="10" height="6" viewBox="0 0 10 6">
+                      <path d="M5 6L0 0h10z" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="orientation" class="bx--label">Orientation</label>
+                  <div class="bx--select">
+                    <select id="orientation" class="bx--select-input">
+                      <option value="portrait">Portrait</option>
+                      <option value="landscape">Landscape</option>
+                    </select>
+                    <svg class="bx--select__arrow" width="10" height="6" viewBox="0 0 10 6">
+                      <path d="M5 6L0 0h10z" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="units" class="bx--label">Units</label>
+                  <div class="bx--select">
+                    <select id="units" class="bx--select-input">
+                      <option value="mm">Millimeters</option>
+                      <option value="px">Pixels</option>
+                    </select>
+                    <svg class="bx--select__arrow" width="10" height="6" viewBox="0 0 10 6">
+                      <path d="M5 6L0 0h10z" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="align" class="bx--label">Text Alignment</label>
+                  <div class="bx--select">
+                    <select id="align" class="bx--select-input">
+                      <option value="left">Left</option>
+                      <option value="center">Center</option>
+                      <option value="right">Right</option>
+                    </select>
+                    <svg class="bx--select__arrow" width="10" height="6" viewBox="0 0 10 6">
+                      <path d="M5 6L0 0h10z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Custom Size Fields -->
+              <div id="customSizeFields" style="display: none;">
+                <div class="form-grid mt-2">
+                  <div class="form-group">
+                    <label for="pageWidth" class="bx--label">Width</label>
+                    <input id="pageWidth" class="bx--text-input" type="number" step="any" placeholder="210" />
+                  </div>
+                  <div class="form-group">
+                    <label for="pageHeight" class="bx--label">Height</label>
+                    <input id="pageHeight" class="bx--text-input" type="number" step="any" placeholder="297" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Layout Settings -->
+              <div class="form-grid mt-3">
+                <div class="form-group">
+                  <label class="bx--label">Margins</label>
+                  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;">
+                    <input id="marginTop" class="bx--text-input" type="number" placeholder="Top" title="Top margin" />
+                    <input id="marginRight" class="bx--text-input" type="number" placeholder="Right" title="Right margin" />
+                    <input id="marginBottom" class="bx--text-input" type="number" placeholder="Bottom" title="Bottom margin" />
+                    <input id="marginLeft" class="bx--text-input" type="number" placeholder="Left" title="Left margin" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="lineHeight" class="bx--label">Line Height</label>
+                  <input id="lineHeight" class="bx--text-input" type="number" placeholder="Auto" title="Spacing between regular lines" />
+                </div>
+                <div class="form-group">
+                  <label for="emptyLineSpacing" class="bx--label">Empty Line Spacing</label>
+                  <input id="emptyLineSpacing" class="bx--text-input" type="number" placeholder="Auto" title="Spacing for empty/blank lines" />
+                </div>
+                <div class="form-group">
+                  <label for="globalScale" class="bx--label">Global Scale</label>
+                  <input id="globalScale" class="bx--text-input" type="number" step="0.1" placeholder="1.0" />
+                </div>
+                <div class="form-group">
+                  <label for="background" class="bx--label">Background</label>
+                  <input id="background" class="bx--text-input" type="text" placeholder="white" />
+                </div>
+              </div>
+
+              <!-- Writing Size Settings -->
+              <div class="form-grid mt-3">
+                <div class="form-group">
+                  <label style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input id="autoSize" type="checkbox" checked style="width: auto;" />
+                    <span class="bx--label" style="margin: 0;">Auto Size (fit to line height)</span>
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label for="manualSizeScale" class="bx--label">Manual Size Scale</label>
+                  <input id="manualSizeScale" class="bx--text-input" type="number" step="0.1" placeholder="1.0" disabled title="Scale for writing size when Auto Size is disabled" />
+                </div>
+              </div>
+
+              <!-- Advanced Layout Options -->
+              <details class="mt-2">
+                <summary style="cursor: pointer; font-weight: 500; color: var(--interactive-01);">
+                  Text Wrapping Options
+                </summary>
+                <div class="form-grid mt-2">
+                  <div class="form-group">
+                    <label for="wrapCharPx" class="bx--label">Character Width (px)</label>
+                    <input id="wrapCharPx" class="bx--text-input" type="number" step="0.5" placeholder="10.5" />
+                  </div>
+                  <div class="form-group">
+                    <label for="wrapRatio" class="bx--label">Wrap Ratio</label>
+                    <input id="wrapRatio" class="bx--text-input" type="number" step="0.01" placeholder="0.18" />
+                  </div>
+                  <div class="form-group">
+                    <label for="wrapUtil" class="bx--label">Utilization</label>
+                    <input id="wrapUtil" class="bx--text-input" type="number" step="0.05" placeholder="1.35" />
+                  </div>
+                </div>
+              </details>
+
+              <!-- Text Generation Options -->
+              <details class="mt-2" open>
+                <summary style="cursor: pointer; font-weight: 500; color: var(--interactive-01);">
+                  Text Generation Options (Advanced)
+                </summary>
+                <div class="form-grid mt-2">
+                  <div class="form-group">
+                    <label class="bx--checkbox-wrapper">
+                      <input id="useChunked" type="checkbox" class="bx--checkbox" checked />
+                      <label for="useChunked" class="bx--checkbox-label">
+                        <span class="bx--checkbox-label-text">Use Chunked Generation (Recommended)</span>
+                      </label>
+                    </label>
+                    <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
+                      Generate text in small chunks for better quality and longer lines
+                    </small>
+                  </div>
+                  <div class="form-group">
+                    <label class="bx--checkbox-wrapper">
+                      <input id="adaptiveChunking" type="checkbox" class="bx--checkbox" checked />
+                      <label for="adaptiveChunking" class="bx--checkbox-label">
+                        <span class="bx--checkbox-label-text">Adaptive Chunking</span>
+                      </label>
+                    </label>
+                    <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
+                      Intelligently adjust chunk sizes based on text content
+                    </small>
+                  </div>
+                  <div class="form-group">
+                    <label for="adaptiveStrategy" class="bx--label">Adaptive Strategy</label>
+                    <div class="bx--select">
+                      <select id="adaptiveStrategy" class="bx--select-input">
+                        <option value="balanced" selected>Balanced (Recommended)</option>
+                        <option value="word_length">Word Length</option>
+                        <option value="sentence">Sentence Boundaries</option>
+                        <option value="punctuation">Punctuation Aware</option>
+                        <option value="off">Fixed Size</option>
+                      </select>
+                      <svg class="bx--select__arrow" width="10" height="6" viewBox="0 0 10 6">
+                        <path d="M5 6L0 0h10z" />
+                      </svg>
+                    </div>
+                    <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
+                      How to split text into chunks (balanced combines multiple strategies)
+                    </small>
+                  </div>
+                  <div class="form-group">
+                    <label for="wordsPerChunk" class="bx--label">Words Per Chunk</label>
+                    <input id="wordsPerChunk" class="bx--text-input" type="number" step="1" min="1" max="8" placeholder="3" />
+                    <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
+                      Target words per chunk (adaptively adjusted)
+                    </small>
+                  </div>
+                  <div class="form-group">
+                    <label for="chunkSpacing" class="bx--label">Chunk Spacing</label>
+                    <input id="chunkSpacing" class="bx--text-input" type="number" step="0.5" min="0" placeholder="8.0" />
+                    <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
+                      Horizontal space between chunks (default: 8.0)
+                    </small>
+                  </div>
+                  <div class="form-group">
+                    <label for="maxLineWidth" class="bx--label">Max Line Width</label>
+                    <input id="maxLineWidth" class="bx--text-input" type="number" step="10" min="300" placeholder="800" />
+                    <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
+                      Maximum line width in coordinate units (default: 800)
+                    </small>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="actions-bar">
+            <div class="actions-primary">
+              <button class="bx--btn bx--btn--primary" onclick="generate()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.5rem;">
+                  <path d="M8 0a.5.5 0 0 1 .5.5v6.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 7.293V.5A.5.5 0 0 1 8 0zM2 9.5A.5.5 0 0 1 2.5 9h11a.5.5 0 0 1 .5.5v5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-5zm1 .5v4h10v-4H3z"/>
+                </svg>
+                Generate Handwriting
+              </button>
+              <button class="bx--btn bx--btn--secondary" onclick="downloadSVG()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.5rem;">
+                  <path d="M8 12a.5.5 0 0 0 .5-.5v-7.793l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 3.707V11.5A.5.5 0 0 0 8 12zM2 14.5A.5.5 0 0 0 2.5 15h11a.5.5 0 0 0 .5-.5V14H2v.5z"/>
+                </svg>
+                Download SVG
+              </button>
+            </div>
+            <div class="actions-secondary">
+              <button class="bx--btn bx--btn--tertiary" onclick="applyPreset('A4','portrait',20)">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.25rem;">
+                  <path d="M3 2a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2z"/>
+                </svg>
+                A4 Portrait
+              </button>
+              <button class="bx--btn bx--btn--tertiary" onclick="applyPreset('Letter','landscape',15)">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.25rem; transform: rotate(90deg);">
+                  <path d="M3 2a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2z"/>
+                </svg>
+                Letter Landscape
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Preview & Output -->
+        <div class="bx--col-lg-8 bx--col-md-8">
+          <!-- Preview Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Preview</h3>
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                <span class="text-small text-muted" id="previewHint" style="display: none;">Click to enlarge</span>
+                <div class="zoom-control">
+                  <span class="text-small text-muted">Zoom:</span>
+                  <input id="zoom" type="range" min="25" max="200" step="5" value="100" class="zoom-slider" />
+                  <span id="zoomVal" class="zoom-value">100%</span>
+                </div>
+              </div>
+            </div>
+            <div class="preview-container">
+              <div id="preview">
+                <div class="preview-empty">Generated handwriting will appear here</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SVG Source Output -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">SVG Source Code</h3>
+              <button class="bx--btn bx--btn--ghost bx--btn--sm" onclick="copySvg()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.5rem;">
+                  <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                  <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+                </svg>
+                Copy to Clipboard
+              </button>
+            </div>
+            <div class="code-container">
+              <div class="code-content">
+                <pre id="output"><code>// SVG output will appear here after generation</code></pre>
+              </div>
+            </div>
+            <div class="text-small text-muted mt-2" style="padding: 0 1rem;">
+              <strong>Metadata:</strong> <span id="metaInfo">Generate handwriting to view metadata</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Batch Processing Section -->
+      <div class="bx--row mt-3">
+        <div class="bx--col-lg-16">
+          <div class="section-header">
+            <h2 class="section-title">Batch Processing</h2>
+          </div>
+        </div>
+      </div>
+
+      <div class="bx--row">
+        <div class="bx--col-lg-8 bx--col-md-8">
+          <div class="card">
+            <!-- Upload Area -->
+            <div id="csvDrop" class="dropzone" onclick="document.getElementById('csv').click()">
+              <div class="dropzone-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10 9 9 9 8 9"/>
+                </svg>
+              </div>
+              <div class="dropzone-text">Drop CSV file here or click to browse</div>
+              <div class="dropzone-subtext">Maximum file size: 10MB</div>
+              <div id="csvInfo" style="display: none;"></div>
+            </div>
+            <input id="csv" type="file" accept=".csv" style="display: none;" />
+
+            <div class="actions-bar">
+              <button class="bx--btn bx--btn--primary" onclick="batchGenerateStream()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.5rem;">
+                  <path d="M4 0h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H4z"/>
+                  <path d="M8 5.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V10a.5.5 0 0 1-1 0V8.5H6a.5.5 0 0 1 0-1h1.5V6a.5.5 0 0 1 .5-.5z"/>
+                </svg>
+                Start Batch Processing
+              </button>
+              <a href="/api/template-csv" class="bx--btn bx--btn--secondary">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.5rem;">
+                  <path d="M8 12a.5.5 0 0 0 .5-.5v-7.793l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 3.707V11.5A.5.5 0 0 0 8 12zM2 14.5A.5.5 0 0 0 2.5 15h11a.5.5 0 0 0 .5-.5V14H2v.5z"/>
+                </svg>
+                Download CSV Template
+              </a>
+              <div class="actions-secondary">
+                <label for="liveLimit" class="text-small text-muted">Preview limit:</label>
+                <input id="liveLimit" class="bx--text-input" type="number" min="1" max="50" value="12" style="width: 80px;" />
+              </div>
+            </div>
+
+            <!-- Batch Status -->
+            <div class="batch-container" id="batchContainer" style="display: none;">
+              <div class="batch-header">
+                <h4>Processing Status</h4>
+                <button class="bx--btn bx--btn--ghost bx--btn--sm" onclick="clearBatchUI()">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.25rem;">
+                    <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
+                  </svg>
+                  Clear
+                </button>
+              </div>
+
+              <!-- Progress Bar -->
+              <div class="progress-bar">
+                <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+              </div>
+
+              <!-- Statistics -->
+              <div class="batch-stats">
+                <div class="stat-card">
+                  <span id="batchProg" class="stat-value">0</span>
+                  <span class="stat-label">Processed</span>
+                </div>
+                <div class="stat-card">
+                  <span id="batchTotal" class="stat-value">0</span>
+                  <span class="stat-label">Total</span>
+                </div>
+                <div class="stat-card">
+                  <span id="batchOk" class="stat-value">0</span>
+                  <span class="stat-label">Success</span>
+                </div>
+                <div class="stat-card">
+                  <span id="batchErr" class="stat-value">0</span>
+                  <span class="stat-label">Errors</span>
+                </div>
+              </div>
+
+              <!-- Live Previews and Log -->
+              <div class="batch-previews">
+                <div class="preview-section">
+                  <div class="preview-section-header">Live Previews</div>
+                  <div id="batchLiveGrid" class="live-preview-grid"></div>
+                </div>
+                <div class="preview-section">
+                  <div class="preview-section-header">Processing Log</div>
+                  <div id="batchLog" class="batch-log"></div>
+                </div>
+              </div>
+
+              <!-- Download Button -->
+              <div class="actions-bar mt-2">
+                <a id="batchDownload" class="bx--btn bx--btn--primary" style="display: none;">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 0.5rem;">
+                    <path d="M8 12a.5.5 0 0 0 .5-.5v-7.793l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 3.707V11.5A.5.5 0 0 0 8 12zM2 14.5A.5.5 0 0 0 2.5 15h11a.5.5 0 0 0 .5-.5V14H2v.5z"/>
+                  </svg>
+                  Download Results
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Enhanced Footer -->
+{% endblock %}

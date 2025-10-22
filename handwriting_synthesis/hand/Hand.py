@@ -73,6 +73,9 @@ class Hand(object):
         legibility='normal',
         x_stretch=1.0,
         denoise=True,
+        empty_line_spacing=None,
+        auto_size=True,
+        manual_size_scale=1.0,
     ):
         """
         Generate handwriting for lines of text.
@@ -156,6 +159,9 @@ class Hand(object):
             legibility=legibility,
             x_stretch=x_stretch,
             denoise=denoise,
+            empty_line_spacing=empty_line_spacing,
+            auto_size=auto_size,
+            manual_size_scale=manual_size_scale,
         )
 
     def _sample(self, lines, biases=None, styles=None):
@@ -200,6 +206,9 @@ class Hand(object):
         legibility='normal',
         x_stretch=1.0,
         denoise=True,
+        empty_line_spacing=None,
+        auto_size=True,
+        manual_size_scale=1.0,
     ):
         """
         Generate handwriting using chunk-based approach to overcome long-range dependency.
@@ -363,4 +372,7 @@ class Hand(object):
             legibility=legibility,
             x_stretch=x_stretch,
             denoise=denoise,
+            empty_line_spacing=empty_line_spacing,
+            auto_size=auto_size,
+            manual_size_scale=manual_size_scale,
         )

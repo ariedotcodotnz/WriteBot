@@ -78,6 +78,9 @@ def _draw(
     legibility='normal',
     x_stretch=1.0,
     denoise=True,
+    empty_line_spacing=None,
+    auto_size=True,
+    manual_size_scale=1.0,
 ):
     stroke_colors = stroke_colors or ['black'] * len(lines)
     stroke_widths = stroke_widths or [2] * len(lines)
@@ -93,6 +96,9 @@ def _draw(
     # Ensure all lines fit vertically
     max_line_height_px = content_height_px / max(1, len(strokes) + 0)
     line_height_px = min(line_height_px, max_line_height_px)
+
+    # Empty line spacing: if not specified, use regular line_height_px
+    empty_line_spacing_px = _to_px(empty_line_spacing, units) if empty_line_spacing is not None else line_height_px
 
     # Handle orientation
     if isinstance(svg_size, tuple) and len(svg_size) == 2 and orientation == 'landscape':
@@ -154,7 +160,11 @@ def _draw(
         scale_limits.append(min(s_w, s_h))
         preprocessed.append({'empty': False, 'strokes': ls, 'color': color, 'width': width})
 
-    s_global = min(scale_limits) if scale_limits else 1.0
+    # Determine global scale: automatic or manual
+    if auto_size:
+        s_global = min(scale_limits) if scale_limits else 1.0
+    else:
+        s_global = float(manual_size_scale)
 
     # Second pass: render with uniform scale across lines for consistent letter size
     cursor_y = m_top + (3.0 * line_height_px / 4.0)
@@ -162,7 +172,7 @@ def _draw(
     x_stretch = float(x_stretch) if x_stretch is not None else 1.0
     for item in preprocessed:
         if item.get('empty'):
-            cursor_y += line_height_px
+            cursor_y += empty_line_spacing_px
             continue
         ls = item['strokes'].copy()
         ls[:, :2] *= s_global

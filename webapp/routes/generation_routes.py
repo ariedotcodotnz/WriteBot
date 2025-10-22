@@ -68,6 +68,13 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> tuple[str, Dict[
     x_stretch = payload.get("x_stretch")
     denoise = payload.get("denoise")
 
+    # New spacing and sizing parameters
+    empty_line_spacing = payload.get("empty_line_spacing")
+    auto_size = payload.get("auto_size", True)
+    if isinstance(auto_size, str):
+        auto_size = auto_size.lower() not in ('false', '0', 'no')
+    manual_size_scale = float(payload.get("manual_size_scale", 1.0))
+
     # Chunk-based generation params
     use_chunked = payload.get("use_chunked", True)
     words_per_chunk = int(payload.get("words_per_chunk", 3))
@@ -149,6 +156,9 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> tuple[str, Dict[
                 legibility=legibility,
                 x_stretch=float(x_stretch) if x_stretch is not None else 1.0,
                 denoise=False if (isinstance(denoise, str) and denoise.lower() == 'false') or denoise is False else True,
+                empty_line_spacing=empty_line_spacing,
+                auto_size=auto_size,
+                manual_size_scale=manual_size_scale,
             )
         else:
             # Traditional line-by-line generation
@@ -189,6 +199,9 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> tuple[str, Dict[
                 legibility=legibility,
                 x_stretch=float(x_stretch) if x_stretch is not None else 1.0,
                 denoise=False if (isinstance(denoise, str) and denoise.lower() == 'false') or denoise is False else True,
+                empty_line_spacing=empty_line_spacing,
+                auto_size=auto_size,
+                manual_size_scale=manual_size_scale,
             )
 
         with open(out_path, "r", encoding="utf-8") as f:
