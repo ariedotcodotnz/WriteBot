@@ -71,6 +71,10 @@ app.register_blueprint(auth_bp)
 from webapp.routes.admin_routes import admin_bp
 app.register_blueprint(admin_bp)
 
+# Import and register character override blueprint
+from webapp.routes.character_override_routes import character_override_bp
+app.register_blueprint(character_override_bp)
+
 
 @app.route("/")
 def index():

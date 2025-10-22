@@ -77,6 +77,11 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> tuple[str, Dict[
         auto_size = auto_size.lower() not in ('false', '0', 'no')
     manual_size_scale = float(payload.get("manual_size_scale", 1.0))
 
+    # Character override collection
+    character_override_collection_id = payload.get("character_override_collection_id")
+    if character_override_collection_id is not None:
+        character_override_collection_id = int(character_override_collection_id)
+
     # Chunk-based generation params
     use_chunked = payload.get("use_chunked", True)
     words_per_chunk = int(payload.get("words_per_chunk", 3))
@@ -161,6 +166,7 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> tuple[str, Dict[
                 empty_line_spacing=empty_line_spacing,
                 auto_size=auto_size,
                 manual_size_scale=manual_size_scale,
+                character_override_collection_id=character_override_collection_id,
             )
         else:
             # Traditional line-by-line generation
@@ -204,6 +210,7 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> tuple[str, Dict[
                 empty_line_spacing=empty_line_spacing,
                 auto_size=auto_size,
                 manual_size_scale=manual_size_scale,
+                character_override_collection_id=character_override_collection_id,
             )
 
         with open(out_path, "r", encoding="utf-8") as f:
