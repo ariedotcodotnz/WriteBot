@@ -111,6 +111,22 @@ def security():
     return send_from_directory(app.static_folder, 'security.txt')
 
 
+@app.route('/docs/')
+@app.route('/docs/<path:filename>')
+def serve_docs(filename='index.html'):
+    """Serve Sphinx documentation."""
+    docs_dir = os.path.join(PROJECT_ROOT, 'docs', 'build', 'html')
+
+    # Check if documentation exists
+    if not os.path.exists(docs_dir):
+        return jsonify({
+            "error": "Documentation not built",
+            "message": "Please run 'cd docs && make html' to build the documentation"
+        }), 404
+
+    return send_from_directory(docs_dir, filename)
+
+
 if __name__ == "__main__":
     # Single-threaded to avoid TF session concurrency issues
     app.run(host="0.0.0.0", port=5000, debug=True, threaded=False)

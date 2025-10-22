@@ -1,502 +1,175 @@
-{% extends "base.html" %}
+{% extends "admin/base.html" %}
+
+{% set active_nav = 'character_overrides' %}
 
 {% block title %}{{ collection.name }} - Character Overrides - Admin - WriteBot{% endblock %}
 
-{% block extra_css %}
-<style>
-    .admin-container {
-        max-width: 1400px;
-        margin: 40px auto;
-        padding: 0 20px;
-    }
-
-    .admin-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 32px;
-    }
-
-    .admin-header h1 {
-        font-size: 32px;
-        color: #161616;
-    }
-
-    .collection-info {
-        background: white;
-        padding: 24px;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        margin-bottom: 24px;
-    }
-
-    .collection-info h2 {
-        font-size: 20px;
-        color: #161616;
-        margin-bottom: 12px;
-    }
-
-    .collection-info p {
-        font-size: 14px;
-        color: #525252;
-        margin-bottom: 16px;
-    }
-
-    .collection-stats {
-        display: flex;
-        gap: 32px;
-        font-size: 14px;
-        color: #525252;
-    }
-
-    .collection-stat strong {
-        font-size: 18px;
-        color: #161616;
-        display: block;
-    }
-
-    .upload-section {
-        background: white;
-        padding: 24px;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        margin-bottom: 24px;
-    }
-
-    .upload-section h3 {
-        font-size: 18px;
-        color: #161616;
-        margin-bottom: 16px;
-    }
-
-    .upload-tabs {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 20px;
-        border-bottom: 1px solid #e0e0e0;
-    }
-
-    .upload-tab {
-        padding: 10px 20px;
-        background: none;
-        border: none;
-        border-bottom: 2px solid transparent;
-        font-size: 14px;
-        color: #525252;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .upload-tab.active {
-        color: #0f62fe;
-        border-bottom-color: #0f62fe;
-    }
-
-    .upload-tab:hover {
-        color: #0f62fe;
-    }
-
-    .upload-content {
-        display: none;
-    }
-
-    .upload-content.active {
-        display: block;
-    }
-
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-    .form-group label {
-        display: block;
-        font-size: 14px;
-        font-weight: 500;
-        color: #161616;
-        margin-bottom: 8px;
-    }
-
-    .form-group input[type="text"],
-    .form-group input[type="number"],
-    .form-group input[type="file"] {
-        width: 100%;
-        padding: 10px 12px;
-        border: 1px solid #e0e0e0;
-        border-radius: 4px;
-        font-size: 14px;
-    }
-
-    .form-group .help-text {
-        font-size: 12px;
-        color: #525252;
-        margin-top: 4px;
-    }
-
-    .form-inline {
-        display: flex;
-        gap: 16px;
-        align-items: flex-end;
-    }
-
-    .form-inline .form-group {
-        flex: 1;
-    }
-
-    .btn-primary {
-        padding: 10px 20px;
-        background-color: #0f62fe;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 14px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-
-    .btn-primary:hover {
-        background-color: #0353e9;
-    }
-
-    .btn-secondary {
-        padding: 8px 16px;
-        background-color: #e0e0e0;
-        color: #161616;
-        border: none;
-        border-radius: 4px;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 14px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-        margin-right: 8px;
-    }
-
-    .btn-secondary:hover {
-        background-color: #c6c6c6;
-    }
-
-    .btn-danger {
-        padding: 6px 12px;
-        background-color: #da1e28;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        font-size: 12px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-
-    .btn-danger:hover {
-        background-color: #ba1b23;
-    }
-
-    .characters-section {
-        background: white;
-        padding: 24px;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    .characters-section h3 {
-        font-size: 18px;
-        color: #161616;
-        margin-bottom: 20px;
-    }
-
-    .character-group {
-        margin-bottom: 32px;
-        padding: 20px;
-        background: #f4f4f4;
-        border-radius: 8px;
-    }
-
-    .character-group-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 16px;
-    }
-
-    .character-group-title {
-        font-size: 16px;
-        font-weight: 500;
-        color: #161616;
-    }
-
-    .character-badge {
-        display: inline-block;
-        width: 40px;
-        height: 40px;
-        background: white;
-        border: 2px solid #0f62fe;
-        border-radius: 50%;
-        text-align: center;
-        line-height: 36px;
-        font-size: 20px;
-        font-weight: bold;
-        color: #0f62fe;
-        margin-right: 12px;
-    }
-
-    .variant-count {
-        font-size: 14px;
-        color: #525252;
-    }
-
-    .variants-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 16px;
-    }
-
-    .variant-card {
-        background: white;
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 12px;
-        text-align: center;
-    }
-
-    .variant-preview {
-        width: 100%;
-        height: 80px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 8px;
-        background: #f9f9f9;
-        border-radius: 4px;
-    }
-
-    .variant-preview img {
-        max-width: 100%;
-        max-height: 100%;
-    }
-
-    .variant-info {
-        font-size: 11px;
-        color: #8d8d8d;
-        margin-bottom: 8px;
-    }
-
-    .alert {
-        padding: 12px 16px;
-        margin-bottom: 20px;
-        border-radius: 4px;
-        font-size: 14px;
-    }
-
-    .alert-error {
-        background-color: #fff1f1;
-        border: 1px solid #da1e28;
-        color: #da1e28;
-    }
-
-    .alert-success {
-        background-color: #defbe6;
-        border: 1px solid #24a148;
-        color: #24a148;
-    }
-
-    .info-box {
-        background: #e5f6ff;
-        border: 1px solid #0f62fe;
-        padding: 16px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        font-size: 13px;
-        color: #161616;
-    }
-
-    .info-box strong {
-        color: #0f62fe;
-        display: block;
-        margin-bottom: 8px;
-    }
-
-    .info-box ul {
-        margin: 8px 0;
-        padding-left: 20px;
-    }
-
-    .info-box li {
-        margin-bottom: 4px;
-    }
-
-    .badge {
-        display: inline-block;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: 500;
-    }
-
-    .badge-active {
-        background-color: #defbe6;
-        color: #24a148;
-    }
-
-    .badge-inactive {
-        background-color: #fff1f1;
-        color: #da1e28;
-    }
-</style>
+{% block admin_extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/character_overrides.css') }}" />
 {% endblock %}
 
-{% block content %}
-<div class="admin-container">
-    <div class="admin-header">
-        <h1>{{ collection.name }}</h1>
-        <a href="{{ url_for('character_overrides.list_collections') }}" class="btn-secondary">Back to Collections</a>
-    </div>
+{% block admin_title %}{{ collection.name }}{% endblock %}
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+{% block admin_header_actions %}
+<a href="{{ url_for('character_overrides.edit_collection', collection_id=collection.id) }}" class="btn btn-secondary">Edit Collection</a>
+<a href="{{ url_for('character_overrides.list_collections') }}" class="btn btn-ghost">Back to Collections</a>
+{% endblock %}
 
-    <div class="collection-info">
-        <h2>Collection Information</h2>
-        <p>{{ collection.description or 'No description provided.' }}</p>
-        <div class="collection-stats">
-            <div class="collection-stat">
-                <strong>{{ grouped_overrides|length }}</strong>
-                Unique Characters
-            </div>
-            <div class="collection-stat">
-                <strong>{{ collection.get_character_count() }}</strong>
-                Total Variants
-            </div>
-            <div class="collection-stat">
-                {% if collection.is_active %}
-                <span class="badge badge-active">Active</span>
-                {% else %}
-                <span class="badge badge-inactive">Inactive</span>
-                {% endif %}
-            </div>
+{% block admin_content %}
+{# Collection Information #}
+<div class="collection-info">
+    <h2>Collection Information</h2>
+    <p>{{ collection.description or 'No description provided.' }}</p>
+    <div class="collection-stats">
+        <div class="collection-stat">
+            <strong>{{ grouped_overrides|length }}</strong>
+            <span>Unique Characters</span>
         </div>
-    </div>
-
-    <div class="upload-section">
-        <h3>Upload Character Variants</h3>
-
-        <div class="info-box">
-            <strong>SVG File Requirements:</strong>
-            <ul>
-                <li>Files must be valid SVG format</li>
-                <li>Must include viewBox or width/height attributes</li>
-                <li>Strokes should be converted to paths for consistency</li>
-                <li>Use single color (will be replaced during generation)</li>
-                <li>Recommended size: approximately 100-200px height for best results</li>
-            </ul>
+        <div class="collection-stat">
+            <strong>{{ collection.get_character_count() }}</strong>
+            <span>Total Variants</span>
         </div>
-
-        <div class="upload-tabs">
-            <button class="upload-tab active" onclick="switchTab('single')">Single Upload</button>
-            <button class="upload-tab" onclick="switchTab('batch')">Batch Upload</button>
+        <div class="collection-stat">
+            {% if collection.is_active %}
+            <span class="badge badge-active">Active</span>
+            {% else %}
+            <span class="badge badge-inactive">Inactive</span>
+            {% endif %}
         </div>
-
-        <div id="single-upload" class="upload-content active">
-            <form method="POST" action="{{ url_for('character_overrides.upload_character', collection_id=collection.id) }}" enctype="multipart/form-data">
-                <div class="form-inline">
-                    <div class="form-group" style="max-width: 100px;">
-                        <label for="character">Character *</label>
-                        <input type="text" id="character" name="character" maxlength="1" required>
-                        <div class="help-text">Single char</div>
-                    </div>
-                    <div class="form-group" style="max-width: 150px;">
-                        <label for="baseline_offset">Baseline Offset</label>
-                        <input type="number" id="baseline_offset" name="baseline_offset" value="0" step="0.1">
-                        <div class="help-text">Vertical offset</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="svg_file">SVG File *</label>
-                        <input type="file" id="svg_file" name="svg_file" accept=".svg" required>
-                    </div>
-                    <button type="submit" class="btn-primary">Upload</button>
-                </div>
-            </form>
-        </div>
-
-        <div id="batch-upload" class="upload-content">
-            <form method="POST" action="{{ url_for('character_overrides.upload_batch', collection_id=collection.id) }}" enctype="multipart/form-data">
-                <div class="form-inline">
-                    <div class="form-group" style="max-width: 150px;">
-                        <label for="batch_baseline_offset">Baseline Offset</label>
-                        <input type="number" id="batch_baseline_offset" name="baseline_offset" value="0" step="0.1">
-                        <div class="help-text">Applied to all</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="svg_files">SVG Files *</label>
-                        <input type="file" id="svg_files" name="svg_files" accept=".svg" multiple required>
-                        <div class="help-text">Character extracted from filename (e.g., 'a.svg', 'a_1.svg')</div>
-                    </div>
-                    <button type="submit" class="btn-primary">Upload All</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="characters-section">
-        <h3>Character Variants ({{ grouped_overrides|length }} characters)</h3>
-
-        {% if grouped_overrides %}
-            {% for character, variants in grouped_overrides.items()|sort %}
-            <div class="character-group">
-                <div class="character-group-header">
-                    <div style="display: flex; align-items: center;">
-                        <span class="character-badge">{{ character }}</span>
-                        <span class="character-group-title">
-                            Character: "{{ character }}"
-                            <span class="variant-count">({{ variants|length }} variant{{ 's' if variants|length > 1 else '' }})</span>
-                        </span>
-                    </div>
-                </div>
-
-                <div class="variants-grid">
-                    {% for variant in variants %}
-                    <div class="variant-card">
-                        <div class="variant-preview">
-                            <img src="{{ url_for('character_overrides.preview_character', override_id=variant.id) }}" alt="{{ character }}">
-                        </div>
-                        <div class="variant-info">
-                            ViewBox: {{ "%.0f" | format(variant.viewbox_width) }}x{{ "%.0f" | format(variant.viewbox_height) }}<br>
-                            Offset: {{ variant.baseline_offset }}
-                        </div>
-                        <form method="POST" action="{{ url_for('character_overrides.delete_character', override_id=variant.id) }}" style="display: inline;" onsubmit="return confirm('Delete this variant?');">
-                            <button type="submit" class="btn-danger">Delete</button>
-                        </form>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <p style="color: #525252;">No character variants uploaded yet. Use the upload form above to add characters.</p>
-        {% endif %}
     </div>
 </div>
 
-<script>
-function switchTab(tab) {
-    // Update tab buttons
-    document.querySelectorAll('.upload-tab').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    event.target.classList.add('active');
+{# Upload Section #}
+<div class="upload-section">
+    <h3>Upload Character Variants</h3>
 
-    // Update content
-    document.querySelectorAll('.upload-content').forEach(content => {
-        content.classList.remove('active');
-    });
-    document.getElementById(tab + '-upload').classList.add('active');
-}
-</script>
+    <div class="info-box">
+        <strong>SVG File Requirements:</strong>
+        <ul style="margin: 8px 0; padding-left: 20px;">
+            <li>Files must be valid SVG format</li>
+            <li>Must include viewBox or width/height attributes</li>
+            <li>Strokes should be converted to paths for consistency</li>
+            <li>Use single color (will be replaced during generation)</li>
+            <li>Recommended size: approximately 100-200px height for best results</li>
+        </ul>
+        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #0f62fe;">
+            <strong>Keyboard Shortcuts:</strong> Press <kbd>1</kbd> for Single Upload, <kbd>2</kbd> for Batch Upload, <kbd>Ctrl+U</kbd> to select files
+        </div>
+    </div>
+
+    <div class="upload-tabs">
+        <button class="upload-tab active" data-tab="single">Single Upload</button>
+        <button class="upload-tab" data-tab="batch">Batch Upload</button>
+    </div>
+
+    {# Single Upload Form #}
+    <div id="single-upload" class="upload-content active">
+        <form method="POST" action="{{ url_for('character_overrides.upload_character', collection_id=collection.id) }}" enctype="multipart/form-data">
+            <div class="form-inline">
+                <div class="form-group" style="max-width: 120px;">
+                    <label for="character">Character *</label>
+                    <input type="text" id="character" name="character" maxlength="1" required autocomplete="off">
+                    <div class="help-text">Single character</div>
+                </div>
+                <div class="form-group" style="max-width: 160px;">
+                    <label for="baseline_offset">Baseline Offset</label>
+                    <input type="number" id="baseline_offset" name="baseline_offset" value="0" step="0.1">
+                    <div class="help-text">Vertical adjustment</div>
+                </div>
+                <div class="form-group" style="flex: 2;">
+                    <label for="svg_file">SVG File *</label>
+                    <input type="file" id="svg_file" name="svg_file" accept=".svg" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Upload</button>
+            </div>
+        </form>
+    </div>
+
+    {# Batch Upload Form #}
+    <div id="batch-upload" class="upload-content">
+        <form method="POST" action="{{ url_for('character_overrides.upload_batch', collection_id=collection.id) }}" enctype="multipart/form-data">
+            <div class="form-inline">
+                <div class="form-group" style="max-width: 160px;">
+                    <label for="batch_baseline_offset">Baseline Offset</label>
+                    <input type="number" id="batch_baseline_offset" name="baseline_offset" value="0" step="0.1">
+                    <div class="help-text">Applied to all files</div>
+                </div>
+                <div class="form-group" style="flex: 2;">
+                    <label for="svg_files">SVG Files *</label>
+                    <input type="file" id="svg_files" name="svg_files" accept=".svg" multiple required>
+                    <div class="help-text">Character extracted from filename (e.g., 'a.svg', 'a_1.svg', 'a_2.svg')</div>
+                </div>
+                <button type="submit" class="btn btn-primary">Upload All</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# Character Variants Display #}
+<div class="characters-section">
+    <h3>Character Variants</h3>
+
+    {% if grouped_overrides %}
+        {% for character, variants in grouped_overrides.items()|sort %}
+        <div class="character-group">
+            <div class="character-group-header">
+                <div style="display: flex; align-items: center;">
+                    <span class="character-badge">{{ character }}</span>
+                    <div>
+                        <span class="character-group-title">
+                            Character: "{{ character }}"
+                        </span>
+                        <span class="variant-count">({{ variants|length }} variant{{ 's' if variants|length > 1 else '' }})</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="variants-grid">
+                {% for variant in variants %}
+                <div class="variant-card">
+                    <div class="variant-preview" title="Click to zoom">
+                        <img src="{{ url_for('character_overrides.preview_character', override_id=variant.id) }}"
+                             alt="Variant for '{{ character }}'"
+                             loading="lazy">
+                    </div>
+                    <div class="variant-info">
+                        <strong>ViewBox:</strong> {{ "%.0f" | format(variant.viewbox_width) }} × {{ "%.0f" | format(variant.viewbox_height) }}<br>
+                        <strong>Offset:</strong> {{ variant.baseline_offset }}
+                    </div>
+                    <form method="POST"
+                          action="{{ url_for('character_overrides.delete_character', override_id=variant.id) }}"
+                          style="display: inline;">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state__icon">📝</div>
+            <p class="empty-state__message">No character variants uploaded yet.</p>
+            <p style="color: #8d8d8d; font-size: 14px; margin-top: 8px;">
+                Use the upload form above to add characters to this collection.
+            </p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block admin_extra_js %}
+<script src="{{ url_for('static', filename='js/character_overrides.js') }}"></script>
+<style>
+    kbd {
+        display: inline-block;
+        padding: 2px 6px;
+        font-family: monospace;
+        font-size: 11px;
+        background-color: #f4f4f4;
+        border: 1px solid #c6c6c6;
+        border-radius: 3px;
+        box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+    }
+</style>
 {% endblock %}

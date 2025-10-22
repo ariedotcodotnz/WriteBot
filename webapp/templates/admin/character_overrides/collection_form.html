@@ -1,195 +1,108 @@
-{% extends "base.html" %}
+{% extends "admin/base.html" %}
+
+{% set active_nav = 'character_overrides' %}
+{% set narrow_layout = true %}
 
 {% block title %}{{ 'Create' if action == 'create' else 'Edit' }} Collection - Admin - WriteBot{% endblock %}
 
-{% block extra_css %}
-<style>
-    .admin-container {
-        max-width: 800px;
-        margin: 40px auto;
-        padding: 0 20px;
-    }
+{% block admin_title %}{{ 'Create New Collection' if action == 'create' else 'Edit Collection' }}{% endblock %}
 
-    .admin-header {
-        margin-bottom: 32px;
-    }
-
-    .admin-header h1 {
-        font-size: 32px;
-        color: #161616;
-    }
-
-    .form-section {
-        background: white;
-        padding: 32px;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    .form-section h2 {
-        font-size: 20px;
-        color: #161616;
-        margin-bottom: 24px;
-    }
-
-    .form-group {
-        margin-bottom: 24px;
-    }
-
-    .form-group label {
-        display: block;
-        font-size: 14px;
-        font-weight: 500;
-        color: #161616;
-        margin-bottom: 8px;
-    }
-
-    .form-group input[type="text"],
-    .form-group textarea {
-        width: 100%;
-        padding: 10px 12px;
-        border: 1px solid #e0e0e0;
-        border-radius: 4px;
-        font-size: 14px;
-        font-family: inherit;
-        transition: border-color 0.2s;
-    }
-
-    .form-group input[type="text"]:focus,
-    .form-group textarea:focus {
-        outline: none;
-        border-color: #0f62fe;
-    }
-
-    .form-group textarea {
-        min-height: 100px;
-        resize: vertical;
-    }
-
-    .form-group .help-text {
-        font-size: 12px;
-        color: #525252;
-        margin-top: 4px;
-    }
-
-    .checkbox-group {
-        display: flex;
-        align-items: center;
-        margin-bottom: 24px;
-    }
-
-    .checkbox-group input[type="checkbox"] {
-        width: 20px;
-        height: 20px;
-        margin-right: 8px;
-    }
-
-    .checkbox-group label {
-        font-size: 14px;
-        color: #161616;
-        margin: 0;
-    }
-
-    .form-actions {
-        display: flex;
-        gap: 12px;
-        margin-top: 32px;
-    }
-
-    .btn-primary {
-        padding: 10px 24px;
-        background-color: #0f62fe;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        font-size: 14px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-
-    .btn-primary:hover {
-        background-color: #0353e9;
-    }
-
-    .btn-secondary {
-        padding: 10px 24px;
-        background-color: #e0e0e0;
-        color: #161616;
-        border: none;
-        border-radius: 4px;
-        text-decoration: none;
-        font-size: 14px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-
-    .btn-secondary:hover {
-        background-color: #c6c6c6;
-    }
-
-    .alert {
-        padding: 12px 16px;
-        margin-bottom: 20px;
-        border-radius: 4px;
-        font-size: 14px;
-    }
-
-    .alert-error {
-        background-color: #fff1f1;
-        border: 1px solid #da1e28;
-        color: #da1e28;
-    }
-
-    .alert-success {
-        background-color: #defbe6;
-        border: 1px solid #24a148;
-        color: #24a148;
-    }
-</style>
+{% block admin_header_actions %}
+<a href="{{ url_for('character_overrides.list_collections') }}" class="btn btn-ghost">Back to Collections</a>
 {% endblock %}
 
-{% block content %}
-<div class="admin-container">
-    <div class="admin-header">
-        <h1>{{ 'Create New Collection' if action == 'create' else 'Edit Collection' }}</h1>
+{% block admin_content %}
+<div class="admin-section">
+    <div class="admin-section__header">
+        <div>
+            <h2 class="admin-section__title">Collection Details</h2>
+            <p class="admin-section__subtitle">
+                {% if action == 'create' %}
+                Create a new character override collection to store custom handwriting variants
+                {% else %}
+                Update the details and settings for this collection
+                {% endif %}
+            </p>
+        </div>
     </div>
 
-    <div class="form-section">
-        <h2>Collection Details</h2>
+    <form method="POST" data-validate>
+        <div class="form-group">
+            <label for="name">Collection Name *</label>
+            <input type="text"
+                   id="name"
+                   name="name"
+                   value="{{ collection.name if collection else '' }}"
+                   required
+                   autofocus>
+            <div class="help-text">A unique, descriptive name for this character override collection.</div>
+        </div>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description"
+                      name="description"
+                      rows="4">{{ collection.description if collection else '' }}</textarea>
+            <div class="help-text">Optional description to help identify the purpose and characteristics of this collection.</div>
+        </div>
 
-        <form method="POST">
-            <div class="form-group">
-                <label for="name">Collection Name *</label>
-                <input type="text" id="name" name="name" value="{{ collection.name if collection else '' }}" required>
-                <div class="help-text">A unique, descriptive name for this character override collection.</div>
+        <div class="form-check">
+            <input type="checkbox"
+                   id="is_active"
+                   name="is_active"
+                   {{ 'checked' if not collection or collection.is_active else '' }}>
+            <label for="is_active">Active (available for use in handwriting generation)</label>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                {% if action == 'create' %}
+                Create Collection
+                {% else %}
+                Update Collection
+                {% endif %}
+            </button>
+            <a href="{{ url_for('character_overrides.list_collections') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+{% if collection %}
+<div class="admin-section">
+    <div class="admin-section__header">
+        <div>
+            <h2 class="admin-section__title">Collection Statistics</h2>
+            <p class="admin-section__subtitle">Current status and usage information</p>
+        </div>
+    </div>
+
+    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+        <div class="stat-card">
+            <div class="stat-card__label">Unique Characters</div>
+            <div class="stat-card__value">{{ collection.get_unique_characters()|length }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card__label">Total Variants</div>
+            <div class="stat-card__value">{{ collection.get_character_count() }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card__label">Status</div>
+            <div class="stat-card__value" style="font-size: 18px; margin-top: 8px;">
+                {% if collection.is_active %}
+                <span class="badge badge-active">Active</span>
+                {% else %}
+                <span class="badge badge-inactive">Inactive</span>
+                {% endif %}
             </div>
+        </div>
+    </div>
 
-            <div class="form-group">
-                <label for="description">Description</label>
-                <textarea id="description" name="description">{{ collection.description if collection else '' }}</textarea>
-                <div class="help-text">Optional description to help identify the purpose of this collection.</div>
-            </div>
-
-            <div class="checkbox-group">
-                <input type="checkbox" id="is_active" name="is_active" {{ 'checked' if not collection or collection.is_active else '' }}>
-                <label for="is_active">Active (available for use in generation)</label>
-            </div>
-
-            <div class="form-actions">
-                <button type="submit" class="btn-primary">{{ 'Create Collection' if action == 'create' else 'Update Collection' }}</button>
-                <a href="{{ url_for('character_overrides.list_collections') }}" class="btn-secondary">Cancel</a>
-            </div>
-        </form>
+    <div style="margin-top: 24px; text-align: center;">
+        <a href="{{ url_for('character_overrides.view_collection', collection_id=collection.id) }}"
+           class="btn btn-primary">
+            View & Manage Characters
+        </a>
     </div>
 </div>
+{% endif %}
 {% endblock %}
