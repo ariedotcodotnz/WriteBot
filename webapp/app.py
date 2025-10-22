@@ -99,6 +99,17 @@ def health():
         "version": 1,
     })
 
+@app.route('/robots.txt')
+def robots():
+    """robots.txt endpoint."""
+    return send_from_directory(app.static_folder, 'robots.txt')
+
+@app.route('/.well-known/security.txt')
+@app.route('/security.txt')
+def security():
+    """security.txt endpoint."""
+    return send_from_directory(app.static_folder, 'security.txt')
+
 
 if __name__ == "__main__":
     # Single-threaded to avoid TF session concurrency issues

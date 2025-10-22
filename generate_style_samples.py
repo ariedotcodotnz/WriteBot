@@ -56,13 +56,13 @@ def generate_style_samples():
                 styles=style_id,  # The style to generate
                 stroke_colors="black",
                 stroke_widths=2,
-                page_size=[150, 40],  # Small page size for compact preview (mm)
+                page_size=[50, 10],  # Small page size for compact preview (mm)
                 units="mm",
-                margins=[2, 2, 2, 2],  # Minimal margins
+                margins=[1, 1, 1, 1],  # Minimal margins
                 line_height=None,  # Auto line height
                 align="left",
                 background="transparent",  # Transparent background for dropdown
-                global_scale=1.0,
+                global_scale=6.0,
                 orientation="landscape",
                 legibility="normal",
                 x_stretch=1.0,
