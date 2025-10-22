@@ -344,49 +344,216 @@ class Hand(object):
         all_lines = []
         all_line_texts = []
 
-        for input_line in input_lines:
-            # Handle blank lines
-            if not input_line.strip():
-                all_lines.append(np.empty((0, 3)))
-                all_line_texts.append('')
-                continue
+        # If we have overrides, we need to handle text splitting differently
+        if overrides_dict:
+            from handwriting_synthesis.hand.character_override_utils import split_text_with_overrides
 
-            # Split line into chunks with adaptive sizing
-            chunks = split_text_into_chunks(
-                input_line,
-                words_per_chunk=words_per_chunk,
-                target_chars_per_chunk=target_chars_per_chunk,
-                min_words=min_words_per_chunk,
-                max_words=max_words_per_chunk,
-                adaptive_chunking=adaptive_chunking,
-                adaptive_strategy=adaptive_strategy
-            )
+            # Track segments for each line (will be used later for line_segments)
+            all_line_segment_data = []
 
-            if not chunks:
-                all_lines.append(np.empty((0, 3)))
-                all_line_texts.append('')
-                continue
+            for input_line in input_lines:
+                # Handle blank lines
+                if not input_line.strip():
+                    all_lines.append(np.empty((0, 3)))
+                    all_line_texts.append('')
+                    all_line_segment_data.append([])
+                    continue
 
-            # Expand valid character set with overrides
-            valid_char_set = set(drawing.alphabet)
-            if overrides_dict:
-                valid_char_set = valid_char_set.union(overrides_dict.keys())
+                # Split line into override and non-override chunks
+                text_chunks = split_text_with_overrides(input_line, overrides_dict)
 
-            # Validate characters
-            for chunk_num, chunk in enumerate(chunks):
-                for char in chunk:
-                    if char not in valid_char_set:
-                        raise ValueError(
-                            f"Invalid character {char} detected in chunk {chunk_num}. "
-                            f"Valid character set is {valid_char_set}"
+                # Process each chunk
+                line_segments_data = []
+                texts_to_generate = []
+                chunk_metadata = []
+
+                for chunk_text, is_override in text_chunks:
+                    if is_override:
+                        # Mark as override - will be handled during drawing
+                        line_segments_data.append({
+                            'type': 'override',
+                            'text': chunk_text,
+                            'is_override': True
+                        })
+                    else:
+                        # Non-override text - chunk it and prepare for generation
+                        sub_chunks = split_text_into_chunks(
+                            chunk_text,
+                            words_per_chunk=words_per_chunk,
+                            target_chars_per_chunk=target_chars_per_chunk,
+                            min_words=min_words_per_chunk,
+                            max_words=max_words_per_chunk,
+                            adaptive_chunking=adaptive_chunking,
+                            adaptive_strategy=adaptive_strategy
                         )
 
-            # Generate strokes for all chunks
-            chunk_strokes = self._sample(
-                chunks,
-                biases=[biases] * len(chunks) if biases is not None else None,
-                styles=[styles] * len(chunks) if styles is not None else None
-            )
+                        for sub_chunk in sub_chunks:
+                            gen_idx = len(texts_to_generate)
+                            texts_to_generate.append(sub_chunk)
+                            chunk_metadata.append({
+                                'gen_idx': gen_idx,
+                                'text': sub_chunk
+                            })
+                            line_segments_data.append({
+                                'type': 'generated',
+                                'text': sub_chunk,
+                                'gen_idx': gen_idx,
+                                'is_override': False
+                            })
+
+                # Validate characters in texts to generate
+                valid_char_set = set(drawing.alphabet)
+                for chunk_num, chunk in enumerate(texts_to_generate):
+                    for char in chunk:
+                        if char not in valid_char_set:
+                            raise ValueError(
+                                f"Invalid character {char} detected in chunk {chunk_num}. "
+                                f"Valid character set is {valid_char_set}"
+                            )
+
+                # Generate strokes for non-override chunks only
+                if texts_to_generate:
+                    chunk_strokes = self._sample(
+                        texts_to_generate,
+                        biases=[biases] * len(texts_to_generate) if biases is not None else None,
+                        styles=[styles] * len(texts_to_generate) if styles is not None else None
+                    )
+
+                    # Map generated strokes back to segments
+                    for segment in line_segments_data:
+                        if segment['type'] == 'generated':
+                            segment['strokes'] = chunk_strokes[segment['gen_idx']]
+                else:
+                    chunk_strokes = []
+
+                # Now stitch the generated chunks together, handling overrides
+                current_line_stroke = np.empty((0, 3))
+                current_line_text = []
+                current_line_width = 0.0
+                current_line_segment_list = []
+
+                for segment in line_segments_data:
+                    if segment['type'] == 'override':
+                        # Estimate override width for layout
+                        from handwriting_synthesis.hand.character_override_utils import get_random_override, estimate_override_width
+                        override_data = get_random_override(overrides_dict, segment['text'])
+                        if override_data:
+                            # Estimate width (using typical line height of 60px)
+                            override_width = estimate_override_width(override_data, target_height=60, x_stretch=1.0)
+                        else:
+                            override_width = 20  # fallback width
+
+                        # Check if override fits on current line
+                        potential_width = current_line_width
+                        if current_line_width > 0:
+                            potential_width += override_width
+                        else:
+                            potential_width = override_width
+
+                        if potential_width <= max_line_width or current_line_width == 0:
+                            # Fits on current line
+                            current_line_text.append(segment['text'])
+                            current_line_segment_list.append(segment)
+                            current_line_width = potential_width
+                        else:
+                            # Start new line
+                            if len(current_line_stroke) > 0 or len(current_line_text) > 0:
+                                all_lines.append(current_line_stroke)
+                                all_line_texts.append(''.join(current_line_text))
+                                all_line_segment_data.append(current_line_segment_list)
+
+                            current_line_stroke = np.empty((0, 3))
+                            current_line_text = [segment['text']]
+                            current_line_segment_list = [segment]
+                            current_line_width = override_width
+                    else:
+                        # Generated chunk
+                        chunk_stroke = segment['strokes']
+                        chunk_width = get_stroke_width(chunk_stroke)
+
+                        # Check if chunk fits on current line
+                        potential_width = current_line_width
+                        if current_line_width > 0:
+                            potential_width += chunk_spacing + chunk_width
+                        else:
+                            potential_width = chunk_width
+
+                        if potential_width <= max_line_width or current_line_width == 0:
+                            # Chunk fits on current line
+                            if current_line_width > 0:
+                                current_line_stroke = stitch_strokes(
+                                    current_line_stroke,
+                                    chunk_stroke,
+                                    chunk_spacing,
+                                    rotate_to_match=rotate_chunks
+                                )
+                            else:
+                                current_line_stroke = chunk_stroke
+                            current_line_text.append(segment['text'])
+                            current_line_segment_list.append(segment)
+                            current_line_width = potential_width
+                        else:
+                            # Start new line (width exceeded)
+                            if len(current_line_stroke) > 0 or len(current_line_text) > 0:
+                                all_lines.append(current_line_stroke)
+                                all_line_texts.append(''.join(current_line_text))
+                                all_line_segment_data.append(current_line_segment_list)
+
+                            current_line_stroke = chunk_stroke
+                            current_line_text = [segment['text']]
+                            current_line_segment_list = [segment]
+                            current_line_width = chunk_width
+
+                # Add last line from this input line
+                if len(current_line_stroke) > 0 or len(current_line_text) > 0:
+                    all_lines.append(current_line_stroke)
+                    all_line_texts.append(''.join(current_line_text))
+                    all_line_segment_data.append(current_line_segment_list)
+        else:
+            # No overrides - use original logic
+            all_line_segment_data = None
+
+            for input_line in input_lines:
+                # Handle blank lines
+                if not input_line.strip():
+                    all_lines.append(np.empty((0, 3)))
+                    all_line_texts.append('')
+                    continue
+
+                # Split line into chunks with adaptive sizing
+                chunks = split_text_into_chunks(
+                    input_line,
+                    words_per_chunk=words_per_chunk,
+                    target_chars_per_chunk=target_chars_per_chunk,
+                    min_words=min_words_per_chunk,
+                    max_words=max_words_per_chunk,
+                    adaptive_chunking=adaptive_chunking,
+                    adaptive_strategy=adaptive_strategy
+                )
+
+                if not chunks:
+                    all_lines.append(np.empty((0, 3)))
+                    all_line_texts.append('')
+                    continue
+
+                # Expand valid character set with overrides
+                valid_char_set = set(drawing.alphabet)
+
+                # Validate characters
+                for chunk_num, chunk in enumerate(chunks):
+                    for char in chunk:
+                        if char not in valid_char_set:
+                            raise ValueError(
+                                f"Invalid character {char} detected in chunk {chunk_num}. "
+                                f"Valid character set is {valid_char_set}"
+                            )
+
+                # Generate strokes for all chunks
+                chunk_strokes = self._sample(
+                    chunks,
+                    biases=[biases] * len(chunks) if biases is not None else None,
+                    styles=[styles] * len(chunks) if styles is not None else None
+                )
 
             # Stitch chunks into lines based on actual widths
             current_line_stroke = np.empty((0, 3))
@@ -454,42 +621,17 @@ class Hand(object):
         stroke_widths = _normalize_seq(stroke_widths, num_lines, float, 'stroke_widths')
 
         # Convert to line_segments format with override handling
-        if overrides_dict:
-            from handwriting_synthesis.hand.character_override_utils import split_text_with_overrides
-
+        if overrides_dict and all_line_segment_data is not None:
+            # Use pre-computed segment data (overrides were handled during generation)
             line_segments = []
-            for line_idx, (line_strokes, line_text) in enumerate(zip(lines, line_texts)):
-                if not line_text.strip():
-                    # Empty line
-                    line_segments.append([{
-                        'type': 'generated',
-                        'text': line_text,
-                        'strokes': line_strokes,
-                        'line_idx': line_idx
-                    }])
-                    continue
-
-                chunks = split_text_with_overrides(line_text, overrides_dict)
-                if len(chunks) == 1 and not chunks[0][1]:
-                    # No overrides in this line, keep it simple
-                    line_segments.append([{
-                        'type': 'generated',
-                        'text': line_text,
-                        'strokes': line_strokes,
-                        'line_idx': line_idx
-                    }])
-                else:
-                    # Line contains overrides - need to split the strokes
-                    # For write_chunked, this is complex as the strokes are already stitched
-                    # For now, we'll use a simpler approach: regenerate this line with override handling
-                    # TODO: This is a limitation - write_chunked with overrides on already-stitched lines
-                    # For now, treat the entire line as generated and note the limitation
-                    line_segments.append([{
-                        'type': 'generated',
-                        'text': line_text,
-                        'strokes': line_strokes,
-                        'line_idx': line_idx
-                    }])
+            for line_idx, segment_list in enumerate(all_line_segment_data):
+                # Add line_idx to each segment and prepare for drawing
+                line_segment_list = []
+                for segment in segment_list:
+                    segment_copy = segment.copy()
+                    segment_copy['line_idx'] = line_idx
+                    line_segment_list.append(segment_copy)
+                line_segments.append(line_segment_list)
         else:
             # No overrides, simple conversion
             line_segments = []
