@@ -4,7 +4,7 @@ import os
 import sys
 import re
 from typing import List, Dict, Any
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, send_file, Response
 from flask_login import login_required
 import numpy as np
 
@@ -97,3 +97,42 @@ def list_styles():
 
     except Exception as e:
         return jsonify({"styles": [], "error": str(e)}), 200
+
+
+@style_bp.route("/api/style-preview/<int:style_id>", methods=["GET"])
+@login_required
+def get_style_preview(style_id: int):
+    """
+    Serve SVG preview image for a specific style.
+
+    Args:
+        style_id: The style ID to get preview for
+
+    Returns:
+        SVG file or 404 if not found
+    """
+    try:
+        # Look for SVG preview file
+        svg_path = os.path.join(STYLE_DIR, f"style-{style_id}.svg")
+
+        if os.path.isfile(svg_path):
+            return send_file(svg_path, mimetype='image/svg+xml')
+
+        # If no preview exists, return a placeholder SVG
+        placeholder_svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40">
+  <rect width="120" height="40" fill="#f4f4f4"/>
+  <text x="60" y="22" font-family="Arial, sans-serif" font-size="12" fill="#525252" text-anchor="middle">
+    Style {style_id}
+  </text>
+</svg>'''
+        return Response(placeholder_svg, mimetype='image/svg+xml')
+
+    except Exception as e:
+        # Return error placeholder
+        error_svg = '''<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40">
+  <rect width="120" height="40" fill="#ffefef"/>
+  <text x="60" y="22" font-family="Arial, sans-serif" font-size="10" fill="#da1e28" text-anchor="middle">
+    Error loading preview
+  </text>
+</svg>'''
+        return Response(error_svg, mimetype='image/svg+xml')

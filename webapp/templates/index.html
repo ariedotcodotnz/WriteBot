@@ -44,18 +44,31 @@ Use \\ on its own line to insert blank space."></textarea>
             <div class="bx--form">
               <div class="form-grid">
                 <div class="form-group">
-                  <label for="styleSelect" class="bx--label">Base Style</label>
-                  <div class="bx--select">
-                    <select id="styleSelect" class="bx--select-input">
-                      <option value="">Loading styles...</option>
-                    </select>
-                    <svg class="bx--select__arrow" width="10" height="6" viewBox="0 0 10 6">
-                      <path d="M5 6L0 0h10z" />
-                    </svg>
+                  <label for="styleSelect" class="bx--label label-with-tooltip">
+                    Base Style
+                    <span class="tooltip-icon">
+                      <span class="tooltip-text">Choose a handwriting style. Each style represents a different handwriting character.</span>
+                    </span>
+                  </label>
+                  <div id="styleSelectWrapper" class="style-dropdown-wrapper">
+                    <div class="bx--select style-select-trigger">
+                      <select id="styleSelect" class="bx--select-input">
+                        <option value="">Loading styles...</option>
+                      </select>
+                      <svg class="bx--select__arrow" width="10" height="6" viewBox="0 0 10 6">
+                        <path d="M5 6L0 0h10z" />
+                      </svg>
+                    </div>
+                    <div id="styleDropdown" class="style-dropdown-custom"></div>
                   </div>
                 </div>
                 <div class="form-group">
-                  <label for="legibility" class="bx--label">Legibility</label>
+                  <label for="legibility" class="bx--label label-with-tooltip">
+                    Legibility
+                    <span class="tooltip-icon">
+                      <span class="tooltip-text">Controls how clear and readable the handwriting is. Higher = more legible but less natural.</span>
+                    </span>
+                  </label>
                   <div class="bx--select">
                     <select id="legibility" class="bx--select-input">
                       <option value="natural">Natural</option>
@@ -76,27 +89,57 @@ Use \\ on its own line to insert blank space."></textarea>
                 </summary>
                 <div class="form-grid mt-2">
                   <div class="form-group">
-                    <label for="biases" class="bx--label">Biases</label>
+                    <label for="biases" class="bx--label label-with-tooltip">
+                      Biases
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Controls writing style variance. Lower values (0.5-0.7) = more random/natural, higher (0.8-1.0) = more consistent. Separate values with | for each line.</span>
+                      </span>
+                    </label>
                     <input id="biases" class="bx--text-input" type="text" placeholder="0.75|0.75|0.6" />
                   </div>
                   <div class="form-group">
-                    <label for="styles" class="bx--label">Per-line Styles</label>
+                    <label for="styles" class="bx--label label-with-tooltip">
+                      Per-line Styles
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Use different handwriting styles for each line. Separate style numbers with | (e.g., 9|9|12).</span>
+                      </span>
+                    </label>
                     <input id="styles" class="bx--text-input" type="text" placeholder="9|9|12" />
                   </div>
                   <div class="form-group">
-                    <label for="strokeColors" class="bx--label">Stroke Colors</label>
+                    <label for="strokeColors" class="bx--label label-with-tooltip">
+                      Stroke Colors
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Set ink color for each line. Use color names (black, blue) or hex codes (#333). Separate with |.</span>
+                      </span>
+                    </label>
                     <input id="strokeColors" class="bx--text-input" type="text" placeholder="black|#333|red" />
                   </div>
                   <div class="form-group">
-                    <label for="strokeWidths" class="bx--label">Stroke Widths</label>
+                    <label for="strokeWidths" class="bx--label label-with-tooltip">
+                      Stroke Widths
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Controls pen thickness for each line. Default is 2. Separate with | for different widths per line.</span>
+                      </span>
+                    </label>
                     <input id="strokeWidths" class="bx--text-input" type="text" placeholder="2|2|2" />
                   </div>
                   <div class="form-group">
-                    <label for="xStretch" class="bx--label">Horizontal Stretch</label>
+                    <label for="xStretch" class="bx--label label-with-tooltip">
+                      Horizontal Stretch
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Stretches handwriting horizontally. 1.0 = normal, >1.0 = wider, <1.0 = narrower.</span>
+                      </span>
+                    </label>
                     <input id="xStretch" class="bx--text-input" type="number" step="0.05" placeholder="1.0" />
                   </div>
                   <div class="form-group">
-                    <label for="denoise" class="bx--label">Denoise</label>
+                    <label for="denoise" class="bx--label label-with-tooltip">
+                      Denoise
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Smooths out handwriting strokes for cleaner lines. Recommended to keep enabled.</span>
+                      </span>
+                    </label>
                     <div class="bx--select">
                       <select id="denoise" class="bx--select-input">
                         <option value="true" selected>Enabled</option>
@@ -190,7 +233,12 @@ Use \\ on its own line to insert blank space."></textarea>
               <!-- Layout Settings -->
               <div class="form-grid mt-3">
                 <div class="form-group">
-                  <label class="bx--label">Margins</label>
+                  <label class="bx--label label-with-tooltip">
+                    Margins
+                    <span class="tooltip-icon">
+                      <span class="tooltip-text">Set page margins (Top, Right, Bottom, Left) in the selected units.</span>
+                    </span>
+                  </label>
                   <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;">
                     <input id="marginTop" class="bx--text-input" type="number" placeholder="Top" title="Top margin" />
                     <input id="marginRight" class="bx--text-input" type="number" placeholder="Right" title="Right margin" />
@@ -199,19 +247,39 @@ Use \\ on its own line to insert blank space."></textarea>
                   </div>
                 </div>
                 <div class="form-group">
-                  <label for="lineHeight" class="bx--label">Line Height</label>
+                  <label for="lineHeight" class="bx--label label-with-tooltip">
+                    Line Height
+                    <span class="tooltip-icon">
+                      <span class="tooltip-text">Vertical spacing between lines of text. Leave empty for automatic spacing.</span>
+                    </span>
+                  </label>
                   <input id="lineHeight" class="bx--text-input" type="number" placeholder="Auto" title="Spacing between regular lines" />
                 </div>
                 <div class="form-group">
-                  <label for="emptyLineSpacing" class="bx--label">Empty Line Spacing</label>
+                  <label for="emptyLineSpacing" class="bx--label label-with-tooltip">
+                    Empty Line Spacing
+                    <span class="tooltip-icon">
+                      <span class="tooltip-text">Spacing when you use \\ to create blank lines. Leave empty for automatic.</span>
+                    </span>
+                  </label>
                   <input id="emptyLineSpacing" class="bx--text-input" type="number" placeholder="Auto" title="Spacing for empty/blank lines" />
                 </div>
                 <div class="form-group">
-                  <label for="globalScale" class="bx--label">Global Scale</label>
+                  <label for="globalScale" class="bx--label label-with-tooltip">
+                    Global Scale
+                    <span class="tooltip-icon">
+                      <span class="tooltip-text">Scales the entire output. 1.0 = normal size, >1.0 = larger, <1.0 = smaller.</span>
+                    </span>
+                  </label>
                   <input id="globalScale" class="bx--text-input" type="number" step="0.1" placeholder="1.0" />
                 </div>
                 <div class="form-group">
-                  <label for="background" class="bx--label">Background</label>
+                  <label for="background" class="bx--label label-with-tooltip">
+                    Background
+                    <span class="tooltip-icon">
+                      <span class="tooltip-text">Background color for the page. Use color names or hex codes. Use 'transparent' for no background.</span>
+                    </span>
+                  </label>
                   <input id="background" class="bx--text-input" type="text" placeholder="white" />
                 </div>
               </div>

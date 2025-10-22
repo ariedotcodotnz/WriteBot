@@ -82,20 +82,22 @@ function toastSuccess(msg) {
   showNotification('success', 'Success', msg);
 }
 
-// Style Loading
+// Style Loading with Custom Dropdown
 async function loadStyles() {
   const sel = document.getElementById('styleSelect');
+  const customDropdown = document.getElementById('styleDropdown');
   sel.innerHTML = '<option>Loading styles...</option>';
-  
+
   try {
     const res = await fetch('/api/styles');
     const data = await res.json();
     STYLE_LIST = (data && data.styles) || [];
-    
+
     if (!STYLE_LIST.length) {
       STYLE_LIST = Array.from({ length: 13 }, (_, i) => ({ id: i, label: `Style ${i}` }));
     }
-    
+
+    // Populate standard select (fallback)
     sel.innerHTML = '';
     STYLE_LIST.forEach(style => {
       const opt = document.createElement('option');
@@ -103,12 +105,49 @@ async function loadStyles() {
       opt.textContent = `Style ${style.id} - ${style.label || 'Custom'}`;
       sel.appendChild(opt);
     });
-    
+
+    // Populate custom dropdown with SVG previews
+    customDropdown.innerHTML = '';
+    STYLE_LIST.forEach(style => {
+      const optionDiv = document.createElement('div');
+      optionDiv.className = 'style-option';
+      optionDiv.dataset.styleId = String(style.id);
+
+      // Create SVG preview element
+      const preview = document.createElement('img');
+      preview.className = 'style-preview-img';
+      preview.src = `/api/style-preview/${style.id}`;
+      preview.alt = `Style ${style.id} preview`;
+      preview.onerror = function() {
+        // Fallback if SVG doesn't load
+        this.style.display = 'none';
+      };
+
+      // Create label
+      const label = document.createElement('span');
+      label.className = 'style-label';
+      label.textContent = `Style ${style.id}${style.label ? ' - ' + style.label : ''}`;
+
+      optionDiv.appendChild(preview);
+      optionDiv.appendChild(label);
+
+      // Click handler
+      optionDiv.addEventListener('click', () => {
+        selectStyle(style.id);
+        closeStyleDropdown();
+      });
+
+      customDropdown.appendChild(optionDiv);
+    });
+
     SELECTED_STYLE_ID = STYLE_LIST[0].id;
     sel.value = String(SELECTED_STYLE_ID);
-    
+    updateSelectedStyle(SELECTED_STYLE_ID);
+
+    // Standard select change handler (fallback)
     sel.addEventListener('change', () => {
       SELECTED_STYLE_ID = sel.value;
+      updateSelectedStyle(SELECTED_STYLE_ID);
     });
   } catch (e) {
     console.error('Failed to load styles:', e);
@@ -121,6 +160,51 @@ async function loadStyles() {
     }
     SELECTED_STYLE_ID = '9';
     sel.value = '9';
+  }
+}
+
+// Custom Dropdown Functions
+function selectStyle(styleId) {
+  SELECTED_STYLE_ID = styleId;
+  document.getElementById('styleSelect').value = String(styleId);
+  updateSelectedStyle(styleId);
+}
+
+function updateSelectedStyle(styleId) {
+  const options = document.querySelectorAll('.style-option');
+  options.forEach(opt => {
+    if (opt.dataset.styleId === String(styleId)) {
+      opt.classList.add('selected');
+    } else {
+      opt.classList.remove('selected');
+    }
+  });
+}
+
+function toggleStyleDropdown() {
+  const dropdown = document.getElementById('styleDropdown');
+  dropdown.classList.toggle('active');
+
+  // Close on outside click
+  if (dropdown.classList.contains('active')) {
+    setTimeout(() => {
+      document.addEventListener('click', outsideClickHandler);
+    }, 0);
+  } else {
+    document.removeEventListener('click', outsideClickHandler);
+  }
+}
+
+function closeStyleDropdown() {
+  const dropdown = document.getElementById('styleDropdown');
+  dropdown.classList.remove('active');
+  document.removeEventListener('click', outsideClickHandler);
+}
+
+function outsideClickHandler(event) {
+  const wrapper = document.getElementById('styleSelectWrapper');
+  if (!wrapper.contains(event.target)) {
+    closeStyleDropdown();
   }
 }
 
@@ -556,6 +640,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('pageSize').addEventListener('change', syncCustomSizeVisibility);
 
+    // Setup custom style dropdown trigger
+    const selectWrapper = document.querySelector('.style-select-trigger');
+    if (selectWrapper) {
+        selectWrapper.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleStyleDropdown();
+        });
+    }
+
     // Toggle manual size scale input based on auto size checkbox
     const autoSizeCheckbox = document.getElementById('autoSize');
     const manualSizeScaleInput = document.getElementById('manualSizeScale');
@@ -567,6 +660,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeLightbox();
+            closeStyleDropdown();
         }
         if (e.ctrlKey || e.metaKey) {
             if (e.key === 'Enter') {
