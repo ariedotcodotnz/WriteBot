@@ -49,7 +49,7 @@ login_manager.login_message = 'Please log in to access this page.'
 @login_manager.user_loader
 def load_user(user_id):
     """Load user by ID for Flask-Login."""
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 # Enable compression if available
 if Compress is not None:
