@@ -6,10 +6,9 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Generation &mdash; WriteBot API Documentation</title>
+  <title>Generation &mdash; WriteBot 1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=63af810f" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -45,35 +44,9 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../introduction.html#what-is-writebot">What is WriteBot?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../introduction.html#features">Features</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#handwriting-generation">Handwriting Generation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#user-management">User Management</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#admin-dashboard">Admin Dashboard</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../introduction.html#architecture">Architecture</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#technology-stack">Technology Stack</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#project-structure">Project Structure</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../introduction.html#getting-started">Getting Started</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#installation">Installation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#configuration">Configuration</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#api-authentication">API Authentication</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="authentication.html">Authentication</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="authentication.html#login">Login</a></li>
-<li class="toctree-l3"><a class="reference internal" href="authentication.html#logout">Logout</a></li>
-<li class="toctree-l3"><a class="reference internal" href="authentication.html#session-management">Session Management</a></li>
-<li class="toctree-l3"><a class="reference internal" href="authentication.html#checking-authentication-status">Checking Authentication Status</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="authentication.html">Authentication</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Generation</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#generate-svg">Generate SVG</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#generate-legacy">Generate (Legacy)</a></li>
@@ -88,107 +61,15 @@
 <li class="toctree-l3"><a class="reference internal" href="#error-handling">Error Handling</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="batch.html">Batch Generation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="batch.html#batch-generate">Batch Generate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="batch.html#download-template">Download Template</a></li>
-<li class="toctree-l3"><a class="reference internal" href="batch.html#streaming-batch-generation">Streaming Batch Generation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="batch.html#download-batch-results">Download Batch Results</a></li>
-<li class="toctree-l3"><a class="reference internal" href="batch.html#get-individual-batch-file">Get Individual Batch File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="batch.html">Batch Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="styles.html">Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="admin.html">Admin API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="character_overrides.html">Character Overrides</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#api-overview">API Overview</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="styles.html">Styles</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="styles.html#list-styles">List Styles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="styles.html#style-preview">Style Preview</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="admin.html">Admin API</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="admin.html#dashboard">Dashboard</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#admin-dashboard">Admin Dashboard</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="admin.html#users">Users</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#list-users">List Users</a></li>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#create-user">Create User</a></li>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#view-user">View User</a></li>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#update-user">Update User</a></li>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#delete-user">Delete User</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="admin.html#statistics">Statistics</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#view-statistics">View Statistics</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="admin.html#activities">Activities</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#view-activities">View Activities</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="character_overrides.html">Character Overrides</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="character_overrides.html#collections">Collections</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#list-collections">List Collections</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#create-collection">Create Collection</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#view-collection">View Collection</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#edit-collection">Edit Collection</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#delete-collection">Delete Collection</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#upload-character">Upload Character</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#batch-upload">Batch Upload</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="character_overrides.html#character-management">Character Management</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#delete-character-variant">Delete Character Variant</a></li>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#preview-character">Preview Character</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="character_overrides.html#api-endpoint">API Endpoint</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="character_overrides.html#get-collections-api">Get Collections (API)</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="character_overrides.html#usage-in-generation">Usage in Generation</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="index.html#api-overview">API Overview</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="index.html#base-url">Base URL</a></li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#authentication">Authentication</a></li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#response-format">Response Format</a></li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#http-status-codes">HTTP Status Codes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#rate-limiting">Rate Limiting</a></li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#common-headers">Common Headers</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../models.html">Database Models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#user-model">User Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#user-activity-model">User Activity Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#usage-statistics-model">Usage Statistics Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#character-override-collection-model">Character Override Collection Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#character-override-model">Character Override Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#database-schema">Database Schema</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../models.html#entity-relationship-diagram">Entity Relationship Diagram</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../models.html#indexes">Indexes</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#migrations">Migrations</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../utilities.html">Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../utilities.html#module-webapp.utils.auth_utils">Authentication Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utilities.html#module-webapp.utils.text_utils">Text Processing Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utilities.html#module-webapp.utils.page_utils">Page Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utilities.html#module-handwriting_synthesis.hand.character_override_utils">Character Override Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utilities.html#example-usage">Example Usage</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../utilities.html#activity-logging">Activity Logging</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../utilities.html#generation-tracking">Generation Tracking</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../utilities.html#custom-decorators">Custom Decorators</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../utilities.html#admin-required">Admin Required</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../utilities.html#rate-limiting">Rate Limiting</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../models.html">Database Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utilities.html">Utilities</a></li>
 </ul>
 
         </div>
@@ -221,12 +102,155 @@
 <p>Generate handwritten text from input strings. The API supports both single and batch generation.</p>
 <section id="generate-svg">
 <h2>Generate SVG<a class="headerlink" href="#generate-svg" title="Link to this heading"></a></h2>
+<dl class="http post">
+<dt class="sig sig-object http" id="post--api-v1-generate-svg">
+<span class="sig-name descname"><span class="pre">POST</span> </span><span class="sig-name descname"><span class="pre">/api/v1/generate/svg</span></span><a class="headerlink" href="#post--api-v1-generate-svg" title="Link to this definition"></a></dt>
+<dd><p>Generate handwritten text and return as SVG.</p>
+<p><strong>Example Request:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="nf">POST</span> <span class="nn">/api/v1/generate/svg</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Host</span><span class="o">:</span> <span class="l">localhost:5000</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json</span>
+<span class="na">Cookie</span><span class="o">:</span> <span class="l">session=...</span>
+
+<span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;text&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Hello, World!&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;style_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;bias&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.75</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;color&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#000000&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;line_height&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">60</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;view_width&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">800</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;view_height&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">600</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;character_override_collection_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>JSON Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">text</span></code> (string, required) - The text to generate</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">style_id</span></code> (integer, optional) - Handwriting style ID (default: 1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bias</span></code> (float, optional) - Bias value 0.0-1.0 (default: 0.75)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">color</span></code> (string, optional) - Stroke color hex code (default: “#000000”)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">line_height</span></code> (integer, optional) - Line height in pixels (default: 60)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">view_width</span></code> (integer, optional) - SVG viewport width (default: 800)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">view_height</span></code> (integer, optional) - SVG viewport height (default: 600)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">character_override_collection_id</span></code> (integer, optional) - Character override collection ID</p></li>
+</ul>
+<p><strong>Example Response:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">200</span> <span class="ne">OK</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json</span>
+
+<span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;svg&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;svg xmlns=\&quot;http://www.w3.org/2000/svg\&quot;...&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;metadata&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;processing_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.234</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;num_lines&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;num_characters&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">13</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;style_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;bias&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.75</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Status Codes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> - Generation successful</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">400</span> <span class="pre">Bad</span> <span class="pre">Request</span></code> - Invalid parameters</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">500</span> <span class="pre">Internal</span> <span class="pre">Server</span> <span class="pre">Error</span></code> - Generation failed</p></li>
+</ul>
+</dd></dl>
+
 </section>
 <section id="generate-legacy">
 <h2>Generate (Legacy)<a class="headerlink" href="#generate-legacy" title="Link to this heading"></a></h2>
+<dl class="http post">
+<dt class="sig sig-object http" id="post--api-generate">
+<span class="sig-name descname"><span class="pre">POST</span> </span><span class="sig-name descname"><span class="pre">/api/generate</span></span><a class="headerlink" href="#post--api-generate" title="Link to this definition"></a></dt>
+<dd><p>Legacy generation endpoint. Returns SVG content directly.</p>
+<p><strong>Example Request:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="nf">POST</span> <span class="nn">/api/generate</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Host</span><span class="o">:</span> <span class="l">localhost:5000</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json</span>
+<span class="na">Cookie</span><span class="o">:</span> <span class="l">session=...</span>
+
+<span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;text&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;WriteBot&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;style_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;bias&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.8</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>JSON Parameters:</strong></p>
+<p>Same as <code class="docutils literal notranslate"><span class="pre">/api/v1/generate/svg</span></code></p>
+<p><strong>Example Response:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">200</span> <span class="ne">OK</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">image/svg+xml</span>
+
+<span class="nt">&lt;svg</span><span class="w"> </span><span class="na">xmlns=</span><span class="s">&quot;http://www.w3.org/2000/svg&quot;</span><span class="w"> </span><span class="na">viewBox=</span><span class="s">&quot;0 0 800 200&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;path</span><span class="w"> </span><span class="na">d=</span><span class="s">&quot;M 10,50 L 20,55 ...&quot;</span><span class="w"> </span><span class="na">stroke=</span><span class="s">&quot;#000&quot;</span><span class="w"> </span><span class="na">fill=</span><span class="s">&quot;none&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/svg&gt;</span>
+</pre></div>
+</div>
+<p><strong>Status Codes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> - Generation successful</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">400</span> <span class="pre">Bad</span> <span class="pre">Request</span></code> - Invalid parameters</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+</ul>
+</dd></dl>
+
 </section>
 <section id="generate-with-metadata">
 <h2>Generate with Metadata<a class="headerlink" href="#generate-with-metadata" title="Link to this heading"></a></h2>
+<dl class="http post">
+<dt class="sig sig-object http" id="post--api-v1-generate">
+<span class="sig-name descname"><span class="pre">POST</span> </span><span class="sig-name descname"><span class="pre">/api/v1/generate</span></span><a class="headerlink" href="#post--api-v1-generate" title="Link to this definition"></a></dt>
+<dd><p>Generate handwritten text with detailed metadata.</p>
+<p><strong>Example Request:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="nf">POST</span> <span class="nn">/api/v1/generate</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Host</span><span class="o">:</span> <span class="l">localhost:5000</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json</span>
+<span class="na">Cookie</span><span class="o">:</span> <span class="l">session=...</span>
+
+<span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;text&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Handwriting synthesis&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;style_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>JSON Parameters:</strong></p>
+<p>Same as <code class="docutils literal notranslate"><span class="pre">/api/v1/generate/svg</span></code></p>
+<p><strong>Example Response:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">200</span> <span class="ne">OK</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json</span>
+
+<span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;success&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;svg&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;svg...&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;metadata&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;text_length&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">21</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;num_strokes&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">145</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;bounding_box&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;width&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">650</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;height&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;generation_params&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;style_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;bias&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.75</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;color&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#000000&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Status Codes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> - Generation successful</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">400</span> <span class="pre">Bad</span> <span class="pre">Request</span></code> - Invalid parameters</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+</ul>
+</dd></dl>
+
 </section>
 <section id="parameter-details">
 <h2>Parameter Details<a class="headerlink" href="#parameter-details" title="Link to this heading"></a></h2>

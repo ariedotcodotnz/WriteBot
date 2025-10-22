@@ -6,10 +6,9 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Character Overrides &mdash; WriteBot API Documentation</title>
+  <title>Character Overrides &mdash; WriteBot 1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
-      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=63af810f" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -45,85 +44,13 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../introduction.html#what-is-writebot">What is WriteBot?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../introduction.html#features">Features</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#handwriting-generation">Handwriting Generation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#user-management">User Management</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#admin-dashboard">Admin Dashboard</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../introduction.html#architecture">Architecture</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#technology-stack">Technology Stack</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#project-structure">Project Structure</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../introduction.html#getting-started">Getting Started</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#installation">Installation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#configuration">Configuration</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../introduction.html#api-authentication">API Authentication</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html">Introduction</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="authentication.html">Authentication</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="authentication.html#login">Login</a></li>
-<li class="toctree-l3"><a class="reference internal" href="authentication.html#logout">Logout</a></li>
-<li class="toctree-l3"><a class="reference internal" href="authentication.html#session-management">Session Management</a></li>
-<li class="toctree-l3"><a class="reference internal" href="authentication.html#checking-authentication-status">Checking Authentication Status</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="generation.html">Generation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="generation.html#generate-svg">Generate SVG</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generation.html#generate-legacy">Generate (Legacy)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generation.html#generate-with-metadata">Generate with Metadata</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generation.html#parameter-details">Parameter Details</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="generation.html#bias-parameter">Bias Parameter</a></li>
-<li class="toctree-l4"><a class="reference internal" href="generation.html#color-parameter">Color Parameter</a></li>
-<li class="toctree-l4"><a class="reference internal" href="generation.html#line-height">Line Height</a></li>
-<li class="toctree-l4"><a class="reference internal" href="generation.html#character-overrides">Character Overrides</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="generation.html#error-handling">Error Handling</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="batch.html">Batch Generation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="batch.html#batch-generate">Batch Generate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="batch.html#download-template">Download Template</a></li>
-<li class="toctree-l3"><a class="reference internal" href="batch.html#streaming-batch-generation">Streaming Batch Generation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="batch.html#download-batch-results">Download Batch Results</a></li>
-<li class="toctree-l3"><a class="reference internal" href="batch.html#get-individual-batch-file">Get Individual Batch File</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="styles.html">Styles</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="styles.html#list-styles">List Styles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="styles.html#style-preview">Style Preview</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="admin.html">Admin API</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="admin.html#dashboard">Dashboard</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#admin-dashboard">Admin Dashboard</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="admin.html#users">Users</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#list-users">List Users</a></li>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#create-user">Create User</a></li>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#view-user">View User</a></li>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#update-user">Update User</a></li>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#delete-user">Delete User</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="admin.html#statistics">Statistics</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#view-statistics">View Statistics</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="admin.html#activities">Activities</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="admin.html#view-activities">View Activities</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="authentication.html">Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="generation.html">Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="batch.html">Batch Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="styles.html">Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="admin.html">Admin API</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Character Overrides</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#collections">Collections</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#list-collections">List Collections</a></li>
@@ -147,48 +74,11 @@
 <li class="toctree-l3"><a class="reference internal" href="#usage-in-generation">Usage in Generation</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="index.html#api-overview">API Overview</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="index.html#base-url">Base URL</a></li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#authentication">Authentication</a></li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#response-format">Response Format</a></li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#http-status-codes">HTTP Status Codes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#rate-limiting">Rate Limiting</a></li>
-<li class="toctree-l3"><a class="reference internal" href="index.html#common-headers">Common Headers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#api-overview">API Overview</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../models.html">Database Models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#user-model">User Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#user-activity-model">User Activity Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#usage-statistics-model">Usage Statistics Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#character-override-collection-model">Character Override Collection Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#character-override-model">Character Override Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#database-schema">Database Schema</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../models.html#entity-relationship-diagram">Entity Relationship Diagram</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../models.html#indexes">Indexes</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../models.html#migrations">Migrations</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../utilities.html">Utilities</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="../utilities.html#module-webapp.utils.auth_utils">Authentication Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utilities.html#module-webapp.utils.text_utils">Text Processing Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utilities.html#module-webapp.utils.page_utils">Page Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utilities.html#module-handwriting_synthesis.hand.character_override_utils">Character Override Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../utilities.html#example-usage">Example Usage</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../utilities.html#activity-logging">Activity Logging</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../utilities.html#generation-tracking">Generation Tracking</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../utilities.html#custom-decorators">Custom Decorators</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../utilities.html#admin-required">Admin Required</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../utilities.html#rate-limiting">Rate Limiting</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../models.html">Database Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utilities.html">Utilities</a></li>
 </ul>
 
         </div>
@@ -227,39 +117,252 @@
 <h2>Collections<a class="headerlink" href="#collections" title="Link to this heading"></a></h2>
 <section id="list-collections">
 <h3>List Collections<a class="headerlink" href="#list-collections" title="Link to this heading"></a></h3>
+<dl class="http get">
+<dt class="sig sig-object http" id="get--admin-character-overrides-">
+<span class="sig-name descname"><span class="pre">GET</span> </span><span class="sig-name descname"><span class="pre">/admin/character-overrides/</span></span><a class="headerlink" href="#get--admin-character-overrides-" title="Link to this definition"></a></dt>
+<dd><p>Get all character override collections.</p>
+<p><strong>Example Response:</strong></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;collections&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;My Custom Characters&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Hand-drawn letters&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;is_active&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;unique_characters&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">26</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;total_variants&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">78</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </section>
 <section id="create-collection">
 <h3>Create Collection<a class="headerlink" href="#create-collection" title="Link to this heading"></a></h3>
+<dl class="http post">
+<dt class="sig sig-object http" id="post--admin-character-overrides-create">
+<span class="sig-name descname"><span class="pre">POST</span> </span><span class="sig-name descname"><span class="pre">/admin/character-overrides/create</span></span><a class="headerlink" href="#post--admin-character-overrides-create" title="Link to this definition"></a></dt>
+<dd><p>Create a new character override collection.</p>
+<p><strong>Form Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code> (string, required) - Collection name</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">description</span></code> (string, optional) - Description</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_active</span></code> (boolean, optional) - Active status</p></li>
+</ul>
+</dd></dl>
+
 </section>
 <section id="view-collection">
 <h3>View Collection<a class="headerlink" href="#view-collection" title="Link to this heading"></a></h3>
+<dl class="http get">
+<dt class="sig sig-object http" id="get--admin-character-overrides-(int-collection_id)">
+<span class="sig-name descname"><span class="pre">GET</span> </span><span class="sig-name descname"><span class="pre">/admin/character-overrides/</span></span><span class="sig-paren">(</span><em class="property"><span class="pre">int:</span> </em><em class="sig-param"><span class="pre">collection_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#get--admin-character-overrides-(int-collection_id)" title="Link to this definition"></a></dt>
+<dd><p>View details of a specific collection with all character variants.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">collection_id</span></code> (integer) - The collection ID</p></li>
+</ul>
+<p><strong>Example Response:</strong></p>
+<p>Returns an HTML page with:</p>
+<ul class="simple">
+<li><p>Collection details (name, description, active status)</p></li>
+<li><p>List of all characters with their variants</p></li>
+<li><p>SVG previews of each character variant</p></li>
+<li><p>Upload forms for single and batch uploads</p></li>
+<li><p>Edit and delete actions</p></li>
+</ul>
+<p><strong>Status Codes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> - Success</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">403</span> <span class="pre">Forbidden</span></code> - Not an admin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">404</span> <span class="pre">Not</span> <span class="pre">Found</span></code> - Collection not found</p></li>
+</ul>
+</dd></dl>
+
 </section>
 <section id="edit-collection">
 <h3>Edit Collection<a class="headerlink" href="#edit-collection" title="Link to this heading"></a></h3>
+<dl class="http post">
+<dt class="sig sig-object http" id="post--admin-character-overrides-(int-collection_id)-edit">
+<span class="sig-name descname"><span class="pre">POST</span> </span><span class="sig-name descname"><span class="pre">/admin/character-overrides/</span></span><span class="sig-paren">(</span><em class="property"><span class="pre">int:</span> </em><em class="sig-param"><span class="pre">collection_id</span></em><span class="sig-paren">)</span><span class="sig-name descname"><span class="pre">/edit</span></span><a class="headerlink" href="#post--admin-character-overrides-(int-collection_id)-edit" title="Link to this definition"></a></dt>
+<dd><p>Update an existing character override collection.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">collection_id</span></code> (integer) - The collection ID</p></li>
+</ul>
+<p><strong>Form Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code> (string, required) - Collection name</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">description</span></code> (string, optional) - Description</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_active</span></code> (boolean, optional) - Active status</p></li>
+</ul>
+<p><strong>Status Codes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">302</span> <span class="pre">Found</span></code> - Update successful, redirects to collection view</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> - Validation errors, returns form with errors</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">403</span> <span class="pre">Forbidden</span></code> - Not an admin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">404</span> <span class="pre">Not</span> <span class="pre">Found</span></code> - Collection not found</p></li>
+</ul>
+</dd></dl>
+
 </section>
 <section id="delete-collection">
 <h3>Delete Collection<a class="headerlink" href="#delete-collection" title="Link to this heading"></a></h3>
+<dl class="http post">
+<dt class="sig sig-object http" id="post--admin-character-overrides-(int-collection_id)-delete">
+<span class="sig-name descname"><span class="pre">POST</span> </span><span class="sig-name descname"><span class="pre">/admin/character-overrides/</span></span><span class="sig-paren">(</span><em class="property"><span class="pre">int:</span> </em><em class="sig-param"><span class="pre">collection_id</span></em><span class="sig-paren">)</span><span class="sig-name descname"><span class="pre">/delete</span></span><a class="headerlink" href="#post--admin-character-overrides-(int-collection_id)-delete" title="Link to this definition"></a></dt>
+<dd><p>Delete a collection and all its character overrides.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">collection_id</span></code> (integer) - The collection ID</p></li>
+</ul>
+<p><strong>Status Codes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">302</span> <span class="pre">Found</span></code> - Deletion successful, redirects to collection list</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">403</span> <span class="pre">Forbidden</span></code> - Not an admin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">404</span> <span class="pre">Not</span> <span class="pre">Found</span></code> - Collection not found</p></li>
+</ul>
+<p><strong>Note:</strong></p>
+<ul class="simple">
+<li><p>This action is irreversible</p></li>
+<li><p>All character variants in the collection will also be deleted</p></li>
+</ul>
+</dd></dl>
+
 </section>
 <section id="upload-character">
 <h3>Upload Character<a class="headerlink" href="#upload-character" title="Link to this heading"></a></h3>
+<dl class="http post">
+<dt class="sig sig-object http" id="post--admin-character-overrides-(int-collection_id)-upload">
+<span class="sig-name descname"><span class="pre">POST</span> </span><span class="sig-name descname"><span class="pre">/admin/character-overrides/</span></span><span class="sig-paren">(</span><em class="property"><span class="pre">int:</span> </em><em class="sig-param"><span class="pre">collection_id</span></em><span class="sig-paren">)</span><span class="sig-name descname"><span class="pre">/upload</span></span><a class="headerlink" href="#post--admin-character-overrides-(int-collection_id)-upload" title="Link to this definition"></a></dt>
+<dd><p>Upload a single character variant.</p>
+<p><strong>Form Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">character</span></code> (string, required) - Single character</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">svg_file</span></code> (file, required) - SVG file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">baseline_offset</span></code> (float, optional) - Baseline offset (default: 0.0)</p></li>
+</ul>
+<p><strong>SVG Requirements:</strong></p>
+<ul class="simple">
+<li><p>Must be valid SVG format</p></li>
+<li><p>Must include viewBox or width/height attributes</p></li>
+<li><p>Strokes should be converted to paths</p></li>
+<li><p>Use single color (will be replaced during generation)</p></li>
+</ul>
+</dd></dl>
+
 </section>
 <section id="batch-upload">
 <h3>Batch Upload<a class="headerlink" href="#batch-upload" title="Link to this heading"></a></h3>
+<dl class="http post">
+<dt class="sig sig-object http" id="post--admin-character-overrides-(int-collection_id)-upload-batch">
+<span class="sig-name descname"><span class="pre">POST</span> </span><span class="sig-name descname"><span class="pre">/admin/character-overrides/</span></span><span class="sig-paren">(</span><em class="property"><span class="pre">int:</span> </em><em class="sig-param"><span class="pre">collection_id</span></em><span class="sig-paren">)</span><span class="sig-name descname"><span class="pre">/upload-batch</span></span><a class="headerlink" href="#post--admin-character-overrides-(int-collection_id)-upload-batch" title="Link to this definition"></a></dt>
+<dd><p>Upload multiple character variants.</p>
+<p><strong>Form Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">svg_files</span></code> (files, required) - Multiple SVG files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">baseline_offset</span></code> (float, optional) - Baseline offset for all</p></li>
+</ul>
+<p><strong>File Naming:</strong></p>
+<p>Characters are extracted from filename:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">a.svg</span></code> → ‘a’</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">a_1.svg</span></code> → ‘a’ (variant 1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">a_2.svg</span></code> → ‘a’ (variant 2)</p></li>
+</ul>
+</dd></dl>
+
 </section>
 </section>
 <section id="character-management">
 <h2>Character Management<a class="headerlink" href="#character-management" title="Link to this heading"></a></h2>
 <section id="delete-character-variant">
 <h3>Delete Character Variant<a class="headerlink" href="#delete-character-variant" title="Link to this heading"></a></h3>
+<dl class="http post">
+<dt class="sig sig-object http" id="post--admin-character-overrides-character-(int-override_id)-delete">
+<span class="sig-name descname"><span class="pre">POST</span> </span><span class="sig-name descname"><span class="pre">/admin/character-overrides/character/</span></span><span class="sig-paren">(</span><em class="property"><span class="pre">int:</span> </em><em class="sig-param"><span class="pre">override_id</span></em><span class="sig-paren">)</span><span class="sig-name descname"><span class="pre">/delete</span></span><a class="headerlink" href="#post--admin-character-overrides-character-(int-override_id)-delete" title="Link to this definition"></a></dt>
+<dd><p>Delete a specific character variant.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">override_id</span></code> (integer) - The character override ID</p></li>
+</ul>
+<p><strong>Status Codes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">302</span> <span class="pre">Found</span></code> - Deletion successful, redirects to collection view</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">403</span> <span class="pre">Forbidden</span></code> - Not an admin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">404</span> <span class="pre">Not</span> <span class="pre">Found</span></code> - Character variant not found</p></li>
+</ul>
+</dd></dl>
+
 </section>
 <section id="preview-character">
 <h3>Preview Character<a class="headerlink" href="#preview-character" title="Link to this heading"></a></h3>
+<dl class="http get">
+<dt class="sig sig-object http" id="get--admin-character-overrides-character-(int-override_id)-preview">
+<span class="sig-name descname"><span class="pre">GET</span> </span><span class="sig-name descname"><span class="pre">/admin/character-overrides/character/</span></span><span class="sig-paren">(</span><em class="property"><span class="pre">int:</span> </em><em class="sig-param"><span class="pre">override_id</span></em><span class="sig-paren">)</span><span class="sig-name descname"><span class="pre">/preview</span></span><a class="headerlink" href="#get--admin-character-overrides-character-(int-override_id)-preview" title="Link to this definition"></a></dt>
+<dd><p>Preview a character override SVG.</p>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">override_id</span></code> (integer) - The character override ID</p></li>
+</ul>
+<p><strong>Example Response:</strong></p>
+<div class="highlight-http notranslate"><div class="highlight"><pre><span></span><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">200</span> <span class="ne">OK</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">image/svg+xml</span>
+
+<span class="nt">&lt;svg</span><span class="w"> </span><span class="na">xmlns=</span><span class="s">&quot;http://www.w3.org/2000/svg&quot;</span><span class="w"> </span><span class="na">viewBox=</span><span class="s">&quot;0 0 100 100&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="cm">&lt;!-- Character SVG content --&gt;</span>
+<span class="nt">&lt;/svg&gt;</span>
+</pre></div>
+</div>
+<p><strong>Status Codes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> - Success</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">403</span> <span class="pre">Forbidden</span></code> - Not an admin</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">404</span> <span class="pre">Not</span> <span class="pre">Found</span></code> - Character variant not found</p></li>
+</ul>
+<p><strong>Usage:</strong></p>
+<ul class="simple">
+<li><p>This endpoint can be used as the <code class="docutils literal notranslate"><span class="pre">src</span></code> attribute of an <code class="docutils literal notranslate"><span class="pre">&lt;img&gt;</span></code> tag</p></li>
+<li><p>Useful for previewing characters before using them in generation</p></li>
+</ul>
+</dd></dl>
+
 </section>
 </section>
 <section id="api-endpoint">
 <h2>API Endpoint<a class="headerlink" href="#api-endpoint" title="Link to this heading"></a></h2>
 <section id="get-collections-api">
 <h3>Get Collections (API)<a class="headerlink" href="#get-collections-api" title="Link to this heading"></a></h3>
+<dl class="http get">
+<dt class="sig sig-object http" id="get--admin-character-overrides-api-collections">
+<span class="sig-name descname"><span class="pre">GET</span> </span><span class="sig-name descname"><span class="pre">/admin/character-overrides/api/collections</span></span><a class="headerlink" href="#get--admin-character-overrides-api-collections" title="Link to this definition"></a></dt>
+<dd><p>Get active collections (for use in generation forms).</p>
+<p><strong>Example Response:</strong></p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;My Custom Characters&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Hand-drawn letters&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;character_count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">78</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;unique_characters&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">26</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p><strong>Status Codes:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">200</span> <span class="pre">OK</span></code> - Success</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">401</span> <span class="pre">Unauthorized</span></code> - Not authenticated</p></li>
+</ul>
+</dd></dl>
+
 </section>
 </section>
 <section id="usage-in-generation">
