@@ -217,7 +217,10 @@ def _draw(
             from handwriting_synthesis.hand.character_override_utils import get_character_overrides
             overrides = get_character_overrides(character_override_collection_id)
             if overrides:
-                dwg.add(dwg.desc(f"Character overrides enabled: collection {character_override_collection_id} with {len(overrides)} characters"))
+                # Add an XML comment to indicate character overrides are enabled
+                import xml.etree.ElementTree as ET
+                comment = ET.Comment(f"Character overrides enabled: collection {character_override_collection_id} with {len(overrides)} characters")
+                dwg.add(comment)
         except Exception as e:
             print(f"Note: Character override collection {character_override_collection_id} specified but could not be loaded: {e}")
 
