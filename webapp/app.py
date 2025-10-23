@@ -127,7 +127,7 @@ if Environment is not None and Bundle is not None:
             'css/carbon-components.min.css',
             # Add more CSS files as needed
             filters='rcssmin',  # Use rcssmin filter
-            output='gen/common.css'
+            output='common.css'
         )
 
         # Define CSS bundle - will minify and combine CSS files
@@ -136,7 +136,7 @@ if Environment is not None and Bundle is not None:
             'css/character_overrides.css',
             # Add more CSS files as needed
             filters='rcssmin',  # Use rcssmin filter
-            output='gen/admin.css'
+            output='admin.css'
         )
 
         # Define JS bundle - will minify and combine JS files
@@ -145,7 +145,7 @@ if Environment is not None and Bundle is not None:
             'js/carbon-components.min.js',
             # Add more JS files as needed
             filters='rjsmin',  # Use rjsmin filter
-            output='gen/common.js'
+            output='common.js'
         )
 
         # Define JS bundle - will minify and combine JS files
@@ -154,7 +154,7 @@ if Environment is not None and Bundle is not None:
             'js/character_overrides.js',
             # Add more JS files as needed
             filters='rjsmin',  # Use rjsmin filter
-            output='gen/admin.js'
+            output='admin.js'
         )
 
         assets.register('css_admin', css_admin)
