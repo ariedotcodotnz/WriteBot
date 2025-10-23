@@ -7,102 +7,155 @@
 {% block admin_title %}Template Presets{% endblock %}
 
 {% block admin_header_actions %}
-    <a href="{{ url_for('presets.create_template') }}" class="btn btn-primary">Create Template</a>
-    <a href="{{ url_for('index') }}" class="btn btn-ghost">Back to App</a>
+    <a href="{{ url_for('presets.create_template') }}" class="bx--btn bx--btn--primary">Create Template</a>
+    <a href="{{ url_for('index') }}" class="bx--btn bx--btn--tertiary">Back to App</a>
 {% endblock %}
 
 {% block admin_content %}
-{# Search Bar #}
+{# Search Bar using Carbon components #}
 <div class="admin-section">
-    <form method="get" class="search-form">
-        <input type="text"
-               name="search"
-               class="search-input"
-               placeholder="Search templates..."
-               value="{{ search_query if search_query else '' }}">
-        <button type="submit" class="btn btn-secondary">Search</button>
+    <form method="get" class="bx--form" hx-get="{{ url_for('presets.list_templates') }}" hx-trigger="submit" hx-target="#templates-table" hx-swap="outerHTML">
+        <div class="bx--search bx--search--lg" data-search>
+            <label for="search-input" class="bx--label bx--visually-hidden">Search</label>
+            <input type="text"
+                   id="search-input"
+                   name="search"
+                   class="bx--search-input"
+                   placeholder="Search templates..."
+                   value="{{ search_query if search_query else '' }}">
+            <svg class="bx--search-magnifier" width="16" height="16" viewBox="0 0 16 16">
+                <path d="M15 14.3L10.7 10c1.1-1.1 1.8-2.7 1.8-4.4C12.5 2.5 9.9 0 6.7 0S1 2.5 1 5.6 3.6 11.2 6.8 11.2c1.7 0 3.2-.7 4.4-1.8L15.7 14 15 14.3zM6.8 1.5c2.3 0 4.2 1.9 4.2 4.2s-1.9 4.2-4.2 4.2S2.5 8 2.5 5.7s1.9-4.2 4.3-4.2z"/>
+            </svg>
+            <button class="bx--search-close bx--search-close--hidden" type="button" title="Clear search">
+                <svg width="16" height="16" viewBox="0 0 16 16">
+                    <path d="M12 4.7L11.3 4 8 7.3 4.7 4 4 4.7 7.3 8 4 11.3l.7.7L8 8.7l3.3 3.3.7-.7L8.7 8z"/>
+                </svg>
+            </button>
+        </div>
         {% if search_query %}
-        <a href="{{ url_for('presets.list_templates') }}" class="btn btn-ghost">Clear</a>
+        <a href="{{ url_for('presets.list_templates') }}" class="bx--btn bx--btn--ghost bx--btn--sm" style="margin-left: 1rem;">Clear</a>
         {% endif %}
     </form>
 </div>
 
-{# Templates Table #}
-<div class="admin-section">
+{# Templates Table using Carbon Data Table #}
+<div class="admin-section" id="templates-table">
     {% if templates %}
-    <table class="admin-table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Page Size</th>
-                <th>Orientation</th>
-                <th>Margins</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for template in templates %}
-            <tr>
-                <td>
-                    <strong>{{ template.name }}</strong>
-                </td>
-                <td>{{ template.description or '-' }}</td>
-                <td>
-                    {% if template.page_size_preset %}
-                        {{ template.page_size_preset.name }}
-                    {% elif template.custom_width and template.custom_height %}
-                        Custom ({{ template.custom_width }}×{{ template.custom_height }}mm)
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-                <td>{{ template.orientation|title }}</td>
-                <td>{{ template.margin_top }}/{{ template.margin_right }}/{{ template.margin_bottom }}/{{ template.margin_left }}mm</td>
-                <td>
-                    {% if template.is_default %}
-                    <span class="badge badge-info">Default</span>
-                    {% else %}
-                    <span class="badge badge-secondary">Custom</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if template.is_active %}
-                    <span class="badge badge-success">Active</span>
-                    {% else %}
-                    <span class="badge badge-warning">Inactive</span>
-                    {% endif %}
-                </td>
-                <td class="admin-table__actions">
-                    <a href="{{ url_for('presets.edit_template', template_id=template.id) }}"
-                       class="btn btn-sm btn-secondary">Edit</a>
-                    <a href="{{ url_for('presets.view_template', template_id=template.id) }}"
-                       class="btn btn-sm btn-ghost"
-                       target="_blank">View JSON</a>
-                    {% if not template.is_default %}
-                    <form method="post"
-                          action="{{ url_for('presets.delete_template', template_id=template.id) }}"
-                          style="display: inline;"
-                          onsubmit="return confirm('Are you sure you want to delete this template?');">
-                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                    </form>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="bx--data-table-container">
+        <table class="bx--data-table bx--data-table--zebra">
+            <thead>
+                <tr>
+                    <th><span class="bx--table-header-label">Name</span></th>
+                    <th><span class="bx--table-header-label">Description</span></th>
+                    <th><span class="bx--table-header-label">Page Size</span></th>
+                    <th><span class="bx--table-header-label">Orientation</span></th>
+                    <th><span class="bx--table-header-label">Margins</span></th>
+                    <th><span class="bx--table-header-label">Type</span></th>
+                    <th><span class="bx--table-header-label">Status</span></th>
+                    <th><span class="bx--table-header-label">Actions</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for template in templates %}
+                <tr>
+                    <td>
+                        <strong>{{ template.name }}</strong>
+                    </td>
+                    <td>{{ template.description or '-' }}</td>
+                    <td>
+                        {% if template.page_size_preset %}
+                            {{ template.page_size_preset.name }}
+                        {% elif template.custom_width and template.custom_height %}
+                            Custom ({{ template.custom_width }}×{{ template.custom_height }}mm)
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ template.orientation|title }}</td>
+                    <td>
+                        <span class="bx--tooltip__label" data-tooltip-text="Top/Right/Bottom/Left margins in millimeters">
+                            {{ template.margin_top }}/{{ template.margin_right }}/{{ template.margin_bottom }}/{{ template.margin_left }}mm
+                        </span>
+                    </td>
+                    <td>
+                        {% if template.is_default %}
+                        <span class="bx--tag bx--tag--blue">Default</span>
+                        {% else %}
+                        <span class="bx--tag bx--tag--gray">Custom</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if template.is_active %}
+                        <span class="bx--tag bx--tag--green">Active</span>
+                        {% else %}
+                        <span class="bx--tag bx--tag--warm-gray">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="bx--overflow-menu" data-overflow-menu>
+                            <button class="bx--overflow-menu__trigger bx--tooltip__trigger bx--tooltip--a11y bx--tooltip--bottom bx--tooltip--align-center"
+                                    aria-haspopup="true"
+                                    aria-expanded="false"
+                                    aria-controls="menu-{{ template.id }}">
+                                <svg class="bx--overflow-menu__icon" width="16" height="16" viewBox="0 0 16 16">
+                                    <circle cx="8" cy="3" r="1"/>
+                                    <circle cx="8" cy="8" r="1"/>
+                                    <circle cx="8" cy="13" r="1"/>
+                                </svg>
+                            </button>
+                            <div class="bx--overflow-menu-options" id="menu-{{ template.id }}">
+                                <ul class="bx--overflow-menu-options__content">
+                                    <li class="bx--overflow-menu-options__option">
+                                        <a class="bx--overflow-menu-options__btn" href="{{ url_for('presets.edit_template', template_id=template.id) }}">
+                                            <span class="bx--overflow-menu-options__option-content">Edit</span>
+                                        </a>
+                                    </li>
+                                    <li class="bx--overflow-menu-options__option">
+                                        <a class="bx--overflow-menu-options__btn" href="{{ url_for('presets.view_template', template_id=template.id) }}" target="_blank">
+                                            <span class="bx--overflow-menu-options__option-content">View JSON</span>
+                                        </a>
+                                    </li>
+                                    {% if not template.is_default %}
+                                    <li class="bx--overflow-menu-options__option bx--overflow-menu-options__option--danger">
+                                        <button type="button"
+                                                class="bx--overflow-menu-options__btn"
+                                                hx-post="{{ url_for('presets.delete_template', template_id=template.id) }}"
+                                                hx-confirm="Are you sure you want to delete this template?"
+                                                hx-target="closest tr"
+                                                hx-swap="outerHTML swap:1s">
+                                            <span class="bx--overflow-menu-options__option-content">Delete</span>
+                                        </button>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
-    <div class="empty-state">
-        <p>No template presets found.</p>
+    <div class="bx--tile" style="text-align: center; padding: 3rem;">
+        <h4>No template presets found</h4>
         {% if search_query %}
         <p>Try adjusting your search query.</p>
         {% else %}
-        <a href="{{ url_for('presets.create_template') }}" class="btn btn-primary">Create First Template</a>
+        <p style="margin-bottom: 1.5rem;">Get started by creating your first template preset.</p>
+        <a href="{{ url_for('presets.create_template') }}" class="bx--btn bx--btn--primary">Create First Template</a>
         {% endif %}
     </div>
     {% endif %}
 </div>
+
+{# Initialize Carbon components #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize overflow menus
+    if (window.CarbonComponents && window.CarbonComponents.OverflowMenu) {
+        window.CarbonComponents.OverflowMenu.init();
+    }
+});
+</script>
 {% endblock %}

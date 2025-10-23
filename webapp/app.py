@@ -121,16 +121,16 @@ if Environment is not None and Bundle is not None:
         assets.url = app.static_url_path
         assets.directory = app.static_folder
 
-        # Define CSS bundle - will minify and combine CSS files
+        # Define CSS bundle - Carbon first, then custom styles
         css_common = Bundle(
+            'css/carbon-components.min.css',  # Carbon first
             'css/main.css',
-            'css/carbon-components.min.css',
             # Add more CSS files as needed
             filters='rcssmin',  # Use rcssmin filter
             output='common.css'
         )
 
-        # Define CSS bundle - will minify and combine CSS files
+        # Define CSS bundle - Carbon included in common, only admin-specific here
         css_admin = Bundle(
             'css/admin.css',
             'css/character_overrides.css',
@@ -139,18 +139,18 @@ if Environment is not None and Bundle is not None:
             output='admin.css'
         )
 
-        # Define JS bundle - will minify and combine JS files
+        # Define JS bundle - Carbon before app JS (HTMX loaded via CDN in template)
         js_common = Bundle(
-            'js/main.js',  # List your JS files explicitly
-            'js/carbon-components.min.js',
+            'js/carbon-components.min.js',  # Carbon first
+            'js/main.js',  # App JS last
             # Add more JS files as needed
             filters='rjsmin',  # Use rjsmin filter
             output='common.js'
         )
 
-        # Define JS bundle - will minify and combine JS files
+        # Define JS bundle - Admin-specific JS
         js_admin = Bundle(
-            'js/admin.js',  # List your JS files explicitly
+            'js/admin.js',
             'js/character_overrides.js',
             # Add more JS files as needed
             filters='rjsmin',  # Use rjsmin filter
