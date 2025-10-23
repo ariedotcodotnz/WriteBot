@@ -13,8 +13,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'WriteBot'
-copyright = '2025, Arie Joe'
-author = 'Arie Joe'
+author = 'Arie Joe 2025'
 release = '1.0.0'
 
 # -- General configuration ---------------------------------------------------

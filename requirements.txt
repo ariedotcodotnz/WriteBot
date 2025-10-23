@@ -19,5 +19,7 @@ Flask-Caching>=2.0.0
 Flask-Limiter>=3.3.0
 Flask-Minify>=0.42
 flask-assets>=2.0
+rjsmin
+rcssmin
 
 # Note: For documentation dependencies, see docs/requirements.txt

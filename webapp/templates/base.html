@@ -10,11 +10,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-  <!-- Carbon Design System -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/carbon-components.min.css') }}" />
-
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+    {% assets "css_common" %}
+        <link rel="stylesheet" href="{{ ASSET_URL }}">
+    {% endassets %}
 
   {% block extra_css %}{% endblock %}
 </head>
@@ -53,7 +52,10 @@
 
   <!-- Scripts -->
   <script src="{{ url_for('static', filename='js/carbon-components.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    {% assets "js_common" %}
+        <script src="{{ ASSET_URL }}"></script>
+    {% endassets %}
 
   {% block extra_js %}{% endblock %}
 </body>

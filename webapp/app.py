@@ -100,7 +100,7 @@ if Limiter is not None and get_remote_address is not None:
         limiter = Limiter(
             app=app,
             key_func=get_remote_address,
-            default_limits=["200 per day", "50 per hour"],
+            default_limits=["2000 per day", "200 per hour"],
             storage_uri=app.config.get('RATELIMIT_STORAGE_URL')
         )
     except Exception:
@@ -109,7 +109,7 @@ if Limiter is not None and get_remote_address is not None:
 # Initialize Flask-Minify
 if Minify is not None:
     try:
-        Minify(app=app, html=True, js=True, cssless=True)
+        Minify(app=app, html=True, js=True, cssless=True, json=False, force=True, svg=False)
     except Exception:
         pass
 
@@ -118,21 +118,54 @@ assets = None
 if Environment is not None and Bundle is not None:
     try:
         assets = Environment(app)
-        # Define CSS bundle
-        css_bundle = Bundle(
-            'css/*.css',
-            filters='cssmin',
-            output='gen/packed.css'
+        assets.url = app.static_url_path
+        assets.directory = app.static_folder
+
+        # Define CSS bundle - will minify and combine CSS files
+        css_common = Bundle(
+            'css/main.css',
+            'css/carbon-components.min.css',
+            # Add more CSS files as needed
+            filters='rcssmin',  # Use rcssmin filter
+            output='gen/common.css'
         )
-        # Define JS bundle
-        js_bundle = Bundle(
-            'js/*.js',
-            filters='jsmin',
-            output='gen/packed.js'
+
+        # Define CSS bundle - will minify and combine CSS files
+        css_admin = Bundle(
+            'css/admin.css',
+            'css/character_overrides.css',
+            # Add more CSS files as needed
+            filters='rcssmin',  # Use rcssmin filter
+            output='gen/admin.css'
         )
-        assets.register('css_all', css_bundle)
-        assets.register('js_all', js_bundle)
-    except Exception:
+
+        # Define JS bundle - will minify and combine JS files
+        js_common = Bundle(
+            'js/main.js',  # List your JS files explicitly
+            'js/carbon-components.min.js',
+            # Add more JS files as needed
+            filters='rjsmin',  # Use rjsmin filter
+            output='gen/common.js'
+        )
+
+        # Define JS bundle - will minify and combine JS files
+        js_admin = Bundle(
+            'js/admin.js',  # List your JS files explicitly
+            'js/character_overrides.js',
+            # Add more JS files as needed
+            filters='rjsmin',  # Use rjsmin filter
+            output='gen/admin.js'
+        )
+
+        assets.register('css_admin', css_admin)
+        assets.register('js_admin', js_admin)
+
+        assets.register('css_common', css_common)
+        assets.register('js_common', js_common)
+
+
+    except Exception as e:
+        print(f"Flask-Assets initialization failed: {e}")
         pass
 
 # Enable compression if available

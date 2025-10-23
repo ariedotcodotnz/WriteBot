@@ -3,8 +3,9 @@
 {# Admin base template - all admin pages should extend this #}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}" />
-{% block admin_extra_css %}{% endblock %}
+    {% assets "css_admin" %}
+        <link rel="stylesheet" href="{{ ASSET_URL }}">
+    {% endassets %}
 {% endblock %}
 
 {% block content %}
@@ -72,6 +73,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
-{% block admin_extra_js %}{% endblock %}
+    {% assets "js_admin" %}
+        <script src="{{ ASSET_URL }}"></script>
+    {% endassets %}
 {% endblock %}
