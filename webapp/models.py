@@ -151,3 +151,147 @@ class CharacterOverride(db.Model):
 
     def __repr__(self):
         return f'<CharacterOverride {self.character} in collection {self.collection_id}>'
+
+
+class PageSizePreset(db.Model):
+    """Custom page size preset configuration."""
+    __tablename__ = 'page_size_presets'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=True, index=True)
+    description = db.Column(db.Text)
+    width = db.Column(db.Float, nullable=False)  # Width in millimeters
+    height = db.Column(db.Float, nullable=False)  # Height in millimeters
+    is_default = db.Column(db.Boolean, default=False, nullable=False)  # Built-in preset (A4, Letter, etc.)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Null for default presets
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    creator = db.relationship('User', backref='created_page_sizes', foreign_keys=[created_by])
+    templates = db.relationship('TemplatePreset', backref='page_size_preset', lazy='dynamic', cascade='all, delete-orphan')
+
+    def to_dict(self):
+        """Convert preset to dictionary for API responses."""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'width': self.width,
+            'height': self.height,
+            'is_default': self.is_default,
+            'is_active': self.is_active,
+            'created_by': self.created_by,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+    def __repr__(self):
+        return f'<PageSizePreset {self.name} ({self.width}x{self.height}mm)>'
+
+
+class TemplatePreset(db.Model):
+    """Template preset combining page size and generation settings."""
+    __tablename__ = 'template_presets'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=True, index=True)
+    description = db.Column(db.Text)
+
+    # Page configuration
+    page_size_id = db.Column(db.Integer, db.ForeignKey('page_size_presets.id'), nullable=True)  # Null for custom dimensions
+    custom_width = db.Column(db.Float, nullable=True)  # Custom width if not using preset
+    custom_height = db.Column(db.Float, nullable=True)  # Custom height if not using preset
+    orientation = db.Column(db.String(20), default='portrait')  # 'portrait' or 'landscape'
+
+    # Margin settings (in millimeters)
+    margin_top = db.Column(db.Float, default=20.0)
+    margin_right = db.Column(db.Float, default=20.0)
+    margin_bottom = db.Column(db.Float, default=20.0)
+    margin_left = db.Column(db.Float, default=20.0)
+
+    # Layout settings
+    line_height = db.Column(db.Float, default=60.0)
+    alignment = db.Column(db.String(20), default='left')  # 'left', 'center', 'right', 'justify'
+    background = db.Column(db.String(50), default='white')
+
+    # Writing settings
+    global_scale = db.Column(db.Float, default=1.0)
+    default_style = db.Column(db.Integer, default=9)
+    default_bias = db.Column(db.Float, default=0.75)
+    legibility = db.Column(db.Float, default=0.0)
+
+    # Stroke settings
+    stroke_color = db.Column(db.String(20), default='black')
+    stroke_width = db.Column(db.Integer, default=2)
+
+    # Text wrapping settings
+    wrap_char_px = db.Column(db.Integer, nullable=True)
+    wrap_ratio = db.Column(db.Float, nullable=True)
+    wrap_utilization = db.Column(db.Float, nullable=True)
+
+    # Advanced settings
+    x_stretch = db.Column(db.Float, default=1.0)
+    denoise = db.Column(db.Boolean, default=False)
+    use_chunked = db.Column(db.Boolean, default=False)
+    words_per_chunk = db.Column(db.Integer, nullable=True)
+    chunk_spacing = db.Column(db.Float, nullable=True)
+    rotate_chunks = db.Column(db.Boolean, default=False)
+
+    # Metadata
+    is_default = db.Column(db.Boolean, default=False, nullable=False)  # Built-in template
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Null for default templates
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    creator = db.relationship('User', backref='created_templates', foreign_keys=[created_by])
+
+    def to_dict(self, include_page_size=True):
+        """Convert template to dictionary for API responses."""
+        data = {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'page_size_id': self.page_size_id,
+            'custom_width': self.custom_width,
+            'custom_height': self.custom_height,
+            'orientation': self.orientation,
+            'margin_top': self.margin_top,
+            'margin_right': self.margin_right,
+            'margin_bottom': self.margin_bottom,
+            'margin_left': self.margin_left,
+            'line_height': self.line_height,
+            'alignment': self.alignment,
+            'background': self.background,
+            'global_scale': self.global_scale,
+            'default_style': self.default_style,
+            'default_bias': self.default_bias,
+            'legibility': self.legibility,
+            'stroke_color': self.stroke_color,
+            'stroke_width': self.stroke_width,
+            'wrap_char_px': self.wrap_char_px,
+            'wrap_ratio': self.wrap_ratio,
+            'wrap_utilization': self.wrap_utilization,
+            'x_stretch': self.x_stretch,
+            'denoise': self.denoise,
+            'use_chunked': self.use_chunked,
+            'words_per_chunk': self.words_per_chunk,
+            'chunk_spacing': self.chunk_spacing,
+            'rotate_chunks': self.rotate_chunks,
+            'is_default': self.is_default,
+            'is_active': self.is_active,
+            'created_by': self.created_by,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+        if include_page_size and self.page_size_preset:
+            data['page_size'] = self.page_size_preset.to_dict()
+
+        return data
+
+    def __repr__(self):
+        return f'<TemplatePreset {self.name}>'

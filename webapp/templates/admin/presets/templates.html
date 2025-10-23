@@ -1,0 +1,108 @@
+{% extends "admin/base.html" %}
+
+{% set active_nav = 'templates' %}
+
+{% block title %}Template Presets - WriteBot Admin{% endblock %}
+
+{% block admin_title %}Template Presets{% endblock %}
+
+{% block admin_header_actions %}
+    <a href="{{ url_for('presets.create_template') }}" class="btn btn-primary">Create Template</a>
+    <a href="{{ url_for('index') }}" class="btn btn-ghost">Back to App</a>
+{% endblock %}
+
+{% block admin_content %}
+{# Search Bar #}
+<div class="admin-section">
+    <form method="get" class="search-form">
+        <input type="text"
+               name="search"
+               class="search-input"
+               placeholder="Search templates..."
+               value="{{ search_query if search_query else '' }}">
+        <button type="submit" class="btn btn-secondary">Search</button>
+        {% if search_query %}
+        <a href="{{ url_for('presets.list_templates') }}" class="btn btn-ghost">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+{# Templates Table #}
+<div class="admin-section">
+    {% if templates %}
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Page Size</th>
+                <th>Orientation</th>
+                <th>Margins</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for template in templates %}
+            <tr>
+                <td>
+                    <strong>{{ template.name }}</strong>
+                </td>
+                <td>{{ template.description or '-' }}</td>
+                <td>
+                    {% if template.page_size_preset %}
+                        {{ template.page_size_preset.name }}
+                    {% elif template.custom_width and template.custom_height %}
+                        Custom ({{ template.custom_width }}×{{ template.custom_height }}mm)
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ template.orientation|title }}</td>
+                <td>{{ template.margin_top }}/{{ template.margin_right }}/{{ template.margin_bottom }}/{{ template.margin_left }}mm</td>
+                <td>
+                    {% if template.is_default %}
+                    <span class="badge badge-info">Default</span>
+                    {% else %}
+                    <span class="badge badge-secondary">Custom</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if template.is_active %}
+                    <span class="badge badge-success">Active</span>
+                    {% else %}
+                    <span class="badge badge-warning">Inactive</span>
+                    {% endif %}
+                </td>
+                <td class="admin-table__actions">
+                    <a href="{{ url_for('presets.edit_template', template_id=template.id) }}"
+                       class="btn btn-sm btn-secondary">Edit</a>
+                    <a href="{{ url_for('presets.view_template', template_id=template.id) }}"
+                       class="btn btn-sm btn-ghost"
+                       target="_blank">View JSON</a>
+                    {% if not template.is_default %}
+                    <form method="post"
+                          action="{{ url_for('presets.delete_template', template_id=template.id) }}"
+                          style="display: inline;"
+                          onsubmit="return confirm('Are you sure you want to delete this template?');">
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <p>No template presets found.</p>
+        {% if search_query %}
+        <p>Try adjusting your search query.</p>
+        {% else %}
+        <a href="{{ url_for('presets.create_template') }}" class="btn btn-primary">Create First Template</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

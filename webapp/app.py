@@ -195,6 +195,14 @@ app.register_blueprint(admin_bp)
 from webapp.routes.character_override_routes import character_override_bp
 app.register_blueprint(character_override_bp)
 
+# Import and register preset blueprint
+from webapp.routes.preset_routes import preset_bp
+app.register_blueprint(preset_bp)
+
+# Import and register API blueprint
+from webapp.routes.api_routes import api_bp
+app.register_blueprint(api_bp)
+
 
 @app.route("/")
 def index():

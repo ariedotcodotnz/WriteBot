@@ -191,6 +191,135 @@ async function loadCharacterOverrideCollections() {
   }
 }
 
+// Load Page Size Presets
+async function loadPageSizePresets() {
+  const sel = document.getElementById('pageSize');
+  if (!sel) return;
+
+  try {
+    const res = await fetch('/api/presets/page-sizes');
+    if (!res.ok) {
+      console.warn('Failed to load page size presets, using defaults');
+      return;
+    }
+    const data = await res.json();
+    const pageSizes = data.page_sizes || [];
+
+    // Clear existing options except "custom"
+    sel.innerHTML = '';
+
+    // Add page size options from database
+    pageSizes.forEach(preset => {
+      const opt = document.createElement('option');
+      opt.value = preset.name;
+      opt.textContent = `${preset.name} (${preset.width} × ${preset.height} mm)`;
+      sel.appendChild(opt);
+    });
+
+    // Add custom option at the end
+    const customOpt = document.createElement('option');
+    customOpt.value = 'custom';
+    customOpt.textContent = 'Custom Size';
+    sel.appendChild(customOpt);
+
+    // Select A4 by default if available
+    if (pageSizes.find(p => p.name === 'A4')) {
+      sel.value = 'A4';
+    }
+  } catch (e) {
+    console.error('Failed to load page size presets:', e);
+  }
+}
+
+// Load Template Presets
+async function loadTemplatePresets() {
+  const sel = document.getElementById('templatePreset');
+  if (!sel) return;
+
+  try {
+    const res = await fetch('/api/presets/templates');
+    if (!res.ok) {
+      console.warn('Failed to load template presets');
+      return;
+    }
+    const data = await res.json();
+    const templates = data.templates || [];
+
+    // Clear and add default option
+    sel.innerHTML = '<option value="">Custom (configure manually)</option>';
+
+    // Add template options
+    templates.forEach(template => {
+      const opt = document.createElement('option');
+      opt.value = String(template.id);
+      const pageSizeName = template.page_size ? template.page_size.name : 'Custom';
+      opt.textContent = `${template.name} - ${pageSizeName} ${template.orientation}`;
+      sel.appendChild(opt);
+    });
+  } catch (e) {
+    console.error('Failed to load template presets:', e);
+  }
+}
+
+// Apply Template Preset
+async function applyTemplatePreset(templateId) {
+  if (!templateId) return;
+
+  try {
+    const res = await fetch(`/api/presets/templates/${templateId}`);
+    if (!res.ok) {
+      toastError('Failed to load template');
+      return;
+    }
+    const template = await res.json();
+
+    // Apply page size
+    if (template.page_size_id && template.page_size) {
+      document.getElementById('pageSize').value = template.page_size.name;
+    } else if (template.custom_width && template.custom_height) {
+      document.getElementById('pageSize').value = 'custom';
+      document.getElementById('pageWidth').value = template.custom_width;
+      document.getElementById('pageHeight').value = template.custom_height;
+    }
+
+    // Apply orientation
+    document.getElementById('orientation').value = template.orientation || 'portrait';
+
+    // Apply margins
+    document.getElementById('marginTop').value = template.margin_top || 20;
+    document.getElementById('marginRight').value = template.margin_right || 20;
+    document.getElementById('marginBottom').value = template.margin_bottom || 20;
+    document.getElementById('marginLeft').value = template.margin_left || 20;
+
+    // Apply layout settings
+    document.getElementById('lineHeight').value = template.line_height || '';
+    document.getElementById('align').value = template.alignment || 'left';
+    document.getElementById('background').value = template.background || 'white';
+
+    // Apply writing settings
+    document.getElementById('globalScale').value = template.global_scale || 1.0;
+    if (template.default_style !== null && template.default_style !== undefined) {
+      selectStyle(template.default_style);
+    }
+
+    // Apply stroke settings
+    document.getElementById('strokeColors').value = template.stroke_color || '';
+    document.getElementById('strokeWidths').value = template.stroke_width || '';
+
+    // Apply advanced settings
+    document.getElementById('xStretch').value = template.x_stretch || '';
+    document.getElementById('denoise').value = template.denoise ? 'true' : 'false';
+
+    // Sync custom size visibility
+    syncCustomSizeVisibility();
+
+    toastSuccess(`Template "${template.name}" applied!`);
+  } catch (e) {
+    console.error('Failed to apply template:', e);
+    toastError('Failed to apply template');
+  }
+}
+
 // Custom Dropdown Functions
 function selectStyle(styleId) {
   SELECTED_STYLE_ID = styleId;
@@ -665,11 +794,24 @@ function setupZoomControl() {
 document.addEventListener('DOMContentLoaded', () => {
     loadStyles();
     loadCharacterOverrideCollections();
+    loadPageSizePresets();
+    loadTemplatePresets();
     syncCustomSizeVisibility();
     setupCsvDragDrop();
     setupZoomControl();
 
     document.getElementById('pageSize').addEventListener('change', syncCustomSizeVisibility);
+
+    // Handle template preset selection
+    const templatePresetSelect = document.getElementById('templatePreset');
+    if (templatePresetSelect) {
+        templatePresetSelect.addEventListener('change', (e) => {
+            const templateId = e.target.value;
+            if (templateId) {
+                applyTemplatePreset(templateId);
+            }
+        });
+    }
 
     // Setup custom style dropdown trigger
     const selectWrapper = document.querySelector('.style-select-trigger');

@@ -53,6 +53,18 @@
                     Character Overrides
                 </a>
             </li>
+            <li class="admin-nav__item">
+                <a href="{{ url_for('presets.list_page_sizes') }}"
+                   class="admin-nav__link{% if active_nav == 'page_sizes' %} admin-nav__link--active{% endif %}">
+                    Page Sizes
+                </a>
+            </li>
+            <li class="admin-nav__item">
+                <a href="{{ url_for('presets.list_templates') }}"
+                   class="admin-nav__link{% if active_nav == 'templates' %} admin-nav__link--active{% endif %}">
+                    Templates
+                </a>
+            </li>
         </ul>
     </nav>
 

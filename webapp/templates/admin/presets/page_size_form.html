@@ -1,0 +1,136 @@
+{% extends "admin/base.html" %}
+
+{% set active_nav = 'page_sizes' %}
+{% set narrow_layout = true %}
+
+{% block title %}
+{% if action == 'create' %}Create{% else %}Edit{% endif %} Page Size - WriteBot Admin
+{% endblock %}
+
+{% block admin_title %}
+{% if action == 'create' %}Create Page Size Preset{% else %}Edit Page Size Preset{% endif %}
+{% endblock %}
+
+{% block admin_content %}
+<div class="admin-form-container">
+    <form method="post" class="admin-form">
+        <div class="form-group">
+            <label for="name" class="form-label">Name *</label>
+            <input type="text"
+                   id="name"
+                   name="name"
+                   class="form-input"
+                   value="{{ preset.name if preset else '' }}"
+                   placeholder="e.g., A4, Letter, Custom Size"
+                   required>
+            <p class="form-help">Unique name for this page size preset</p>
+        </div>
+
+        <div class="form-group">
+            <label for="description" class="form-label">Description</label>
+            <textarea id="description"
+                      name="description"
+                      class="form-input"
+                      rows="3"
+                      placeholder="Optional description of this page size">{{ preset.description if preset else '' }}</textarea>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="width" class="form-label">Width (mm) *</label>
+                <input type="number"
+                       id="width"
+                       name="width"
+                       class="form-input"
+                       value="{{ preset.width if preset else '' }}"
+                       step="0.1"
+                       min="0.1"
+                       placeholder="e.g., 210.0"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label for="height" class="form-label">Height (mm) *</label>
+                <input type="number"
+                       id="height"
+                       name="height"
+                       class="form-input"
+                       value="{{ preset.height if preset else '' }}"
+                       step="0.1"
+                       min="0.1"
+                       placeholder="e.g., 297.0"
+                       required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="checkbox-label">
+                <input type="checkbox"
+                       id="is_active"
+                       name="is_active"
+                       {% if not preset or preset.is_active %}checked{% endif %}>
+                <span>Active (available for use)</span>
+            </label>
+        </div>
+
+        {% if preset and preset.is_default %}
+        <div class="alert alert-info">
+            This is a default page size preset. You can edit it, but cannot delete it.
+        </div>
+        {% endif %}
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                {% if action == 'create' %}Create Page Size{% else %}Update Page Size{% endif %}
+            </button>
+            <a href="{{ url_for('presets.list_page_sizes') }}" class="btn btn-ghost">Cancel</a>
+        </div>
+    </form>
+
+    {# Reference Information #}
+    <div class="info-panel">
+        <h3>Common Page Sizes (for reference)</h3>
+        <table class="reference-table">
+            <thead>
+                <tr>
+                    <th>Size</th>
+                    <th>Width (mm)</th>
+                    <th>Height (mm)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>A5</td>
+                    <td>148.0</td>
+                    <td>210.0</td>
+                </tr>
+                <tr>
+                    <td>A4</td>
+                    <td>210.0</td>
+                    <td>297.0</td>
+                </tr>
+                <tr>
+                    <td>A3</td>
+                    <td>297.0</td>
+                    <td>420.0</td>
+                </tr>
+                <tr>
+                    <td>Letter</td>
+                    <td>215.9</td>
+                    <td>279.4</td>
+                </tr>
+                <tr>
+                    <td>Legal</td>
+                    <td>215.9</td>
+                    <td>355.6</td>
+                </tr>
+                <tr>
+                    <td>Tabloid</td>
+                    <td>279.4</td>
+                    <td>431.8</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -5,12 +5,48 @@ from typing import List, Dict, Tuple, Union, Optional
 
 # Unit conversion and paper sizes
 PX_PER_MM = 96.0 / 25.4
+
+# Hardcoded fallback paper sizes (used when database is unavailable)
 PAPER_SIZES_MM = {
     'A5': (148.0, 210.0),
     'A4': (210.0, 297.0),
     'Letter': (215.9, 279.4),
     'Legal': (215.9, 355.6),
 }
+
+
+def get_page_sizes_from_db():
+    """
+    Get page sizes from database.
+
+    Returns:
+        Dict mapping page size names to (width, height) tuples in millimeters,
+        or None if database is unavailable.
+    """
+    try:
+        from webapp.models import PageSizePreset
+        from flask import has_app_context
+
+        if not has_app_context():
+            return None
+
+        presets = PageSizePreset.query.filter_by(is_active=True).all()
+        return {preset.name: (preset.width, preset.height) for preset in presets}
+    except Exception:
+        return None
+
+
+def get_available_paper_sizes():
+    """
+    Get all available paper sizes, prioritizing database presets.
+
+    Returns:
+        Dict mapping page size names to (width, height) tuples in millimeters.
+    """
+    db_sizes = get_page_sizes_from_db()
+    if db_sizes:
+        return db_sizes
+    return PAPER_SIZES_MM.copy()
 
 
 def to_px(v: float, units: str) -> float:
@@ -86,9 +122,15 @@ def resolve_page_px(
     # Explicit dimensions take precedence
     if page_width and page_height:
         w_px, h_px = to_px(page_width, units), to_px(page_height, units)
-    elif isinstance(page_size, str) and page_size in PAPER_SIZES_MM:
-        w_mm, h_mm = PAPER_SIZES_MM[page_size]
-        w_px, h_px = to_px(w_mm, 'mm'), to_px(h_mm, 'mm')
+    elif isinstance(page_size, str):
+        # Try database first, then fall back to hardcoded sizes
+        paper_sizes = get_available_paper_sizes()
+        if page_size in paper_sizes:
+            w_mm, h_mm = paper_sizes[page_size]
+            w_px, h_px = to_px(w_mm, 'mm'), to_px(h_mm, 'mm')
+        else:
+            # Default to A4 if size not found
+            w_px, h_px = to_px(210, 'mm'), to_px(297, 'mm')
     elif isinstance(page_size, (list, tuple)) and len(page_size) == 2:
         w_px, h_px = to_px(page_size[0], units), to_px(page_size[1], units)
     else:

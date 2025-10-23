@@ -1,0 +1,315 @@
+{% extends "admin/base.html" %}
+
+{% set active_nav = 'templates' %}
+{% set narrow_layout = true %}
+
+{% block title %}
+{% if action == 'create' %}Create{% else %}Edit{% endif %} Template - WriteBot Admin
+{% endblock %}
+
+{% block admin_title %}
+{% if action == 'create' %}Create Template Preset{% else %}Edit Template Preset{% endif %}
+{% endblock %}
+
+{% block admin_content %}
+<div class="admin-form-container">
+    <form method="post" class="admin-form">
+        {# Basic Information #}
+        <fieldset class="form-fieldset">
+            <legend>Basic Information</legend>
+
+            <div class="form-group">
+                <label for="name" class="form-label">Template Name *</label>
+                <input type="text"
+                       id="name"
+                       name="name"
+                       class="form-input"
+                       value="{{ template.name if template else '' }}"
+                       placeholder="e.g., A4 Portrait - Standard"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label for="description" class="form-label">Description</label>
+                <textarea id="description"
+                          name="description"
+                          class="form-input"
+                          rows="2"
+                          placeholder="Optional description">{{ template.description if template else '' }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox"
+                           id="is_active"
+                           name="is_active"
+                           {% if not template or template.is_active %}checked{% endif %}>
+                    <span>Active (available for use)</span>
+                </label>
+            </div>
+        </fieldset>
+
+        {# Page Configuration #}
+        <fieldset class="form-fieldset">
+            <legend>Page Configuration</legend>
+
+            <div class="form-group">
+                <label for="page_size_id" class="form-label">Page Size Preset</label>
+                <select id="page_size_id" name="page_size_id" class="form-input">
+                    <option value="">Custom dimensions (specify below)</option>
+                    {% for page_size in page_sizes %}
+                    <option value="{{ page_size.id }}"
+                            {% if template and template.page_size_id == page_size.id %}selected{% endif %}>
+                        {{ page_size.name }} ({{ page_size.width }}×{{ page_size.height }}mm)
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="custom_width" class="form-label">Custom Width (mm)</label>
+                    <input type="number"
+                           id="custom_width"
+                           name="custom_width"
+                           class="form-input"
+                           value="{{ template.custom_width if template and template.custom_width else '' }}"
+                           step="0.1"
+                           min="0.1"
+                           placeholder="Only if not using preset">
+                </div>
+
+                <div class="form-group">
+                    <label for="custom_height" class="form-label">Custom Height (mm)</label>
+                    <input type="number"
+                           id="custom_height"
+                           name="custom_height"
+                           class="form-input"
+                           value="{{ template.custom_height if template and template.custom_height else '' }}"
+                           step="0.1"
+                           min="0.1"
+                           placeholder="Only if not using preset">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="orientation" class="form-label">Orientation</label>
+                <select id="orientation" name="orientation" class="form-input">
+                    <option value="portrait" {% if not template or template.orientation == 'portrait' %}selected{% endif %}>Portrait</option>
+                    <option value="landscape" {% if template and template.orientation == 'landscape' %}selected{% endif %}>Landscape</option>
+                </select>
+            </div>
+        </fieldset>
+
+        {# Margins #}
+        <fieldset class="form-fieldset">
+            <legend>Margins (mm)</legend>
+
+            <div class="form-row form-row--quad">
+                <div class="form-group">
+                    <label for="margin_top" class="form-label">Top</label>
+                    <input type="number"
+                           id="margin_top"
+                           name="margin_top"
+                           class="form-input"
+                           value="{{ template.margin_top if template else '20.0' }}"
+                           step="0.1"
+                           min="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="margin_right" class="form-label">Right</label>
+                    <input type="number"
+                           id="margin_right"
+                           name="margin_right"
+                           class="form-input"
+                           value="{{ template.margin_right if template else '20.0' }}"
+                           step="0.1"
+                           min="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="margin_bottom" class="form-label">Bottom</label>
+                    <input type="number"
+                           id="margin_bottom"
+                           name="margin_bottom"
+                           class="form-input"
+                           value="{{ template.margin_bottom if template else '20.0' }}"
+                           step="0.1"
+                           min="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="margin_left" class="form-label">Left</label>
+                    <input type="number"
+                           id="margin_left"
+                           name="margin_left"
+                           class="form-input"
+                           value="{{ template.margin_left if template else '20.0' }}"
+                           step="0.1"
+                           min="0">
+                </div>
+            </div>
+        </fieldset>
+
+        {# Layout Settings #}
+        <fieldset class="form-fieldset">
+            <legend>Layout Settings</legend>
+
+            <div class="form-group">
+                <label for="line_height" class="form-label">Line Height (px)</label>
+                <input type="number"
+                       id="line_height"
+                       name="line_height"
+                       class="form-input"
+                       value="{{ template.line_height if template else '60.0' }}"
+                       step="0.1"
+                       min="1">
+            </div>
+
+            <div class="form-group">
+                <label for="alignment" class="form-label">Text Alignment</label>
+                <select id="alignment" name="alignment" class="form-input">
+                    <option value="left" {% if not template or template.alignment == 'left' %}selected{% endif %}>Left</option>
+                    <option value="center" {% if template and template.alignment == 'center' %}selected{% endif %}>Center</option>
+                    <option value="right" {% if template and template.alignment == 'right' %}selected{% endif %}>Right</option>
+                    <option value="justify" {% if template and template.alignment == 'justify' %}selected{% endif %}>Justify</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="background" class="form-label">Background</label>
+                <input type="text"
+                       id="background"
+                       name="background"
+                       class="form-input"
+                       value="{{ template.background if template else 'white' }}"
+                       placeholder="e.g., white, #ffffff">
+            </div>
+        </fieldset>
+
+        {# Writing Settings #}
+        <fieldset class="form-fieldset">
+            <legend>Writing Settings</legend>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="global_scale" class="form-label">Global Scale</label>
+                    <input type="number"
+                           id="global_scale"
+                           name="global_scale"
+                           class="form-input"
+                           value="{{ template.global_scale if template else '1.0' }}"
+                           step="0.1"
+                           min="0.1">
+                </div>
+
+                <div class="form-group">
+                    <label for="default_style" class="form-label">Default Style</label>
+                    <input type="number"
+                           id="default_style"
+                           name="default_style"
+                           class="form-input"
+                           value="{{ template.default_style if template else '9' }}"
+                           min="0"
+                           max="20">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="default_bias" class="form-label">Default Bias</label>
+                    <input type="number"
+                           id="default_bias"
+                           name="default_bias"
+                           class="form-input"
+                           value="{{ template.default_bias if template else '0.75' }}"
+                           step="0.01"
+                           min="0"
+                           max="1">
+                </div>
+
+                <div class="form-group">
+                    <label for="legibility" class="form-label">Legibility</label>
+                    <input type="number"
+                           id="legibility"
+                           name="legibility"
+                           class="form-input"
+                           value="{{ template.legibility if template else '0.0' }}"
+                           step="0.1">
+                </div>
+            </div>
+        </fieldset>
+
+        {# Stroke Settings #}
+        <fieldset class="form-fieldset">
+            <legend>Stroke Settings</legend>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="stroke_color" class="form-label">Stroke Color</label>
+                    <input type="text"
+                           id="stroke_color"
+                           name="stroke_color"
+                           class="form-input"
+                           value="{{ template.stroke_color if template else 'black' }}"
+                           placeholder="e.g., black, #000000">
+                </div>
+
+                <div class="form-group">
+                    <label for="stroke_width" class="form-label">Stroke Width</label>
+                    <input type="number"
+                           id="stroke_width"
+                           name="stroke_width"
+                           class="form-input"
+                           value="{{ template.stroke_width if template else '2' }}"
+                           min="1">
+                </div>
+            </div>
+        </fieldset>
+
+        {# Advanced Settings #}
+        <fieldset class="form-fieldset">
+            <legend>Advanced Settings</legend>
+
+            <div class="form-group">
+                <label for="x_stretch" class="form-label">X Stretch</label>
+                <input type="number"
+                       id="x_stretch"
+                       name="x_stretch"
+                       class="form-input"
+                       value="{{ template.x_stretch if template else '1.0' }}"
+                       step="0.1"
+                       min="0.1">
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox"
+                           id="denoise"
+                           name="denoise"
+                           {% if template and template.denoise %}checked{% endif %}>
+                    <span>Enable Denoising</span>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox"
+                           id="use_chunked"
+                           name="use_chunked"
+                           {% if template and template.use_chunked %}checked{% endif %}>
+                    <span>Use Chunked Generation</span>
+                </label>
+            </div>
+        </fieldset>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                {% if action == 'create' %}Create Template{% else %}Update Template{% endif %}
+            </button>
+            <a href="{{ url_for('presets.list_templates') }}" class="btn btn-ghost">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
