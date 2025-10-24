@@ -44,23 +44,23 @@
     <h3>Upload Character Variants</h3>
 
     <div class="info-box">
-        <strong>⚠️ Pen Plotter Compatibility:</strong>
+        <strong>Pen Plotter Compatibility:</strong>
         <ul style="margin: 8px 0; padding-left: 20px;">
-            <li><strong>Recommended:</strong> Use the <strong>Draw Character</strong> tab for guaranteed pen plotter compatibility</li>
+            <li><strong>Recommended:</strong> Use the Draw Character tab for guaranteed compatibility</li>
             <li>For uploaded SVGs: Use stroke-based paths, NOT filled paths</li>
             <li>Set <code>stroke="black"</code>, <code>stroke-width="2-3"</code>, and <code>fill="none"</code></li>
             <li>Must include viewBox or width/height attributes</li>
             <li>Recommended size: approximately 100-200px height for best results</li>
         </ul>
-        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #0f62fe;">
+        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e0e0e0;">
             <strong>Keyboard Shortcuts:</strong> Press <kbd>1</kbd> for Draw Character, <kbd>2</kbd> for Single Upload, <kbd>3</kbd> for Batch Upload
         </div>
     </div>
 
     <div class="upload-tabs">
-        <button class="upload-tab active" data-tab="draw">✏️ Draw Character</button>
-        <button class="upload-tab" data-tab="single">📤 Single Upload</button>
-        <button class="upload-tab" data-tab="batch">📦 Batch Upload</button>
+        <button class="upload-tab active" data-tab="draw">Draw Character</button>
+        <button class="upload-tab" data-tab="single">Single Upload</button>
+        <button class="upload-tab" data-tab="batch">Batch Upload</button>
     </div>
 
     {# Draw Character Interface #}
@@ -181,7 +181,6 @@
         {% endfor %}
     {% else %}
         <div class="empty-state">
-            <div class="empty-state__icon">📝</div>
             <p class="empty-state__message">No character variants uploaded yet.</p>
             <p style="color: #8d8d8d; font-size: 14px; margin-top: 8px;">
                 Use the upload form above to add characters to this collection.
