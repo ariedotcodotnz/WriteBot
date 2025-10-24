@@ -87,7 +87,7 @@
             </div>
             <div class="draw-canvas-container">
                 <div class="canvas-label">Draw your character below:</div>
-                <canvas id="draw-canvas" width="200" height="300"></canvas>
+                <div id="draw-area"></div>
                 <div class="canvas-help">
                     Use your mouse or touchscreen to draw. The character will be saved as a pen-plotter-compatible stroke-based SVG.
                 </div>
@@ -230,12 +230,18 @@
         color: #161616;
     }
 
-    #draw-canvas {
+    #draw-area {
+        width: 200px;
+        height: 300px;
         border: 2px solid #8d8d8d;
         border-radius: 4px;
-        cursor: crosshair;
         background: white;
-        touch-action: none;
+        position: relative;
+    }
+
+    #draw-area svg {
+        cursor: crosshair;
+        border-radius: 4px;
     }
 
     .canvas-help {
@@ -252,12 +258,21 @@
     }
 </style>
 
+<!-- @svg-drawing/core library -->
+<script src="https://unpkg.com/@svg-drawing/core@4.0.0-beta.6/lib/index.umd.js"></script>
+
 <script src="{{ url_for('static', filename='js/character_drawer.js') }}"></script>
 <script>
     // Initialize character drawer when page loads
     document.addEventListener('DOMContentLoaded', function() {
         const collectionId = {{ collection.id }};
-        CharacterDrawer.init(collectionId);
+
+        // Wait for library to load
+        if (typeof SVGDCore !== 'undefined') {
+            CharacterDrawer.init(collectionId);
+        } else {
+            console.error('@svg-drawing/core library failed to load');
+        }
 
         // Update keyboard shortcuts
         document.addEventListener('keydown', function(e) {

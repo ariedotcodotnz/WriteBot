@@ -1,240 +1,119 @@
 /**
  * Character Drawer Module
- * Provides a canvas-based drawing interface for creating pen-plotter-compatible
- * character override SVGs.
+ * Uses @svg-drawing/core library for professional SVG drawing interface
+ * Generates pen-plotter-compatible stroke-based SVG characters
  */
 
 const CharacterDrawer = (function() {
-    let canvas, ctx;
-    let isDrawing = false;
-    let strokes = [];  // Array of stroke arrays
-    let currentStroke = [];  // Current stroke being drawn
+    let drawing;
     let collectionId;
 
     /**
-     * Initialize the character drawer
+     * Initialize the character drawer using @svg-drawing/core
      */
     function init(collId) {
         collectionId = collId;
-        canvas = document.getElementById('draw-canvas');
-        if (!canvas) {
-            console.error('Canvas element not found');
+
+        // Check if library is loaded
+        if (typeof SVGDCore === 'undefined') {
+            console.error('@svg-drawing/core library not loaded');
             return;
         }
 
-        ctx = canvas.getContext('2d');
-        setupCanvas();
+        const container = document.getElementById('draw-area');
+        if (!container) {
+            console.error('Draw area element not found');
+            return;
+        }
+
+        // Initialize SVG drawing with pen plotter compatible settings
+        drawing = new SVGDCore.SvgDrawing(container, {
+            width: 200,
+            height: 300,
+            penColor: '#000000',
+            penWidth: 3,
+            fill: 'none',  // Critical for pen plotter compatibility!
+            close: false,
+            curve: false   // Use straight lines for better plotter control
+        });
+
         attachEventListeners();
     }
 
     /**
-     * Set up canvas with proper styling
-     */
-    function setupCanvas() {
-        ctx.strokeStyle = '#000000';
-        ctx.lineJoin = 'round';
-        ctx.lineCap = 'round';
-        updateStrokeWidth();
-    }
-
-    /**
-     * Update stroke width from input
-     */
-    function updateStrokeWidth() {
-        const strokeWidth = parseFloat(document.getElementById('draw-stroke-width').value) || 3;
-        ctx.lineWidth = strokeWidth;
-    }
-
-    /**
-     * Attach event listeners for drawing and controls
+     * Attach event listeners for controls
      */
     function attachEventListeners() {
-        // Mouse events
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mouseout', stopDrawing);
-
-        // Touch events
-        canvas.addEventListener('touchstart', handleTouchStart, {passive: false});
-        canvas.addEventListener('touchmove', handleTouchMove, {passive: false});
-        canvas.addEventListener('touchend', stopDrawing, {passive: false});
-
         // Control buttons
         document.getElementById('clear-canvas').addEventListener('click', clearCanvas);
         document.getElementById('undo-stroke').addEventListener('click', undoStroke);
         document.getElementById('save-drawing').addEventListener('click', saveDrawing);
 
-        // Stroke width change
+        // Stroke width change - update drawing settings
         document.getElementById('draw-stroke-width').addEventListener('change', updateStrokeWidth);
     }
 
     /**
-     * Get canvas coordinates from mouse event
+     * Update stroke width in drawing instance
      */
-    function getCanvasCoords(e) {
-        const rect = canvas.getBoundingClientRect();
-        return {
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top
-        };
-    }
-
-    /**
-     * Get canvas coordinates from touch event
-     */
-    function getTouchCoords(e) {
-        const rect = canvas.getBoundingClientRect();
-        const touch = e.touches[0];
-        return {
-            x: touch.clientX - rect.left,
-            y: touch.clientY - rect.top
-        };
-    }
-
-    /**
-     * Start drawing a new stroke
-     */
-    function startDrawing(e) {
-        e.preventDefault();
-        isDrawing = true;
-        currentStroke = [];
-        const coords = getCanvasCoords(e);
-        currentStroke.push(coords);
-
-        ctx.beginPath();
-        ctx.moveTo(coords.x, coords.y);
-    }
-
-    /**
-     * Continue drawing the current stroke
-     */
-    function draw(e) {
-        if (!isDrawing) return;
-        e.preventDefault();
-
-        const coords = getCanvasCoords(e);
-        currentStroke.push(coords);
-
-        ctx.lineTo(coords.x, coords.y);
-        ctx.stroke();
-    }
-
-    /**
-     * Stop drawing and save the current stroke
-     */
-    function stopDrawing(e) {
-        if (!isDrawing) return;
-        e.preventDefault();
-
-        isDrawing = false;
-
-        if (currentStroke.length > 0) {
-            strokes.push([...currentStroke]);
-            currentStroke = [];
+    function updateStrokeWidth() {
+        const strokeWidth = parseFloat(document.getElementById('draw-stroke-width').value) || 3;
+        if (drawing) {
+            drawing.penWidth = strokeWidth;
         }
     }
 
     /**
-     * Handle touch start
-     */
-    function handleTouchStart(e) {
-        e.preventDefault();
-        isDrawing = true;
-        currentStroke = [];
-        const coords = getTouchCoords(e);
-        currentStroke.push(coords);
-
-        ctx.beginPath();
-        ctx.moveTo(coords.x, coords.y);
-    }
-
-    /**
-     * Handle touch move
-     */
-    function handleTouchMove(e) {
-        if (!isDrawing) return;
-        e.preventDefault();
-
-        const coords = getTouchCoords(e);
-        currentStroke.push(coords);
-
-        ctx.lineTo(coords.x, coords.y);
-        ctx.stroke();
-    }
-
-    /**
-     * Clear the entire canvas and all strokes
+     * Clear the drawing
      */
     function clearCanvas() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        strokes = [];
-        currentStroke = [];
+        if (drawing) {
+            drawing.clear();
+        }
     }
 
     /**
      * Undo the last stroke
      */
     function undoStroke() {
-        if (strokes.length === 0) return;
-
-        strokes.pop();
-        redrawCanvas();
+        if (drawing) {
+            drawing.undo();
+        }
     }
 
     /**
-     * Redraw all strokes on the canvas
+     * Convert drawing to pen-plotter-compatible SVG
      */
-    function redrawCanvas() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    function drawingToSVG() {
+        if (!drawing) {
+            return null;
+        }
 
-        const strokeWidth = parseFloat(document.getElementById('draw-stroke-width').value) || 3;
-        ctx.lineWidth = strokeWidth;
+        // Get the SVG object from the drawing
+        const svgObj = drawing.getSvgObject();
 
-        strokes.forEach(stroke => {
-            if (stroke.length === 0) return;
-
-            ctx.beginPath();
-            ctx.moveTo(stroke[0].x, stroke[0].y);
-
-            for (let i = 1; i < stroke.length; i++) {
-                ctx.lineTo(stroke[i].x, stroke[i].y);
-            }
-
-            ctx.stroke();
-        });
-    }
-
-    /**
-     * Convert strokes to SVG path data
-     */
-    function strokesToSVG() {
-        if (strokes.length === 0) {
+        if (!svgObj.paths || svgObj.paths.length === 0) {
             return null;
         }
 
         const strokeWidth = parseFloat(document.getElementById('draw-stroke-width').value) || 3;
-        const width = canvas.width;
-        const height = canvas.height;
 
-        // Build SVG with stroke-based paths (pen plotter compatible)
+        // Build pen-plotter-compatible SVG with stroke-based paths
         let svgPaths = '';
 
-        strokes.forEach(stroke => {
-            if (stroke.length === 0) return;
+        svgObj.paths.forEach(path => {
+            // Ensure we're using stroke, not fill (critical for pen plotter!)
+            const pathAttrs = Object.entries(path)
+                .filter(([key]) => key !== 'd')
+                .map(([key, value]) => `${key}="${value}"`)
+                .join(' ');
 
-            let pathData = `M ${stroke[0].x},${stroke[0].y}`;
-
-            for (let i = 1; i < stroke.length; i++) {
-                pathData += ` L ${stroke[i].x},${stroke[i].y}`;
-            }
-
-            // Create stroke-based path (NOT filled - pen plotter compatible!)
-            svgPaths += `  <path d="${pathData}" stroke="black" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" fill="none"/>\n`;
+            // Override to ensure stroke-based rendering
+            svgPaths += `  <path d="${path.d}" stroke="black" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" fill="none"/>\n`;
         });
 
         const svgData = `<?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 ${svgObj.width} ${svgObj.height}" xmlns="http://www.w3.org/2000/svg">
 ${svgPaths}</svg>`;
 
         return svgData;
@@ -253,13 +132,19 @@ ${svgPaths}</svg>`;
             return;
         }
 
-        if (strokes.length === 0) {
+        if (!drawing) {
+            alert('Drawing not initialized.');
+            return;
+        }
+
+        const svgObj = drawing.getSvgObject();
+        if (!svgObj.paths || svgObj.paths.length === 0) {
             alert('Please draw something first!');
             return;
         }
 
-        // Convert to SVG
-        const svgData = strokesToSVG();
+        // Convert to pen-plotter-compatible SVG
+        const svgData = drawingToSVG();
         if (!svgData) {
             alert('Failed to generate SVG data.');
             return;
