@@ -179,14 +179,26 @@ Use \\ on its own line to insert blank space."></textarea>
             <div class="bx--form">
               <div class="form-grid">
                 <div class="form-group">
+                  <label for="templatePreset" class="bx--label label-with-tooltip">
+                    Template Preset
+                    <span class="tooltip-icon">
+                      <span class="tooltip-text">Select a predefined template with page size and layout settings, or choose "None" for manual configuration.</span>
+                    </span>
+                  </label>
+                  <div class="bx--select">
+                    <select id="templatePreset" class="bx--select-input">
+                      <option value="">None (Manual Settings)</option>
+                    </select>
+                    <svg class="bx--select__arrow" width="10" height="6" viewBox="0 0 10 6">
+                      <path d="M5 6L0 0h10z" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="form-group">
                   <label for="pageSize" class="bx--label">Page Size</label>
                   <div class="bx--select">
                     <select id="pageSize" class="bx--select-input">
-                      <option value="A4">A4 (210 × 297 mm)</option>
-                      <option value="A5">A5 (148 × 210 mm)</option>
-                      <option value="Letter">Letter (8.5 × 11")</option>
-                      <option value="Legal">Legal (8.5 × 14")</option>
-                      <option value="custom">Custom Size</option>
+                      <option value="">Loading...</option>
                     </select>
                     <svg class="bx--select__arrow" width="10" height="6" viewBox="0 0 10 6">
                       <path d="M5 6L0 0h10z" />

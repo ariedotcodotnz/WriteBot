@@ -1,0 +1,80 @@
+{% extends "admin/base.html" %}
+
+{% set active_nav = 'page_sizes' %}
+
+{% block title %}Page Size Presets - Admin - WriteBot{% endblock %}
+
+{% block admin_title %}Page Size Presets{% endblock %}
+
+{% block admin_content %}
+<div class="admin-section">
+    <div class="admin-section__header">
+        <div>
+            <h2 class="admin-section__title">Page Size Management</h2>
+            <p class="admin-section__subtitle">Create and manage custom page size presets</p>
+        </div>
+        <a href="{{ url_for('admin.create_page_size') }}" class="btn btn-primary">Create New Page Size</a>
+    </div>
+
+    {% if page_sizes %}
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Width</th>
+                <th>Height</th>
+                <th>Unit</th>
+                <th>Status</th>
+                <th>Type</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for page_size in page_sizes %}
+            <tr>
+                <td><strong>{{ page_size.name }}</strong></td>
+                <td>{{ page_size.width }}</td>
+                <td>{{ page_size.height }}</td>
+                <td>{{ page_size.unit }}</td>
+                <td>
+                    {% if page_size.is_active %}
+                    <span class="badge badge-active">Active</span>
+                    {% else %}
+                    <span class="badge badge-inactive">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if page_size.is_default %}
+                    <span class="badge badge-default">System Default</span>
+                    {% else %}
+                    <span class="badge badge-custom">Custom</span>
+                    {% endif %}
+                </td>
+                <td>{{ page_size.created_at.strftime('%Y-%m-%d') }}</td>
+                <td>
+                    <div class="admin-table__actions">
+                        {% if not page_size.is_default %}
+                        <a href="{{ url_for('admin.edit_page_size', page_size_id=page_size.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+                        <form method="POST" action="{{ url_for('admin.delete_page_size', page_size_id=page_size.id) }}"
+                              style="display: inline;"
+                              data-confirm="Are you sure you want to delete this page size?">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                        {% else %}
+                        <span class="text-muted">System Default</span>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state__message">No page size presets found.</div>
+        <a href="{{ url_for('admin.create_page_size') }}" class="btn btn-primary">Create First Page Size</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

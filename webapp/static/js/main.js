@@ -5,6 +5,8 @@ let STYLE_LIST = [];
 let SELECTED_STYLE_ID = null;
 let CSV_FILE = null;
 let CHARACTER_OVERRIDE_COLLECTIONS = [];
+let PAGE_SIZE_PRESETS = [];
+let TEMPLATE_PRESETS = [];
 
 // Lightbox Functions
 function openLightbox(svgContent) {
@@ -189,6 +191,132 @@ async function loadCharacterOverrideCollections() {
     console.error('Failed to load character override collections:', e);
     // Keep the default "None" option
   }
+}
+
+// Load Page Size Presets
+async function loadPageSizePresets() {
+  const sel = document.getElementById('pageSize');
+  if (!sel) return;
+
+  sel.innerHTML = '<option value="">Loading...</option>';
+
+  try {
+    const res = await fetch('/api/page-sizes');
+    if (!res.ok) {
+      throw new Error('Failed to load page size presets');
+    }
+    const data = await res.json();
+    PAGE_SIZE_PRESETS = data.page_sizes || [];
+
+    sel.innerHTML = '';
+    PAGE_SIZE_PRESETS.forEach(pageSize => {
+      const opt = document.createElement('option');
+      opt.value = pageSize.name;
+      opt.dataset.id = pageSize.id;
+      opt.dataset.width = pageSize.width;
+      opt.dataset.height = pageSize.height;
+      opt.dataset.unit = pageSize.unit;
+      opt.textContent = `${pageSize.name} (${pageSize.width} × ${pageSize.height} ${pageSize.unit})`;
+      sel.appendChild(opt);
+    });
+
+    // Add custom option at the end
+    const customOpt = document.createElement('option');
+    customOpt.value = 'custom';
+    customOpt.textContent = 'Custom Size';
+    sel.appendChild(customOpt);
+
+    // Set default to A4 if available
+    const a4Option = Array.from(sel.options).find(opt => opt.value === 'A4');
+    if (a4Option) {
+      sel.value = 'A4';
+    }
+  } catch (e) {
+    console.error('Failed to load page size presets:', e);
+    // Fallback to hardcoded options
+    sel.innerHTML = `
+      <option value="A4">A4 (210 × 297 mm)</option>
+      <option value="A5">A5 (148 × 210 mm)</option>
+      <option value="Letter">Letter (8.5 × 11")</option>
+      <option value="Legal">Legal (8.5 × 14")</option>
+      <option value="custom">Custom Size</option>
+    `;
+  }
+}
+
+// Load Template Presets
+async function loadTemplatePresets() {
+  const sel = document.getElementById('templatePreset');
+  if (!sel) return;
+
+  try {
+    const res = await fetch('/api/templates');
+    if (!res.ok) {
+      throw new Error('Failed to load template presets');
+    }
+    const data = await res.json();
+    TEMPLATE_PRESETS = data.templates || [];
+
+    // Keep the "None" option and add templates
+    sel.innerHTML = '<option value="">None (Manual Settings)</option>';
+    TEMPLATE_PRESETS.forEach(template => {
+      const opt = document.createElement('option');
+      opt.value = String(template.id);
+      opt.textContent = template.name;
+      if (template.description) {
+        opt.title = template.description;
+      }
+      sel.appendChild(opt);
+    });
+  } catch (e) {
+    console.error('Failed to load template presets:', e);
+    // Keep the default "None" option
+  }
+}
+
+// Apply Template Preset
+function applyTemplatePreset(templateId) {
+  if (!templateId) return;
+
+  const template = TEMPLATE_PRESETS.find(t => t.id === parseInt(templateId));
+  if (!template) return;
+
+  // Set page size
+  const pageSizeSelect = document.getElementById('pageSize');
+  const pageSizeOption = Array.from(pageSizeSelect.options).find(
+    opt => opt.dataset.id === String(template.page_size_preset_id)
+  );
+  if (pageSizeOption) {
+    pageSizeSelect.value = pageSizeOption.value;
+  }
+
+  // Set orientation
+  document.getElementById('orientation').value = template.orientation;
+
+  // Set margins
+  if (template.margins) {
+    document.getElementById('marginTop').value = template.margins.top || '';
+    document.getElementById('marginRight').value = template.margins.right || '';
+    document.getElementById('marginBottom').value = template.margins.bottom || '';
+    document.getElementById('marginLeft').value = template.margins.left || '';
+  }
+
+  // Set line height if specified
+  if (template.line_height) {
+    document.getElementById('lineHeight').value = template.line_height;
+  }
+
+  // Set background color if specified
+  if (template.background_color) {
+    document.getElementById('background').value = template.background_color;
+  }
+
+  // Update units if needed (assuming margins and template use same units)
+  if (template.margins && template.margins.unit) {
+    document.getElementById('units').value = template.margins.unit;
+  }
+
+  toastSuccess(`Applied template: ${template.name}`);
 }
 
 // Custom Dropdown Functions
@@ -665,11 +793,24 @@ function setupZoomControl() {
 document.addEventListener('DOMContentLoaded', () => {
     loadStyles();
     loadCharacterOverrideCollections();
+    loadPageSizePresets();
+    loadTemplatePresets();
     syncCustomSizeVisibility();
     setupCsvDragDrop();
     setupZoomControl();
 
     document.getElementById('pageSize').addEventListener('change', syncCustomSizeVisibility);
+
+    // Template preset selection
+    const templatePresetSelect = document.getElementById('templatePreset');
+    if (templatePresetSelect) {
+        templatePresetSelect.addEventListener('change', (e) => {
+            const templateId = e.target.value;
+            if (templateId) {
+                applyTemplatePreset(templateId);
+            }
+        });
+    }
 
     // Setup custom style dropdown trigger
     const selectWrapper = document.querySelector('.style-select-trigger');

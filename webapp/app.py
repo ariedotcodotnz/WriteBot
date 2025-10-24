@@ -51,7 +51,7 @@ from webapp.models import db, User
 from webapp.extensions import init_extensions
 
 # Import route blueprints
-from webapp.routes import generation_bp, batch_bp, style_bp
+from webapp.routes import generation_bp, batch_bp, style_bp, presets_bp
 
 
 # Initialize Flask app
@@ -182,6 +182,7 @@ init_extensions(cache_instance=cache, limiter_instance=limiter, assets_instance=
 app.register_blueprint(generation_bp)
 app.register_blueprint(batch_bp)
 app.register_blueprint(style_bp)
+app.register_blueprint(presets_bp)
 
 # Import and register auth blueprint
 from webapp.routes.auth_routes import auth_bp

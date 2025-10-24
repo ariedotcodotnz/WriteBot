@@ -1,0 +1,78 @@
+{% extends "admin/base.html" %}
+
+{% set active_nav = 'templates' %}
+
+{% block title %}Template Presets - Admin - WriteBot{% endblock %}
+
+{% block admin_title %}Template Presets{% endblock %}
+
+{% block admin_content %}
+<div class="admin-section">
+    <div class="admin-section__header">
+        <div>
+            <h2 class="admin-section__title">Template Management</h2>
+            <p class="admin-section__subtitle">Create and manage document template presets with page sizes and layouts</p>
+        </div>
+        <a href="{{ url_for('admin.create_template') }}" class="btn btn-primary">Create New Template</a>
+    </div>
+
+    {% if templates %}
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Page Size</th>
+                <th>Orientation</th>
+                <th>Margins</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for template in templates %}
+            <tr>
+                <td>
+                    <strong>{{ template.name }}</strong>
+                    {% if template.description %}
+                    <div class="text-muted small">{{ template.description[:50] }}{% if template.description|length > 50 %}...{% endif %}</div>
+                    {% endif %}
+                </td>
+                <td>{{ template.page_size.name if template.page_size else 'N/A' }}</td>
+                <td><span class="badge">{{ template.orientation }}</span></td>
+                <td>
+                    <span class="small">
+                        T:{{ template.margin_top }} R:{{ template.margin_right }}
+                        B:{{ template.margin_bottom }} L:{{ template.margin_left }} {{ template.margin_unit }}
+                    </span>
+                </td>
+                <td>
+                    {% if template.is_active %}
+                    <span class="badge badge-active">Active</span>
+                    {% else %}
+                    <span class="badge badge-inactive">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>{{ template.created_at.strftime('%Y-%m-%d') }}</td>
+                <td>
+                    <div class="admin-table__actions">
+                        <a href="{{ url_for('admin.edit_template', template_id=template.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+                        <form method="POST" action="{{ url_for('admin.delete_template', template_id=template.id) }}"
+                              style="display: inline;"
+                              data-confirm="Are you sure you want to delete this template?">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state__message">No template presets found.</div>
+        <a href="{{ url_for('admin.create_template') }}" class="btn btn-primary">Create First Template</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
