@@ -257,9 +257,41 @@
     }
 </style>
 
+<!-- Load @svg-drawing/core library AFTER our initialization code is defined -->
+<script src="https://unpkg.com/@svg-drawing/core@4.0.0-beta.6/lib/index.umd.js"></script>
+<!-- Optional: alias to the name CharacterDrawer/init code looks for -->
+<script>
+  window.SVGDCore = window.SVGDCore || window.SvgDrawing || window.svgDrawingCore || window.SVGDCore;
+</script>
+
 <!-- First load the character drawer module code -->
 <script src="{{ url_for('static', filename='js/character_overrides.js') }}"></script>
 <script src="{{ url_for('static', filename='js/character_drawer.js') }}"></script>
+
+<script>
+  function loadSvgDrawingLibThenInit() {
+    const collectionId = {{ collection.id }};
+    const SvgLib = window.SVGDCore || window.svgDrawingCore || window.SvgDrawing;
+    if (SvgLib) {
+      CharacterDrawer.init(collectionId);
+      return;
+    }
+    // Fallback: try to load the library dynamically
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/@svg-drawing/core@latest/dist/umd/index.min.js';
+    s.onload = function () {
+      window.SVGDCore = window.SVGDCore || window.SvgDrawing || window.svgDrawingCore || window.SVGDCore;
+      CharacterDrawer.init(collectionId);
+    };
+    s.onerror = function () {
+      const drawArea = document.getElementById('draw-area');
+      if (drawArea) {
+        drawArea.innerHTML = '<div style="padding:20px;text-align:center;color:#da1e28;"><strong>Error:</strong> Drawing library failed to load. Please refresh the page.</div>';
+      }
+    };
+    document.head.appendChild(s);
+  }
+</script>
 
 <!-- @svg-drawing/core library with onload handler -->
 <script>
@@ -314,6 +346,4 @@
     });
 </script>
 
-<!-- Load @svg-drawing/core library AFTER our initialization code is defined -->
-<script src="https://unpkg.com/@svg-drawing/core@4.0.0-beta.6/lib/index.umd.js"></script>
 {% endblock %}
