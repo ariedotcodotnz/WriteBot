@@ -257,36 +257,63 @@
     }
 </style>
 
-<!-- @svg-drawing/core library -->
-<script src="https://unpkg.com/@svg-drawing/core@4.0.0-beta.6/lib/index.umd.js"></script>
-
+<!-- First load the character drawer module code -->
 <script src="{{ url_for('static', filename='js/character_overrides.js') }}"></script>
 <script src="{{ url_for('static', filename='js/character_drawer.js') }}"></script>
+
+<!-- @svg-drawing/core library with onload handler -->
 <script>
-    // Initialize character drawer when page loads
-    document.addEventListener('DOMContentLoaded', function() {
+    // Function to initialize when library is loaded
+    function initializeDrawing() {
         const collectionId = {{ collection.id }};
 
-        // Wait for library to load
-        if (typeof SVGDCore !== 'undefined') {
+        console.log('Initializing character drawer...', typeof SVGDCore, typeof window.SVGDCore);
+
+        // Check multiple possible global names
+        const SvgLib = window.SVGDCore || window.svgDrawingCore || window.SvgDrawing;
+
+        if (SvgLib) {
+            console.log('Library loaded successfully:', SvgLib);
             CharacterDrawer.init(collectionId);
         } else {
-            console.error('@svg-drawing/core library failed to load');
-        }
-
-        // Update keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            // Ignore if typing in input field
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-            if (e.key === '1') {
-                document.querySelector('[data-tab="draw"]').click();
-            } else if (e.key === '2') {
-                document.querySelector('[data-tab="single"]').click();
-            } else if (e.key === '3') {
-                document.querySelector('[data-tab="batch"]').click();
+            console.error('@svg-drawing/core library not found. Available globals:', Object.keys(window).filter(k => k.toLowerCase().includes('svg')));
+            // Show error message to user
+            const drawArea = document.getElementById('draw-area');
+            if (drawArea) {
+                drawArea.innerHTML = '<div style="padding: 20px; text-align: center; color: #da1e28;"><strong>Error:</strong> Drawing library failed to load. Please refresh the page.</div>';
             }
+        }
+    }
+
+    // Wait for DOM and library to be ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            // Give a small delay to ensure external script is loaded
+            setTimeout(initializeDrawing, 100);
         });
+    } else {
+        // DOM already loaded
+        setTimeout(initializeDrawing, 100);
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ignore if typing in input field
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        if (e.key === '1') {
+            const tab = document.querySelector('[data-tab="draw"]');
+            if (tab) tab.click();
+        } else if (e.key === '2') {
+            const tab = document.querySelector('[data-tab="single"]');
+            if (tab) tab.click();
+        } else if (e.key === '3') {
+            const tab = document.querySelector('[data-tab="batch"]');
+            if (tab) tab.click();
+        }
     });
 </script>
+
+<!-- Load @svg-drawing/core library AFTER our initialization code is defined -->
+<script src="https://unpkg.com/@svg-drawing/core@4.0.0-beta.6/lib/index.umd.js"></script>
 {% endblock %}
