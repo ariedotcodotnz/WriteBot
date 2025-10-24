@@ -14,11 +14,16 @@ const CharacterDrawer = (function() {
     function init(collId) {
         collectionId = collId;
 
-        // Check if library is loaded
-        if (typeof SVGDCore === 'undefined') {
+        // Check if library is loaded - try multiple possible global names
+        const SvgLib = window.SVGDCore || window.svgDrawingCore || window.SvgDrawing;
+
+        if (!SvgLib) {
             console.error('@svg-drawing/core library not loaded');
+            console.error('Available window properties:', Object.keys(window).filter(k => k.toLowerCase().includes('svg')));
             return;
         }
+
+        console.log('Found SVG library:', SvgLib);
 
         const container = document.getElementById('draw-area');
         if (!container) {
@@ -26,14 +31,28 @@ const CharacterDrawer = (function() {
             return;
         }
 
-        // Initialize SVG drawing (container should have width/height set via CSS)
-        drawing = new SVGDCore.SvgDrawing(container);
+        console.log('Initializing SvgDrawing with container:', container);
 
-        // Set pen plotter compatible settings after instantiation
-        drawing.penColor = '#000000';
-        drawing.penWidth = 3;
+        try {
+            // Initialize SVG drawing (container should have width/height set via CSS)
+            drawing = new SvgLib.SvgDrawing(container, {
+                width: 200,
+                height: 300
+            });
 
-        attachEventListeners();
+            console.log('SvgDrawing instance created:', drawing);
+
+            // Set pen plotter compatible settings after instantiation
+            drawing.penColor = '#000000';
+            drawing.penWidth = 3;
+
+            attachEventListeners();
+
+            console.log('Character drawer initialized successfully');
+        } catch (error) {
+            console.error('Error initializing SvgDrawing:', error);
+            container.innerHTML = '<div style="padding: 20px; text-align: center; color: #da1e28;">Error initializing drawing canvas: ' + error.message + '</div>';
+        }
     }
 
     /**
