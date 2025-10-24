@@ -1,6 +1,6 @@
 /**
  * Character Overrides Admin Styles
- * Styles for managing character override collections
+ * Clean, professional styles for managing character override collections
  */
 
 /* ============================================
@@ -9,17 +9,17 @@
 
 .upload-section {
     background: white;
-    padding: 32px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    margin-bottom: 32px;
+    padding: 24px;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 24px;
 }
 
 .upload-section h3 {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 500;
     color: #161616;
-    margin: 0 0 24px 0;
+    margin: 0 0 16px 0;
 }
 
 /* ============================================
@@ -28,54 +28,39 @@
 
 .upload-tabs {
     display: flex;
-    gap: 8px;
-    margin-bottom: 24px;
-    border-bottom: 2px solid #e0e0e0;
+    gap: 4px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e0e0e0;
 }
 
 .upload-tab {
-    padding: 12px 24px;
+    padding: 10px 20px;
     background: none;
     border: none;
-    border-bottom: 3px solid transparent;
+    border-bottom: 2px solid transparent;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 400;
     color: #525252;
     cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-    top: 2px;
+    transition: color 0.2s ease, border-color 0.2s ease;
 }
 
 .upload-tab:hover {
-    color: #0f62fe;
-    background-color: #f4f4f4;
+    color: #161616;
 }
 
 .upload-tab.active {
     color: #0f62fe;
     border-bottom-color: #0f62fe;
-    font-weight: 600;
+    font-weight: 500;
 }
 
 .upload-content {
     display: none;
-    animation: fadeIn 0.3s ease;
 }
 
 .upload-content.active {
     display: block;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 /* ============================================
@@ -106,7 +91,7 @@
     border-radius: 4px;
     background-color: #f4f4f4;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .form-group input[type="file"]:hover {
@@ -125,26 +110,26 @@
    ============================================ */
 
 .collection-info {
-    background: linear-gradient(135deg, #ffffff 0%, #f4f4f4 100%);
-    padding: 32px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    margin-bottom: 32px;
-    border-left: 4px solid #0f62fe;
+    background: white;
+    padding: 24px;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+    border-left: 3px solid #0f62fe;
+    margin-bottom: 24px;
 }
 
 .collection-info h2 {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 500;
     color: #161616;
-    margin: 0 0 12px 0;
+    margin: 0 0 8px 0;
 }
 
 .collection-info p {
     font-size: 14px;
     color: #525252;
-    margin-bottom: 20px;
-    line-height: 1.6;
+    margin-bottom: 16px;
+    line-height: 1.5;
 }
 
 .collection-info .collection-stats {
@@ -152,7 +137,7 @@
     gap: 32px;
     font-size: 14px;
     color: #525252;
-    padding-top: 20px;
+    padding-top: 16px;
     border-top: 1px solid #e0e0e0;
 }
 
@@ -163,8 +148,8 @@
 }
 
 .collection-info .collection-stat strong {
-    font-size: 28px;
-    font-weight: 300;
+    font-size: 24px;
+    font-weight: 400;
     color: #0f62fe;
     line-height: 1;
 }
@@ -175,17 +160,17 @@
 
 .characters-section {
     background: white;
-    padding: 32px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    padding: 24px;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
 }
 
 .characters-section h3 {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 500;
     color: #161616;
-    margin: 0 0 24px 0;
-    padding-bottom: 16px;
+    margin: 0 0 20px 0;
+    padding-bottom: 12px;
     border-bottom: 1px solid #e0e0e0;
 }
 
@@ -194,17 +179,11 @@
    ============================================ */
 
 .character-group {
-    margin-bottom: 32px;
-    padding: 24px;
-    background: linear-gradient(135deg, #f9f9f9 0%, #ffffff 100%);
-    border-radius: 8px;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: #fafafa;
+    border-radius: 4px;
     border: 1px solid #e0e0e0;
-    transition: all 0.2s ease;
-}
-
-.character-group:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    border-color: #c6c6c6;
 }
 
 .character-group:last-child {
@@ -215,13 +194,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
-    border-bottom: 2px solid #e0e0e0;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e0e0e0;
 }
 
 .character-group-title {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 500;
     color: #161616;
 }
@@ -230,17 +209,15 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #0f62fe 0%, #0353e9 100%);
-    border: 3px solid white;
-    border-radius: 50%;
-    box-shadow: 0 2px 8px rgba(15, 98, 254, 0.3);
+    width: 40px;
+    height: 40px;
+    background: #0f62fe;
+    border-radius: 4px;
     text-align: center;
-    font-size: 24px;
-    font-weight: bold;
+    font-size: 20px;
+    font-weight: 500;
     color: white;
-    margin-right: 16px;
+    margin-right: 12px;
 }
 
 .variant-count {
@@ -257,40 +234,21 @@
 .variants-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 20px;
+    gap: 16px;
 }
 
 .variant-card {
     background: white;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 12px;
     text-align: center;
-    transition: all 0.2s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.variant-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #0f62fe 0%, #0353e9 100%);
-    transform: scaleX(0);
-    transition: transform 0.3s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .variant-card:hover {
     border-color: #0f62fe;
-    box-shadow: 0 4px 16px rgba(15, 98, 254, 0.15);
-    transform: translateY(-2px);
-}
-
-.variant-card:hover::before {
-    transform: scaleX(1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .variant-preview {
@@ -300,8 +258,8 @@
     align-items: center;
     justify-content: center;
     margin-bottom: 12px;
-    background: linear-gradient(135deg, #f9f9f9 0%, #ffffff 100%);
-    border-radius: 6px;
+    background: #fafafa;
+    border-radius: 4px;
     padding: 8px;
     border: 1px solid #e0e0e0;
 }
@@ -316,7 +274,7 @@
     font-size: 12px;
     color: #6f6f6f;
     margin-bottom: 12px;
-    line-height: 1.5;
+    line-height: 1.4;
     padding: 8px;
     background-color: #f4f4f4;
     border-radius: 4px;
@@ -333,12 +291,12 @@
 
 .characters-section .empty-state {
     text-align: center;
-    padding: 60px 20px;
+    padding: 40px 20px;
     color: #6f6f6f;
 }
 
 .characters-section .empty-state p {
-    font-size: 16px;
+    font-size: 15px;
     margin: 0;
 }
 
@@ -348,7 +306,7 @@
 
 @media (max-width: 768px) {
     .upload-section {
-        padding: 20px;
+        padding: 16px;
     }
 
     .form-inline {
@@ -370,12 +328,12 @@
     }
 
     .collection-info {
-        padding: 20px;
+        padding: 16px;
     }
 
     .collection-info .collection-stats {
         flex-direction: column;
-        gap: 16px;
+        gap: 12px;
     }
 
     .character-group {
@@ -389,9 +347,9 @@
     }
 
     .character-badge {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
     }
 
     .variants-grid {

@@ -26,16 +26,12 @@ const CharacterDrawer = (function() {
             return;
         }
 
-        // Initialize SVG drawing with pen plotter compatible settings
-        drawing = new SVGDCore.SvgDrawing(container, {
-            width: 200,
-            height: 300,
-            penColor: '#000000',
-            penWidth: 3,
-            fill: 'none',  // Critical for pen plotter compatibility!
-            close: false,
-            curve: false   // Use straight lines for better plotter control
-        });
+        // Initialize SVG drawing (container should have width/height set via CSS)
+        drawing = new SVGDCore.SvgDrawing(container);
+
+        // Set pen plotter compatible settings after instantiation
+        drawing.penColor = '#000000';
+        drawing.penWidth = 3;
 
         attachEventListeners();
     }
@@ -82,38 +78,87 @@ const CharacterDrawer = (function() {
     }
 
     /**
-     * Convert drawing to pen-plotter-compatible SVG
+     * Calculate bounding box of path data
+     */
+    function calculateBoundingBox(paths) {
+        let minX = Infinity, minY = Infinity;
+        let maxX = -Infinity, maxY = -Infinity;
+
+        paths.forEach(path => {
+            const d = path.getAttribute('d');
+            if (!d) return;
+
+            // Extract all numbers from the path data
+            // This regex matches numbers (including decimals and negatives)
+            const numbers = d.match(/-?\d+\.?\d*/g);
+            if (!numbers) return;
+
+            // Process coordinate pairs (x, y)
+            for (let i = 0; i < numbers.length - 1; i += 2) {
+                const x = parseFloat(numbers[i]);
+                const y = parseFloat(numbers[i + 1]);
+
+                if (!isNaN(x) && !isNaN(y)) {
+                    minX = Math.min(minX, x);
+                    minY = Math.min(minY, y);
+                    maxX = Math.max(maxX, x);
+                    maxY = Math.max(maxY, y);
+                }
+            }
+        });
+
+        return { minX, minY, maxX, maxY };
+    }
+
+    /**
+     * Convert drawing to pen-plotter-compatible SVG with auto-crop
      */
     function drawingToSVG() {
         if (!drawing) {
             return null;
         }
 
-        // Get the SVG object from the drawing
-        const svgObj = drawing.getSvgObject();
+        // Get the SVG element from the container
+        const container = document.getElementById('draw-area');
+        const svgElement = container.querySelector('svg');
 
-        if (!svgObj.paths || svgObj.paths.length === 0) {
+        if (!svgElement) {
+            console.error('SVG element not found in draw area');
+            return null;
+        }
+
+        // Get all path elements
+        const paths = svgElement.querySelectorAll('path');
+
+        if (paths.length === 0) {
             return null;
         }
 
         const strokeWidth = parseFloat(document.getElementById('draw-stroke-width').value) || 3;
 
+        // Calculate bounding box of all paths
+        const bbox = calculateBoundingBox(paths);
+
+        // Add padding around the content (include stroke width in padding)
+        const padding = strokeWidth * 2 + 5;
+        const viewBoxX = Math.max(0, bbox.minX - padding);
+        const viewBoxY = Math.max(0, bbox.minY - padding);
+        const viewBoxWidth = (bbox.maxX - bbox.minX) + (padding * 2);
+        const viewBoxHeight = (bbox.maxY - bbox.minY) + (padding * 2);
+
         // Build pen-plotter-compatible SVG with stroke-based paths
         let svgPaths = '';
 
-        svgObj.paths.forEach(path => {
-            // Ensure we're using stroke, not fill (critical for pen plotter!)
-            const pathAttrs = Object.entries(path)
-                .filter(([key]) => key !== 'd')
-                .map(([key, value]) => `${key}="${value}"`)
-                .join(' ');
-
-            // Override to ensure stroke-based rendering
-            svgPaths += `  <path d="${path.d}" stroke="black" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" fill="none"/>\n`;
+        paths.forEach(path => {
+            const d = path.getAttribute('d');
+            if (d) {
+                // Override to ensure stroke-based rendering (critical for pen plotter!)
+                svgPaths += `  <path d="${d}" stroke="black" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" fill="none"/>\n`;
+            }
         });
 
         const svgData = `<?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 ${svgObj.width} ${svgObj.height}" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}" xmlns="http://www.w3.org/2000/svg">
 ${svgPaths}</svg>`;
 
         return svgData;
@@ -137,8 +182,12 @@ ${svgPaths}</svg>`;
             return;
         }
 
-        const svgObj = drawing.getSvgObject();
-        if (!svgObj.paths || svgObj.paths.length === 0) {
+        // Check if there are any drawn paths
+        const container = document.getElementById('draw-area');
+        const svgElement = container ? container.querySelector('svg') : null;
+        const paths = svgElement ? svgElement.querySelectorAll('path') : [];
+
+        if (paths.length === 0) {
             alert('Please draw something first!');
             return;
         }

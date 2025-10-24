@@ -11,17 +11,16 @@
   // ============================================
 
   /**
-   * Switch between upload tabs (single/batch)
+   * Switch between upload tabs (draw/single/batch)
    */
   function switchTab(tab) {
     // Update tab buttons
     document.querySelectorAll('.upload-tab').forEach(btn => {
       btn.classList.remove('active');
+      if (btn.getAttribute('data-tab') === tab) {
+        btn.classList.add('active');
+      }
     });
-
-    // Find and activate the clicked tab
-    const clickedTab = event.target;
-    clickedTab.classList.add('active');
 
     // Update content visibility
     document.querySelectorAll('.upload-content').forEach(content => {
@@ -41,8 +40,15 @@
     const tabs = document.querySelectorAll('.upload-tab');
     tabs.forEach(tab => {
       tab.addEventListener('click', function () {
-        const tabType = this.textContent.toLowerCase().includes('batch') ? 'batch' : 'single';
-        switchTab(tabType);
+        const tabData = this.getAttribute('data-tab');
+        if (tabData) {
+          switchTab(tabData);
+        } else {
+          // Fallback for backward compatibility
+          const tabType = this.textContent.toLowerCase().includes('batch') ? 'batch' :
+                         this.textContent.toLowerCase().includes('draw') ? 'draw' : 'single';
+          switchTab(tabType);
+        }
       });
     });
   }
@@ -121,13 +127,12 @@
           left: 0;
           width: 100%;
           height: 100%;
-          background: rgba(0, 0, 0, 0.9);
+          background: rgba(0, 0, 0, 0.85);
           display: flex;
           align-items: center;
           justify-content: center;
           z-index: 10000;
           cursor: pointer;
-          animation: fadeIn 0.2s ease;
         `;
 
         // Create zoomed image
@@ -137,36 +142,31 @@
           max-width: 90%;
           max-height: 90%;
           object-fit: contain;
-          animation: zoomIn 0.2s ease;
         `;
 
         // Add close button
         const closeBtn = document.createElement('button');
-        closeBtn.textContent = '✕';
+        closeBtn.textContent = 'Close';
         closeBtn.style.cssText = `
           position: absolute;
           top: 20px;
           right: 20px;
           background: white;
           color: #161616;
-          border: none;
-          border-radius: 50%;
-          width: 40px;
-          height: 40px;
-          font-size: 24px;
+          border: 1px solid #e0e0e0;
+          border-radius: 4px;
+          padding: 8px 16px;
+          font-size: 14px;
           cursor: pointer;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-          transition: all 0.2s ease;
+          transition: background-color 0.2s ease;
         `;
 
         closeBtn.addEventListener('mouseenter', function () {
-          this.style.background = '#da1e28';
-          this.style.color = 'white';
+          this.style.background = '#f4f4f4';
         });
 
         closeBtn.addEventListener('mouseleave', function () {
           this.style.background = 'white';
-          this.style.color = '#161616';
         });
 
         modal.appendChild(zoomedImg);
@@ -175,59 +175,17 @@
 
         // Close on click
         modal.addEventListener('click', function () {
-          modal.style.animation = 'fadeOut 0.2s ease';
-          setTimeout(() => {
-            document.body.removeChild(modal);
-          }, 200);
+          document.body.removeChild(modal);
         });
 
         // Prevent image click from closing modal
         zoomedImg.addEventListener('click', function (e) {
           e.stopPropagation();
         });
-
-        // Add animations
-        const style = document.createElement('style');
-        style.textContent = `
-          @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-          }
-          @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-          }
-          @keyframes zoomIn {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-          }
-        `;
-        document.head.appendChild(style);
       });
     });
   }
 
-  // ============================================
-  // Character Badge Animation
-  // ============================================
-
-  /**
-   * Add hover animation to character badges
-   */
-  function initCharacterBadgeAnimation() {
-    const badges = document.querySelectorAll('.character-badge');
-
-    badges.forEach(badge => {
-      badge.addEventListener('mouseenter', function () {
-        this.style.transform = 'rotate(360deg) scale(1.1)';
-        this.style.transition = 'transform 0.5s ease';
-      });
-
-      badge.addEventListener('mouseleave', function () {
-        this.style.transform = 'rotate(0deg) scale(1)';
-      });
-    });
-  }
 
   // ============================================
   // Form Validation
@@ -433,7 +391,6 @@
     initTabs();
     initFileUploadPreview();
     initSVGZoom();
-    initCharacterBadgeAnimation();
     initCharacterValidation();
     initEnhancedDeleteConfirmation();
     initKeyboardShortcuts();
