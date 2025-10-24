@@ -341,6 +341,84 @@ def upload_batch(collection_id):
     return redirect(url_for('character_overrides.view_collection', collection_id=collection_id))
 
 
+@character_override_bp.route('/<int:collection_id>/draw', methods=['POST'])
+@login_required
+@admin_required
+def save_drawn_character(collection_id):
+    """
+    Save a character drawn in the browser's canvas interface.
+    This endpoint receives SVG data generated from canvas strokes.
+    """
+    collection = CharacterOverrideCollection.query.get_or_404(collection_id)
+
+    try:
+        character = request.form.get('character', '').strip()
+        baseline_offset = request.form.get('baseline_offset', 0.0, type=float)
+
+        # Validation
+        if not character or len(character) != 1:
+            return jsonify({'error': 'You must specify exactly one character.'}), 400
+
+        # Check if SVG data was provided
+        if 'svg_data' not in request.files:
+            return jsonify({'error': 'No SVG data provided.'}), 400
+
+        svg_file = request.files['svg_data']
+        svg_content = svg_file.read().decode('utf-8')
+
+        # Validate SVG
+        is_valid, error_message, viewbox_data = validate_svg(svg_content)
+        if not is_valid:
+            return jsonify({'error': f'Invalid SVG: {error_message}'}), 400
+
+        # Validate that it's stroke-based (pen plotter compatible)
+        # This is a warning, not an error - we still allow it
+        try:
+            root = ET.fromstring(svg_content)
+            has_strokes = False
+            has_fills = False
+
+            for elem in root.iter():
+                if elem.tag.endswith('path'):
+                    stroke = elem.get('stroke')
+                    fill = elem.get('fill')
+
+                    if stroke and stroke.lower() not in ('none', 'transparent'):
+                        has_strokes = True
+                    if not fill or fill.lower() not in ('none', 'transparent'):
+                        has_fills = True
+
+            # If it has fills but no strokes, warn (but still save)
+            if has_fills and not has_strokes:
+                print(f"Warning: Character '{character}' uses fills instead of strokes - may not be pen plotter compatible")
+
+        except Exception as e:
+            print(f"Warning: Could not validate stroke vs fill: {e}")
+
+        # Create character override
+        new_override = CharacterOverride(
+            collection_id=collection_id,
+            character=character,
+            svg_data=svg_content,
+            viewbox_x=viewbox_data[0],
+            viewbox_y=viewbox_data[1],
+            viewbox_width=viewbox_data[2],
+            viewbox_height=viewbox_data[3],
+            baseline_offset=baseline_offset
+        )
+
+        db.session.add(new_override)
+        collection.updated_at = datetime.utcnow()
+        db.session.commit()
+
+        log_activity('admin_action', f'Drew and saved character "{character}" to collection: {collection.name}')
+        return jsonify({'success': True, 'message': f'Character "{character}" saved successfully.'}), 200
+
+    except Exception as e:
+        print(f"Error saving drawn character: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 @character_override_bp.route('/character/<int:override_id>/delete', methods=['POST'])
 @login_required
 @admin_required

@@ -37,11 +37,22 @@ Your SVG **must** include either:
 
 ### 4. Path Requirements
 
-#### Convert Strokes to Paths
-For consistency, convert all strokes to filled paths:
-- In Inkscape: Path → Stroke to Path
-- In Adobe Illustrator: Object → Path → Outline Stroke
-- In other tools: Look for "Expand Stroke" or similar
+#### ⚠️ IMPORTANT: Pen Plotter Compatibility
+**For pen plotter / gcode compatibility, use STROKE-based paths, NOT filled paths!**
+
+- **Recommended**: Keep paths as strokes with `stroke` and `stroke-width` attributes
+- **Avoid**: Converting strokes to filled paths (this breaks pen plotter compatibility)
+- The system will properly render both stroke-based and fill-based SVGs
+- **For best results and pen plotter compatibility, use the built-in character drawer** (if available)
+
+#### Stroke-Based Path Example (Recommended)
+```xml
+<path d="M 50,20 L 50,130"
+      stroke="black"
+      stroke-width="3"
+      stroke-linecap="round"
+      fill="none"/>
+```
 
 #### Color Handling
 - Use **single color** for all paths (typically black)
@@ -83,21 +94,31 @@ Use this to ensure characters align properly with AI-generated text.
 
 ## Creating SVG Characters
 
-### Using Inkscape (Free)
+### Using the Built-In Character Drawer (Recommended)
+**The easiest and most reliable method for pen plotter compatibility:**
+1. Navigate to Admin → Character Overrides → Your Collection
+2. Click "Draw Character" or use the integrated drawing tool
+3. Draw your character directly in the browser
+4. The system automatically creates stroke-based, pen-plotter-compatible SVGs
+5. Baseline alignment is handled automatically
+
+### Using Inkscape (Free) - For Pen Plotters
 1. Create a new document
 2. Draw your character using the pen or brush tool
-3. Convert strokes to paths: Path → Stroke to Path
-4. Set fill to black, remove stroke
-5. Adjust viewBox: File → Document Properties → Resize to Content
-6. Save as Plain SVG
+3. **Do NOT convert strokes to paths** (keep as strokes for pen plotter compatibility)
+4. Set stroke to black (2-3px width), **set fill to none**
+5. Set stroke linecap to "round" for natural appearance
+6. Adjust viewBox: File → Document Properties → Resize to Content
+7. Save as Plain SVG
 
-### Using Adobe Illustrator
+### Using Adobe Illustrator - For Pen Plotters
 1. Create a new artboard (100x150px recommended)
-2. Draw your character
-3. Select all paths: Object → Path → Outline Stroke
-4. Set fill to black
-5. Save As → SVG
-6. In SVG Options: Use "Presentation Attributes" for styling
+2. Draw your character with the pen tool
+3. **Do NOT outline strokes** (keep as strokes for pen plotter compatibility)
+4. Set stroke to black (2-3pt width), **set fill to none**
+5. Set stroke cap to "round"
+6. Save As → SVG
+7. In SVG Options: Use "Presentation Attributes" for styling
 
 ### Using Procreate (iPad)
 1. Create canvas (1000x1500px recommended)
@@ -105,19 +126,28 @@ Use this to ensure characters align properly with AI-generated text.
 3. Export as SVG
 4. May need to clean up in Inkscape or Illustrator
 
-## Example SVG Structure
+## Example SVG Structure (Pen Plotter Compatible)
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg">
+  <!-- Circular stroke for letter 'o' -->
   <path d="M 50,20 C 30,20 15,35 15,55 C 15,75 30,90 50,90 C 70,90 85,75 85,55 C 85,35 70,20 50,20 Z"
-        fill="black"/>
+        stroke="black"
+        stroke-width="3"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        fill="none"/>
+  <!-- Vertical descender -->
   <path d="M 50,85 L 50,130"
         stroke="black"
-        stroke-width="10"
-        stroke-linecap="round"/>
+        stroke-width="3"
+        stroke-linecap="round"
+        fill="none"/>
 </svg>
 ```
+
+**Note**: The `fill="none"` attribute is critical for pen plotter compatibility. All drawing should be done with strokes.
 
 ## Character Set
 

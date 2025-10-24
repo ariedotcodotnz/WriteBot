@@ -318,7 +318,37 @@ def _draw(
                         if elem.tag.endswith('path'):
                             d = elem.get('d')
                             if d:
-                                path = dwg.path(d=d, fill=segment['color'])
+                                # Get original attributes
+                                orig_fill = elem.get('fill')
+                                orig_stroke = elem.get('stroke')
+                                orig_stroke_width = elem.get('stroke-width')
+                                orig_stroke_linecap = elem.get('stroke-linecap')
+                                orig_stroke_linejoin = elem.get('stroke-linejoin')
+
+                                # Determine if this path uses fill or stroke
+                                uses_stroke = (orig_stroke and orig_stroke.lower() not in ('none', 'transparent'))
+                                uses_fill = (not orig_fill or orig_fill.lower() not in ('none', 'transparent'))
+
+                                # Create path with appropriate attributes
+                                if uses_stroke and not uses_fill:
+                                    # Stroke-based rendering
+                                    path = dwg.path(d=d)
+                                    path = path.stroke(
+                                        color=segment['color'],
+                                        width=float(orig_stroke_width) if orig_stroke_width else segment['width'],
+                                        linecap=orig_stroke_linecap or 'round',
+                                        linejoin=orig_stroke_linejoin or 'round'
+                                    ).fill('none')
+                                else:
+                                    # Fill-based rendering (default)
+                                    path = dwg.path(d=d, fill=segment['color'])
+                                    if uses_stroke:
+                                        # Has both fill and stroke
+                                        path = path.stroke(
+                                            color=segment['color'],
+                                            width=float(orig_stroke_width) if orig_stroke_width else 1
+                                        )
+
                                 g.add(path)
                         # Add support for other SVG elements if needed
                 except Exception as e:
