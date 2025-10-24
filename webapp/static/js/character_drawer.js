@@ -1,29 +1,22 @@
 /**
  * Character Drawer Module
- * Uses @svg-drawing/core library for professional SVG drawing interface
+ * Simple vanilla JavaScript SVG drawing interface
  * Generates pen-plotter-compatible stroke-based SVG characters
  */
 
 const CharacterDrawer = (function() {
-    let drawing;
+    let svg;
+    let currentPath;
+    let isDrawing = false;
+    let paths = [];
     let collectionId;
+    let penWidth = 3;
 
     /**
-     * Initialize the character drawer using @svg-drawing/core
+     * Initialize the character drawer with vanilla SVG
      */
     function init(collId) {
         collectionId = collId;
-
-        // Check if library is loaded - try multiple possible global names
-        const SvgLib = window.SVGDCore || window.svgDrawingCore || window.SvgDrawing;
-
-        if (!SvgLib) {
-            console.error('@svg-drawing/core library not loaded');
-            console.error('Available window properties:', Object.keys(window).filter(k => k.toLowerCase().includes('svg')));
-            return;
-        }
-
-        console.log('Found SVG library:', SvgLib);
 
         const container = document.getElementById('draw-area');
         if (!container) {
@@ -31,28 +24,136 @@ const CharacterDrawer = (function() {
             return;
         }
 
-        console.log('Initializing SvgDrawing with container:', container);
-
         try {
-            // Initialize SVG drawing (container should have width/height set via CSS)
-            drawing = new SvgLib.SvgDrawing(container, {
-                width: 200,
-                height: 300
-            });
+            // Create SVG element
+            svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '200');
+            svg.setAttribute('height', '300');
+            svg.setAttribute('viewBox', '0 0 200 300');
+            svg.style.cursor = 'crosshair';
+            svg.style.touchAction = 'none'; // Prevent scrolling on touch devices
+            
+            // Clear container and add SVG
+            container.innerHTML = '';
+            container.appendChild(svg);
 
-            console.log('SvgDrawing instance created:', drawing);
-
-            // Set pen plotter compatible settings after instantiation
-            drawing.penColor = '#000000';
-            drawing.penWidth = 3;
-
+            // Attach drawing event listeners
+            attachDrawingListeners();
             attachEventListeners();
 
             console.log('Character drawer initialized successfully');
         } catch (error) {
-            console.error('Error initializing SvgDrawing:', error);
+            console.error('Error initializing SVG drawing:', error);
             container.innerHTML = '<div style="padding: 20px; text-align: center; color: #da1e28;">Error initializing drawing canvas: ' + error.message + '</div>';
         }
+    }
+
+    /**
+     * Attach event listeners for drawing
+     */
+    function attachDrawingListeners() {
+        // Mouse events
+        svg.addEventListener('mousedown', startDrawing);
+        svg.addEventListener('mousemove', draw);
+        svg.addEventListener('mouseup', stopDrawing);
+        svg.addEventListener('mouseleave', stopDrawing);
+
+        // Touch events for mobile
+        svg.addEventListener('touchstart', handleTouchStart);
+        svg.addEventListener('touchmove', handleTouchMove);
+        svg.addEventListener('touchend', stopDrawing);
+    }
+
+    /**
+     * Get coordinates relative to SVG
+     */
+    function getCoordinates(event) {
+        const rect = svg.getBoundingClientRect();
+        const scaleX = 200 / rect.width;
+        const scaleY = 300 / rect.height;
+        
+        let clientX, clientY;
+        if (event.touches && event.touches.length > 0) {
+            clientX = event.touches[0].clientX;
+            clientY = event.touches[0].clientY;
+        } else {
+            clientX = event.clientX;
+            clientY = event.clientY;
+        }
+        
+        return {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
+        };
+    }
+
+    /**
+     * Start drawing a new path
+     */
+    function startDrawing(event) {
+        event.preventDefault();
+        isDrawing = true;
+        
+        const coords = getCoordinates(event);
+        
+        // Create new path element
+        currentPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        currentPath.setAttribute('stroke', 'black');
+        currentPath.setAttribute('stroke-width', penWidth);
+        currentPath.setAttribute('stroke-linecap', 'round');
+        currentPath.setAttribute('stroke-linejoin', 'round');
+        currentPath.setAttribute('fill', 'none');
+        currentPath.setAttribute('d', `M ${coords.x} ${coords.y}`);
+        
+        svg.appendChild(currentPath);
+    }
+
+    /**
+     * Continue drawing the current path
+     */
+    function draw(event) {
+        if (!isDrawing || !currentPath) return;
+        
+        event.preventDefault();
+        const coords = getCoordinates(event);
+        
+        const d = currentPath.getAttribute('d');
+        currentPath.setAttribute('d', `${d} L ${coords.x} ${coords.y}`);
+    }
+
+    /**
+     * Stop drawing and save the path
+     */
+    function stopDrawing(event) {
+        if (!isDrawing) return;
+        
+        event.preventDefault();
+        isDrawing = false;
+        
+        if (currentPath) {
+            // Only save if path has actual movement
+            const d = currentPath.getAttribute('d');
+            if (d && d.includes('L')) {
+                paths.push(currentPath.cloneNode(true));
+            }
+            currentPath = null;
+        }
+    }
+
+    /**
+     * Handle touch start event
+     */
+    function handleTouchStart(event) {
+        event.preventDefault();
+        startDrawing(event);
+    }
+
+    /**
+     * Handle touch move event
+     */
+    function handleTouchMove(event) {
+        event.preventDefault();
+        draw(event);
     }
 
     /**
@@ -64,35 +165,46 @@ const CharacterDrawer = (function() {
         document.getElementById('undo-stroke').addEventListener('click', undoStroke);
         document.getElementById('save-drawing').addEventListener('click', saveDrawing);
 
-        // Stroke width change - update drawing settings
+        // Stroke width change
         document.getElementById('draw-stroke-width').addEventListener('change', updateStrokeWidth);
     }
 
     /**
-     * Update stroke width in drawing instance
+     * Update stroke width
      */
     function updateStrokeWidth() {
-        const strokeWidth = parseFloat(document.getElementById('draw-stroke-width').value) || 3;
-        if (drawing) {
-            drawing.penWidth = strokeWidth;
-        }
+        penWidth = parseFloat(document.getElementById('draw-stroke-width').value) || 3;
     }
 
     /**
      * Clear the drawing
      */
     function clearCanvas() {
-        if (drawing) {
-            drawing.clear();
+        // Remove all paths from SVG
+        while (svg.firstChild) {
+            svg.removeChild(svg.firstChild);
         }
+        paths = [];
+        currentPath = null;
+        isDrawing = false;
     }
 
     /**
      * Undo the last stroke
      */
     function undoStroke() {
-        if (drawing) {
-            drawing.undo();
+        if (paths.length > 0) {
+            // Remove last saved path
+            paths.pop();
+            
+            // Redraw all remaining paths
+            while (svg.firstChild) {
+                svg.removeChild(svg.firstChild);
+            }
+            
+            paths.forEach(path => {
+                svg.appendChild(path.cloneNode(true));
+            });
         }
     }
 
@@ -133,30 +245,21 @@ const CharacterDrawer = (function() {
      * Convert drawing to pen-plotter-compatible SVG with auto-crop
      */
     function drawingToSVG() {
-        if (!drawing) {
-            return null;
-        }
-
-        // Get the SVG element from the container
-        const container = document.getElementById('draw-area');
-        const svgElement = container.querySelector('svg');
-
-        if (!svgElement) {
-            console.error('SVG element not found in draw area');
+        if (!svg) {
             return null;
         }
 
         // Get all path elements
-        const paths = svgElement.querySelectorAll('path');
+        const pathElements = svg.querySelectorAll('path');
 
-        if (paths.length === 0) {
+        if (pathElements.length === 0) {
             return null;
         }
 
         const strokeWidth = parseFloat(document.getElementById('draw-stroke-width').value) || 3;
 
         // Calculate bounding box of all paths
-        const bbox = calculateBoundingBox(paths);
+        const bbox = calculateBoundingBox(pathElements);
 
         // Add padding around the content (include stroke width in padding)
         const padding = strokeWidth * 2 + 5;
@@ -168,7 +271,7 @@ const CharacterDrawer = (function() {
         // Build pen-plotter-compatible SVG with stroke-based paths
         let svgPaths = '';
 
-        paths.forEach(path => {
+        pathElements.forEach(path => {
             const d = path.getAttribute('d');
             if (d) {
                 // Override to ensure stroke-based rendering (critical for pen plotter!)
@@ -196,17 +299,15 @@ ${svgPaths}</svg>`;
             return;
         }
 
-        if (!drawing) {
+        if (!svg) {
             alert('Drawing not initialized.');
             return;
         }
 
         // Check if there are any drawn paths
-        const container = document.getElementById('draw-area');
-        const svgElement = container ? container.querySelector('svg') : null;
-        const paths = svgElement ? svgElement.querySelectorAll('path') : [];
+        const pathElements = svg.querySelectorAll('path');
 
-        if (paths.length === 0) {
+        if (pathElements.length === 0) {
             alert('Please draw something first!');
             return;
         }
