@@ -44,26 +44,59 @@
     <h3>Upload Character Variants</h3>
 
     <div class="info-box">
-        <strong>SVG File Requirements:</strong>
+        <strong>⚠️ Pen Plotter Compatibility:</strong>
         <ul style="margin: 8px 0; padding-left: 20px;">
-            <li>Files must be valid SVG format</li>
+            <li><strong>Recommended:</strong> Use the <strong>Draw Character</strong> tab for guaranteed pen plotter compatibility</li>
+            <li>For uploaded SVGs: Use stroke-based paths, NOT filled paths</li>
+            <li>Set <code>stroke="black"</code>, <code>stroke-width="2-3"</code>, and <code>fill="none"</code></li>
             <li>Must include viewBox or width/height attributes</li>
-            <li>Strokes should be converted to paths for consistency</li>
-            <li>Use single color (will be replaced during generation)</li>
             <li>Recommended size: approximately 100-200px height for best results</li>
         </ul>
         <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #0f62fe;">
-            <strong>Keyboard Shortcuts:</strong> Press <kbd>1</kbd> for Single Upload, <kbd>2</kbd> for Batch Upload, <kbd>Ctrl+U</kbd> to select files
+            <strong>Keyboard Shortcuts:</strong> Press <kbd>1</kbd> for Draw Character, <kbd>2</kbd> for Single Upload, <kbd>3</kbd> for Batch Upload
         </div>
     </div>
 
     <div class="upload-tabs">
-        <button class="upload-tab active" data-tab="single">Single Upload</button>
-        <button class="upload-tab" data-tab="batch">Batch Upload</button>
+        <button class="upload-tab active" data-tab="draw">✏️ Draw Character</button>
+        <button class="upload-tab" data-tab="single">📤 Single Upload</button>
+        <button class="upload-tab" data-tab="batch">📦 Batch Upload</button>
+    </div>
+
+    {# Draw Character Interface #}
+    <div id="draw-upload" class="upload-content active">
+        <div class="draw-interface">
+            <div class="draw-controls">
+                <div class="form-group" style="max-width: 120px;">
+                    <label for="draw-character">Character *</label>
+                    <input type="text" id="draw-character" maxlength="1" required autocomplete="off" placeholder="a">
+                </div>
+                <div class="form-group" style="max-width: 160px;">
+                    <label for="draw-baseline-offset">Baseline Offset</label>
+                    <input type="number" id="draw-baseline-offset" value="0" step="0.1">
+                </div>
+                <div class="form-group" style="max-width: 140px;">
+                    <label for="draw-stroke-width">Stroke Width</label>
+                    <input type="number" id="draw-stroke-width" value="3" min="1" max="10" step="0.5">
+                </div>
+                <div class="button-group" style="margin-top: 24px;">
+                    <button type="button" id="clear-canvas" class="btn btn-secondary">Clear</button>
+                    <button type="button" id="undo-stroke" class="btn btn-secondary">Undo</button>
+                    <button type="button" id="save-drawing" class="btn btn-primary">Save Character</button>
+                </div>
+            </div>
+            <div class="draw-canvas-container">
+                <div class="canvas-label">Draw your character below:</div>
+                <canvas id="draw-canvas" width="200" height="300"></canvas>
+                <div class="canvas-help">
+                    Use your mouse or touchscreen to draw. The character will be saved as a pen-plotter-compatible stroke-based SVG.
+                </div>
+            </div>
+        </div>
     </div>
 
     {# Single Upload Form #}
-    <div id="single-upload" class="upload-content active">
+    <div id="single-upload" class="upload-content">
         <form method="POST" action="{{ url_for('character_overrides.upload_character', collection_id=collection.id) }}" enctype="multipart/form-data">
             <div class="form-inline">
                 <div class="form-group" style="max-width: 120px;">
@@ -170,5 +203,75 @@
         border-radius: 3px;
         box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
     }
+
+    .draw-interface {
+        display: flex;
+        gap: 24px;
+        margin-top: 16px;
+    }
+
+    .draw-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        flex: 0 0 auto;
+    }
+
+    .draw-canvas-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .canvas-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #161616;
+    }
+
+    #draw-canvas {
+        border: 2px solid #8d8d8d;
+        border-radius: 4px;
+        cursor: crosshair;
+        background: white;
+        touch-action: none;
+    }
+
+    .canvas-help {
+        margin-top: 8px;
+        font-size: 13px;
+        color: #8d8d8d;
+        max-width: 400px;
+        text-align: center;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 8px;
+    }
 </style>
+
+<script src="{{ url_for('static', filename='js/character_drawer.js') }}"></script>
+<script>
+    // Initialize character drawer when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        const collectionId = {{ collection.id }};
+        CharacterDrawer.init(collectionId);
+
+        // Update keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ignore if typing in input field
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            if (e.key === '1') {
+                document.querySelector('[data-tab="draw"]').click();
+            } else if (e.key === '2') {
+                document.querySelector('[data-tab="single"]').click();
+            } else if (e.key === '3') {
+                document.querySelector('[data-tab="batch"]').click();
+            }
+        });
+    });
+</script>
 {% endblock %}
