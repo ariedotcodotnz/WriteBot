@@ -11,17 +11,16 @@
   // ============================================
 
   /**
-   * Switch between upload tabs (single/batch)
+   * Switch between upload tabs (draw/single/batch)
    */
   function switchTab(tab) {
     // Update tab buttons
     document.querySelectorAll('.upload-tab').forEach(btn => {
       btn.classList.remove('active');
+      if (btn.getAttribute('data-tab') === tab) {
+        btn.classList.add('active');
+      }
     });
-
-    // Find and activate the clicked tab
-    const clickedTab = event.target;
-    clickedTab.classList.add('active');
 
     // Update content visibility
     document.querySelectorAll('.upload-content').forEach(content => {
@@ -41,8 +40,15 @@
     const tabs = document.querySelectorAll('.upload-tab');
     tabs.forEach(tab => {
       tab.addEventListener('click', function () {
-        const tabType = this.textContent.toLowerCase().includes('batch') ? 'batch' : 'single';
-        switchTab(tabType);
+        const tabData = this.getAttribute('data-tab');
+        if (tabData) {
+          switchTab(tabData);
+        } else {
+          // Fallback for backward compatibility
+          const tabType = this.textContent.toLowerCase().includes('batch') ? 'batch' :
+                         this.textContent.toLowerCase().includes('draw') ? 'draw' : 'single';
+          switchTab(tabType);
+        }
       });
     });
   }

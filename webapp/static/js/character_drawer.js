@@ -26,16 +26,12 @@ const CharacterDrawer = (function() {
             return;
         }
 
-        // Initialize SVG drawing with pen plotter compatible settings
-        drawing = new SVGDCore.SvgDrawing(container, {
-            width: 200,
-            height: 300,
-            penColor: '#000000',
-            penWidth: 3,
-            fill: 'none',  // Critical for pen plotter compatibility!
-            close: false,
-            curve: false   // Use straight lines for better plotter control
-        });
+        // Initialize SVG drawing (container should have width/height set via CSS)
+        drawing = new SVGDCore.SvgDrawing(container);
+
+        // Set pen plotter compatible settings after instantiation
+        drawing.penColor = '#000000';
+        drawing.penWidth = 3;
 
         attachEventListeners();
     }
@@ -89,31 +85,51 @@ const CharacterDrawer = (function() {
             return null;
         }
 
-        // Get the SVG object from the drawing
-        const svgObj = drawing.getSvgObject();
+        // Get the SVG element from the container
+        const container = document.getElementById('draw-area');
+        const svgElement = container.querySelector('svg');
 
-        if (!svgObj.paths || svgObj.paths.length === 0) {
+        if (!svgElement) {
+            console.error('SVG element not found in draw area');
+            return null;
+        }
+
+        // Get all path elements
+        const paths = svgElement.querySelectorAll('path');
+
+        if (paths.length === 0) {
             return null;
         }
 
         const strokeWidth = parseFloat(document.getElementById('draw-stroke-width').value) || 3;
 
+        // Get the viewBox or use width/height
+        const viewBox = svgElement.getAttribute('viewBox');
+        let width = 200;
+        let height = 300;
+
+        if (viewBox) {
+            const parts = viewBox.split(/\s+/);
+            width = parseFloat(parts[2]) || 200;
+            height = parseFloat(parts[3]) || 300;
+        } else {
+            width = parseFloat(svgElement.getAttribute('width')) || 200;
+            height = parseFloat(svgElement.getAttribute('height')) || 300;
+        }
+
         // Build pen-plotter-compatible SVG with stroke-based paths
         let svgPaths = '';
 
-        svgObj.paths.forEach(path => {
-            // Ensure we're using stroke, not fill (critical for pen plotter!)
-            const pathAttrs = Object.entries(path)
-                .filter(([key]) => key !== 'd')
-                .map(([key, value]) => `${key}="${value}"`)
-                .join(' ');
-
-            // Override to ensure stroke-based rendering
-            svgPaths += `  <path d="${path.d}" stroke="black" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" fill="none"/>\n`;
+        paths.forEach(path => {
+            const d = path.getAttribute('d');
+            if (d) {
+                // Override to ensure stroke-based rendering (critical for pen plotter!)
+                svgPaths += `  <path d="${d}" stroke="black" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" fill="none"/>\n`;
+            }
         });
 
         const svgData = `<?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="0 0 ${svgObj.width} ${svgObj.height}" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
 ${svgPaths}</svg>`;
 
         return svgData;
@@ -137,8 +153,12 @@ ${svgPaths}</svg>`;
             return;
         }
 
-        const svgObj = drawing.getSvgObject();
-        if (!svgObj.paths || svgObj.paths.length === 0) {
+        // Check if there are any drawn paths
+        const container = document.getElementById('draw-area');
+        const svgElement = container ? container.querySelector('svg') : null;
+        const paths = svgElement ? svgElement.querySelectorAll('path') : [];
+
+        if (paths.length === 0) {
             alert('Please draw something first!');
             return;
         }
