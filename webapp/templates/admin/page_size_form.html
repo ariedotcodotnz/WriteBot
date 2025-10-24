@@ -1,0 +1,62 @@
+{% extends "admin/base.html" %}
+
+{% set narrow_layout = true %}
+{% set active_nav = 'page_sizes' %}
+
+{% block title %}{{ 'Edit' if action == 'edit' else 'Create' }} Page Size - Admin - WriteBot{% endblock %}
+
+{% block admin_title %}{{ 'Edit Page Size' if action == 'edit' else 'Create New Page Size' }}{% endblock %}
+
+{% block admin_header_actions %}
+<a href="{{ url_for('admin.page_sizes') }}" class="btn btn-secondary">Back to Page Sizes</a>
+{% endblock %}
+
+{% block admin_content %}
+<div class="admin-section">
+    <form method="POST" data-validate>
+        <div class="form-group">
+            <label for="name">Name *</label>
+            <input type="text" id="name" name="name" required
+                   value="{{ page_size.name if page_size else '' }}">
+            <div class="help-text">Descriptive name for this page size (e.g., "Custom A4", "Letter with Bleed").</div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="width">Width *</label>
+                <input type="number" id="width" name="width" step="0.1" min="0.1" required
+                       value="{{ page_size.width if page_size else '' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="height">Height *</label>
+                <input type="number" id="height" name="height" step="0.1" min="0.1" required
+                       value="{{ page_size.height if page_size else '' }}">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="unit">Unit *</label>
+            <select id="unit" name="unit" required>
+                <option value="mm" {{ 'selected' if page_size and page_size.unit == 'mm' else 'selected' }}>Millimeters (mm)</option>
+                <option value="px" {{ 'selected' if page_size and page_size.unit == 'px' else '' }}>Pixels (px)</option>
+            </select>
+            <div class="help-text">Unit of measurement for width and height.</div>
+        </div>
+
+        <div class="form-check">
+            <input type="checkbox" id="is_active" name="is_active"
+                   {{ 'checked' if not page_size or page_size.is_active else '' }}>
+            <label for="is_active">Page size is active</label>
+            <div class="help-text">Inactive page sizes will not appear in selection lists.</div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                {{ 'Update Page Size' if action == 'edit' else 'Create Page Size' }}
+            </button>
+            <a href="{{ url_for('admin.page_sizes') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

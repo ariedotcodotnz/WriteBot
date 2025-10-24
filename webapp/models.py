@@ -151,3 +151,98 @@ class CharacterOverride(db.Model):
 
     def __repr__(self):
         return f'<CharacterOverride {self.character} in collection {self.collection_id}>'
+
+
+class PageSizePreset(db.Model):
+    """Custom page size presets for document generation."""
+    __tablename__ = 'page_size_presets'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    width = db.Column(db.Float, nullable=False)  # Width in specified unit
+    height = db.Column(db.Float, nullable=False)  # Height in specified unit
+    unit = db.Column(db.String(10), default='mm', nullable=False)  # 'mm' or 'px'
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    is_default = db.Column(db.Boolean, default=False, nullable=False)  # System defaults (A4, Letter, etc.)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Null for system defaults
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    creator = db.relationship('User', backref='created_page_sizes', foreign_keys=[created_by])
+    templates = db.relationship('TemplatePreset', backref='page_size', lazy='dynamic', cascade='all, delete-orphan')
+
+    def to_dict(self):
+        """Convert to dictionary for API responses."""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'width': self.width,
+            'height': self.height,
+            'unit': self.unit,
+            'is_active': self.is_active,
+            'is_default': self.is_default,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+    def __repr__(self):
+        return f'<PageSizePreset {self.name} ({self.width}x{self.height} {self.unit})>'
+
+
+class TemplatePreset(db.Model):
+    """Template presets combining page size and layout settings."""
+    __tablename__ = 'template_presets'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), unique=True, nullable=False, index=True)
+    description = db.Column(db.Text)
+    page_size_preset_id = db.Column(db.Integer, db.ForeignKey('page_size_presets.id'), nullable=False, index=True)
+    orientation = db.Column(db.String(20), default='portrait', nullable=False)  # 'portrait' or 'landscape'
+
+    # Margins
+    margin_top = db.Column(db.Float, default=10.0)
+    margin_right = db.Column(db.Float, default=10.0)
+    margin_bottom = db.Column(db.Float, default=10.0)
+    margin_left = db.Column(db.Float, default=10.0)
+    margin_unit = db.Column(db.String(10), default='mm', nullable=False)
+
+    # Line settings
+    line_height = db.Column(db.Float, nullable=True)  # Optional
+    line_height_unit = db.Column(db.String(10), default='mm')
+
+    # Styling
+    background_color = db.Column(db.String(20), nullable=True)  # Optional, e.g., 'white', '#FFFFFF'
+
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    creator = db.relationship('User', backref='created_templates', foreign_keys=[created_by])
+
+    def to_dict(self):
+        """Convert to dictionary for API responses."""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'page_size_preset_id': self.page_size_preset_id,
+            'page_size_name': self.page_size.name if self.page_size else None,
+            'orientation': self.orientation,
+            'margins': {
+                'top': self.margin_top,
+                'right': self.margin_right,
+                'bottom': self.margin_bottom,
+                'left': self.margin_left,
+                'unit': self.margin_unit
+            },
+            'line_height': self.line_height,
+            'line_height_unit': self.line_height_unit,
+            'background_color': self.background_color,
+            'is_active': self.is_active,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+    def __repr__(self):
+        return f'<TemplatePreset {self.name}>'

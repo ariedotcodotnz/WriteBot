@@ -3,7 +3,7 @@ Admin routes for user management and statistics.
 """
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
-from webapp.models import db, User, UserActivity, UsageStatistics
+from webapp.models import db, User, UserActivity, UsageStatistics, PageSizePreset, TemplatePreset
 from webapp.utils.auth_utils import admin_required, log_activity, get_user_statistics, get_user_activities, get_all_user_statistics
 from datetime import datetime, date, timedelta
 from sqlalchemy import func, desc
@@ -269,3 +269,328 @@ def statistics():
                            stats_30d=stats_30d,
                            stats_90d=stats_90d,
                            daily_stats=daily_stats)
+
+
+# Page Size Presets Management
+@admin_bp.route('/page-sizes')
+@login_required
+@admin_required
+def page_sizes():
+    """List all page size presets."""
+    all_page_sizes = PageSizePreset.query.order_by(PageSizePreset.is_default.desc(), PageSizePreset.name).all()
+    log_activity('admin_action', 'Viewed page size presets')
+    return render_template('admin/page_sizes.html', page_sizes=all_page_sizes)
+
+
+@admin_bp.route('/page-sizes/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def create_page_size():
+    """Create a new page size preset."""
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        width = request.form.get('width', type=float)
+        height = request.form.get('height', type=float)
+        unit = request.form.get('unit', 'mm').strip()
+        is_active = request.form.get('is_active') == 'on'
+
+        # Validation
+        if not name:
+            flash('Name is required.', 'error')
+            return render_template('admin/page_size_form.html', page_size=None, action='create')
+
+        if PageSizePreset.query.filter_by(name=name).first():
+            flash(f'Page size preset "{name}" already exists.', 'error')
+            return render_template('admin/page_size_form.html', page_size=None, action='create')
+
+        if not width or width <= 0:
+            flash('Width must be a positive number.', 'error')
+            return render_template('admin/page_size_form.html', page_size=None, action='create')
+
+        if not height or height <= 0:
+            flash('Height must be a positive number.', 'error')
+            return render_template('admin/page_size_form.html', page_size=None, action='create')
+
+        if unit not in ['mm', 'px']:
+            flash('Unit must be either "mm" or "px".', 'error')
+            return render_template('admin/page_size_form.html', page_size=None, action='create')
+
+        # Create page size preset
+        new_page_size = PageSizePreset(
+            name=name,
+            width=width,
+            height=height,
+            unit=unit,
+            is_active=is_active,
+            created_by=current_user.id
+        )
+
+        db.session.add(new_page_size)
+        db.session.commit()
+
+        log_activity('admin_action', f'Created page size preset: {name}')
+        flash(f'Page size preset "{name}" created successfully.', 'success')
+        return redirect(url_for('admin.page_sizes'))
+
+    return render_template('admin/page_size_form.html', page_size=None, action='create')
+
+
+@admin_bp.route('/page-sizes/<int:page_size_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_page_size(page_size_id):
+    """Edit an existing page size preset."""
+    page_size = PageSizePreset.query.get_or_404(page_size_id)
+
+    # Prevent editing system defaults
+    if page_size.is_default:
+        flash('System default page sizes cannot be edited.', 'error')
+        return redirect(url_for('admin.page_sizes'))
+
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        width = request.form.get('width', type=float)
+        height = request.form.get('height', type=float)
+        unit = request.form.get('unit', 'mm').strip()
+        is_active = request.form.get('is_active') == 'on'
+
+        # Validation
+        if not name:
+            flash('Name is required.', 'error')
+            return render_template('admin/page_size_form.html', page_size=page_size, action='edit')
+
+        # Check if name is taken by another preset
+        existing = PageSizePreset.query.filter_by(name=name).first()
+        if existing and existing.id != page_size_id:
+            flash(f'Page size preset "{name}" already exists.', 'error')
+            return render_template('admin/page_size_form.html', page_size=page_size, action='edit')
+
+        if not width or width <= 0:
+            flash('Width must be a positive number.', 'error')
+            return render_template('admin/page_size_form.html', page_size=page_size, action='edit')
+
+        if not height or height <= 0:
+            flash('Height must be a positive number.', 'error')
+            return render_template('admin/page_size_form.html', page_size=page_size, action='edit')
+
+        if unit not in ['mm', 'px']:
+            flash('Unit must be either "mm" or "px".', 'error')
+            return render_template('admin/page_size_form.html', page_size=page_size, action='edit')
+
+        # Update page size preset
+        page_size.name = name
+        page_size.width = width
+        page_size.height = height
+        page_size.unit = unit
+        page_size.is_active = is_active
+
+        db.session.commit()
+
+        log_activity('admin_action', f'Updated page size preset: {name} (ID: {page_size_id})')
+        flash(f'Page size preset "{name}" updated successfully.', 'success')
+        return redirect(url_for('admin.page_sizes'))
+
+    return render_template('admin/page_size_form.html', page_size=page_size, action='edit')
+
+
+@admin_bp.route('/page-sizes/<int:page_size_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_page_size(page_size_id):
+    """Delete a page size preset."""
+    page_size = PageSizePreset.query.get_or_404(page_size_id)
+
+    # Prevent deleting system defaults
+    if page_size.is_default:
+        flash('System default page sizes cannot be deleted.', 'error')
+        return redirect(url_for('admin.page_sizes'))
+
+    # Check if page size is used in any templates
+    template_count = TemplatePreset.query.filter_by(page_size_preset_id=page_size_id).count()
+    if template_count > 0:
+        flash(f'Cannot delete page size "{page_size.name}" because it is used in {template_count} template(s).', 'error')
+        return redirect(url_for('admin.page_sizes'))
+
+    name = page_size.name
+    db.session.delete(page_size)
+    db.session.commit()
+
+    log_activity('admin_action', f'Deleted page size preset: {name} (ID: {page_size_id})')
+    flash(f'Page size preset "{name}" deleted successfully.', 'success')
+    return redirect(url_for('admin.page_sizes'))
+
+
+# Template Presets Management
+@admin_bp.route('/templates')
+@login_required
+@admin_required
+def templates():
+    """List all template presets."""
+    all_templates = TemplatePreset.query.order_by(TemplatePreset.name).all()
+    log_activity('admin_action', 'Viewed template presets')
+    return render_template('admin/templates.html', templates=all_templates)
+
+
+@admin_bp.route('/templates/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def create_template():
+    """Create a new template preset."""
+    page_sizes = PageSizePreset.query.filter_by(is_active=True).order_by(PageSizePreset.name).all()
+
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        description = request.form.get('description', '').strip()
+        page_size_preset_id = request.form.get('page_size_preset_id', type=int)
+        orientation = request.form.get('orientation', 'portrait').strip()
+        margin_top = request.form.get('margin_top', type=float)
+        margin_right = request.form.get('margin_right', type=float)
+        margin_bottom = request.form.get('margin_bottom', type=float)
+        margin_left = request.form.get('margin_left', type=float)
+        margin_unit = request.form.get('margin_unit', 'mm').strip()
+        line_height = request.form.get('line_height', type=float)
+        line_height_unit = request.form.get('line_height_unit', 'mm').strip()
+        background_color = request.form.get('background_color', '').strip()
+        is_active = request.form.get('is_active') == 'on'
+
+        # Validation
+        if not name:
+            flash('Name is required.', 'error')
+            return render_template('admin/template_form.html', template=None, page_sizes=page_sizes, action='create')
+
+        if TemplatePreset.query.filter_by(name=name).first():
+            flash(f'Template preset "{name}" already exists.', 'error')
+            return render_template('admin/template_form.html', template=None, page_sizes=page_sizes, action='create')
+
+        if not page_size_preset_id or not PageSizePreset.query.get(page_size_preset_id):
+            flash('Valid page size is required.', 'error')
+            return render_template('admin/template_form.html', template=None, page_sizes=page_sizes, action='create')
+
+        if orientation not in ['portrait', 'landscape']:
+            flash('Orientation must be either "portrait" or "landscape".', 'error')
+            return render_template('admin/template_form.html', template=None, page_sizes=page_sizes, action='create')
+
+        if margin_unit not in ['mm', 'px']:
+            flash('Margin unit must be either "mm" or "px".', 'error')
+            return render_template('admin/template_form.html', template=None, page_sizes=page_sizes, action='create')
+
+        if line_height_unit not in ['mm', 'px']:
+            flash('Line height unit must be either "mm" or "px".', 'error')
+            return render_template('admin/template_form.html', template=None, page_sizes=page_sizes, action='create')
+
+        # Create template preset
+        new_template = TemplatePreset(
+            name=name,
+            description=description,
+            page_size_preset_id=page_size_preset_id,
+            orientation=orientation,
+            margin_top=margin_top or 10.0,
+            margin_right=margin_right or 10.0,
+            margin_bottom=margin_bottom or 10.0,
+            margin_left=margin_left or 10.0,
+            margin_unit=margin_unit,
+            line_height=line_height,
+            line_height_unit=line_height_unit,
+            background_color=background_color or None,
+            is_active=is_active,
+            created_by=current_user.id
+        )
+
+        db.session.add(new_template)
+        db.session.commit()
+
+        log_activity('admin_action', f'Created template preset: {name}')
+        flash(f'Template preset "{name}" created successfully.', 'success')
+        return redirect(url_for('admin.templates'))
+
+    return render_template('admin/template_form.html', template=None, page_sizes=page_sizes, action='create')
+
+
+@admin_bp.route('/templates/<int:template_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_template(template_id):
+    """Edit an existing template preset."""
+    template = TemplatePreset.query.get_or_404(template_id)
+    page_sizes = PageSizePreset.query.filter_by(is_active=True).order_by(PageSizePreset.name).all()
+
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        description = request.form.get('description', '').strip()
+        page_size_preset_id = request.form.get('page_size_preset_id', type=int)
+        orientation = request.form.get('orientation', 'portrait').strip()
+        margin_top = request.form.get('margin_top', type=float)
+        margin_right = request.form.get('margin_right', type=float)
+        margin_bottom = request.form.get('margin_bottom', type=float)
+        margin_left = request.form.get('margin_left', type=float)
+        margin_unit = request.form.get('margin_unit', 'mm').strip()
+        line_height = request.form.get('line_height', type=float)
+        line_height_unit = request.form.get('line_height_unit', 'mm').strip()
+        background_color = request.form.get('background_color', '').strip()
+        is_active = request.form.get('is_active') == 'on'
+
+        # Validation
+        if not name:
+            flash('Name is required.', 'error')
+            return render_template('admin/template_form.html', template=template, page_sizes=page_sizes, action='edit')
+
+        # Check if name is taken by another template
+        existing = TemplatePreset.query.filter_by(name=name).first()
+        if existing and existing.id != template_id:
+            flash(f'Template preset "{name}" already exists.', 'error')
+            return render_template('admin/template_form.html', template=template, page_sizes=page_sizes, action='edit')
+
+        if not page_size_preset_id or not PageSizePreset.query.get(page_size_preset_id):
+            flash('Valid page size is required.', 'error')
+            return render_template('admin/template_form.html', template=template, page_sizes=page_sizes, action='edit')
+
+        if orientation not in ['portrait', 'landscape']:
+            flash('Orientation must be either "portrait" or "landscape".', 'error')
+            return render_template('admin/template_form.html', template=template, page_sizes=page_sizes, action='edit')
+
+        if margin_unit not in ['mm', 'px']:
+            flash('Margin unit must be either "mm" or "px".', 'error')
+            return render_template('admin/template_form.html', template=template, page_sizes=page_sizes, action='edit')
+
+        if line_height_unit not in ['mm', 'px']:
+            flash('Line height unit must be either "mm" or "px".', 'error')
+            return render_template('admin/template_form.html', template=template, page_sizes=page_sizes, action='edit')
+
+        # Update template preset
+        template.name = name
+        template.description = description
+        template.page_size_preset_id = page_size_preset_id
+        template.orientation = orientation
+        template.margin_top = margin_top or 10.0
+        template.margin_right = margin_right or 10.0
+        template.margin_bottom = margin_bottom or 10.0
+        template.margin_left = margin_left or 10.0
+        template.margin_unit = margin_unit
+        template.line_height = line_height
+        template.line_height_unit = line_height_unit
+        template.background_color = background_color or None
+        template.is_active = is_active
+
+        db.session.commit()
+
+        log_activity('admin_action', f'Updated template preset: {name} (ID: {template_id})')
+        flash(f'Template preset "{name}" updated successfully.', 'success')
+        return redirect(url_for('admin.templates'))
+
+    return render_template('admin/template_form.html', template=template, page_sizes=page_sizes, action='edit')
+
+
+@admin_bp.route('/templates/<int:template_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_template(template_id):
+    """Delete a template preset."""
+    template = TemplatePreset.query.get_or_404(template_id)
+
+    name = template.name
+    db.session.delete(template)
+    db.session.commit()
+
+    log_activity('admin_action', f'Deleted template preset: {name} (ID: {template_id})')
+    flash(f'Template preset "{name}" deleted successfully.', 'success')
+    return redirect(url_for('admin.templates'))

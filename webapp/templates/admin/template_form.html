@@ -1,0 +1,132 @@
+{% extends "admin/base.html" %}
+
+{% set narrow_layout = true %}
+{% set active_nav = 'templates' %}
+
+{% block title %}{{ 'Edit' if action == 'edit' else 'Create' }} Template - Admin - WriteBot{% endblock %}
+
+{% block admin_title %}{{ 'Edit Template' if action == 'edit' else 'Create New Template' }}{% endblock %}
+
+{% block admin_header_actions %}
+<a href="{{ url_for('admin.templates') }}" class="btn btn-secondary">Back to Templates</a>
+{% endblock %}
+
+{% block admin_content %}
+<div class="admin-section">
+    <form method="POST" data-validate>
+        <div class="form-group">
+            <label for="name">Template Name *</label>
+            <input type="text" id="name" name="name" required
+                   value="{{ template.name if template else '' }}">
+            <div class="help-text">Descriptive name for this template (e.g., "Standard Letter", "A4 with Margins").</div>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="3">{{ template.description if template else '' }}</textarea>
+            <div class="help-text">Optional description of this template's use case.</div>
+        </div>
+
+        <div class="form-group">
+            <label for="page_size_preset_id">Page Size *</label>
+            <select id="page_size_preset_id" name="page_size_preset_id" required>
+                <option value="">-- Select a page size --</option>
+                {% for page_size in page_sizes %}
+                <option value="{{ page_size.id }}"
+                        {{ 'selected' if template and template.page_size_preset_id == page_size.id else '' }}>
+                    {{ page_size.name }} ({{ page_size.width }} x {{ page_size.height }} {{ page_size.unit }})
+                </option>
+                {% endfor %}
+            </select>
+            <div class="help-text">Select the page size for this template.</div>
+        </div>
+
+        <div class="form-group">
+            <label for="orientation">Orientation *</label>
+            <select id="orientation" name="orientation" required>
+                <option value="portrait" {{ 'selected' if template and template.orientation == 'portrait' else 'selected' }}>Portrait</option>
+                <option value="landscape" {{ 'selected' if template and template.orientation == 'landscape' else '' }}>Landscape</option>
+            </select>
+        </div>
+
+        <div class="form-section-title">Margins</div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="margin_top">Top</label>
+                <input type="number" id="margin_top" name="margin_top" step="0.1" min="0"
+                       value="{{ template.margin_top if template else '10.0' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="margin_right">Right</label>
+                <input type="number" id="margin_right" name="margin_right" step="0.1" min="0"
+                       value="{{ template.margin_right if template else '10.0' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="margin_bottom">Bottom</label>
+                <input type="number" id="margin_bottom" name="margin_bottom" step="0.1" min="0"
+                       value="{{ template.margin_bottom if template else '10.0' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="margin_left">Left</label>
+                <input type="number" id="margin_left" name="margin_left" step="0.1" min="0"
+                       value="{{ template.margin_left if template else '10.0' }}">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="margin_unit">Margin Unit</label>
+            <select id="margin_unit" name="margin_unit">
+                <option value="mm" {{ 'selected' if template and template.margin_unit == 'mm' else 'selected' }}>Millimeters (mm)</option>
+                <option value="px" {{ 'selected' if template and template.margin_unit == 'px' else '' }}>Pixels (px)</option>
+            </select>
+        </div>
+
+        <div class="form-section-title">Line Settings (Optional)</div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="line_height">Line Height</label>
+                <input type="number" id="line_height" name="line_height" step="0.1" min="0"
+                       value="{{ template.line_height if template else '' }}">
+                <div class="help-text">Leave blank for auto calculation.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="line_height_unit">Line Height Unit</label>
+                <select id="line_height_unit" name="line_height_unit">
+                    <option value="mm" {{ 'selected' if template and template.line_height_unit == 'mm' else 'selected' }}>Millimeters (mm)</option>
+                    <option value="px" {{ 'selected' if template and template.line_height_unit == 'px' else '' }}>Pixels (px)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-section-title">Styling (Optional)</div>
+
+        <div class="form-group">
+            <label for="background_color">Background Color</label>
+            <input type="text" id="background_color" name="background_color"
+                   value="{{ template.background_color if template else '' }}"
+                   placeholder="e.g., white, #FFFFFF, transparent">
+            <div class="help-text">CSS color value for page background.</div>
+        </div>
+
+        <div class="form-check">
+            <input type="checkbox" id="is_active" name="is_active"
+                   {{ 'checked' if not template or template.is_active else '' }}>
+            <label for="is_active">Template is active</label>
+            <div class="help-text">Inactive templates will not appear in selection lists.</div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                {{ 'Update Template' if action == 'edit' else 'Create Template' }}
+            </button>
+            <a href="{{ url_for('admin.templates') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
