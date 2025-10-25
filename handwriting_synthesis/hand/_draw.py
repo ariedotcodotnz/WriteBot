@@ -305,7 +305,8 @@ def _draw(
                 # Position: cursor_x, baseline adjusted
                 baseline_offset = override_data.get('baseline_offset', 0.0)
                 pos_x = cursor_x
-                pos_y = line_offset_y - (target_h * 0.75) + baseline_offset * s_global
+                # Align top of override SVG with top of generated text at line_offset_y
+                pos_y = line_offset_y + baseline_offset * scale_y
 
                 # Create a group for the override character
                 g = dwg.g(transform=f"translate({pos_x},{pos_y}) scale({scale_x},{scale_y})")
