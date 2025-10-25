@@ -214,12 +214,21 @@ def upload_character(collection_id):
     """Upload a character SVG to the collection."""
     collection = CharacterOverrideCollection.query.get_or_404(collection_id)
 
-    character = request.form.get('character', '').strip()
+    # Get character without stripping to preserve special characters
+    character = request.form.get('character', '')
+
+    # Only strip if it's whitespace-only, otherwise preserve the character as-is
+    if character and character.strip():
+        character = character.strip()
+
     baseline_offset = request.form.get('baseline_offset', 0.0, type=float)
+
+    # Debug logging
+    print(f"Upload - Received character: '{character}' (length: {len(character)}, ord: {ord(character) if character else 'N/A'})")
 
     # Validation
     if not character or len(character) != 1:
-        flash('You must specify exactly one character.', 'error')
+        flash(f'You must specify exactly one character. Received: "{character}" (length: {len(character)})', 'error')
         return redirect(url_for('character_overrides.view_collection', collection_id=collection_id))
 
     # Check if file was uploaded
@@ -352,12 +361,23 @@ def save_drawn_character(collection_id):
     collection = CharacterOverrideCollection.query.get_or_404(collection_id)
 
     try:
-        character = request.form.get('character', '').strip()
+        # Get character without stripping to preserve special characters
+        character = request.form.get('character', '')
+
+        # Only strip if it's whitespace-only, otherwise preserve the character as-is
+        if character and character.strip():
+            character = character.strip()
+
         baseline_offset = request.form.get('baseline_offset', 0.0, type=float)
+
+        # Debug logging
+        print(f"Received character: '{character}' (length: {len(character)}, ord: {ord(character) if character else 'N/A'})")
 
         # Validation
         if not character or len(character) != 1:
-            return jsonify({'error': 'You must specify exactly one character.'}), 400
+            error_msg = f'You must specify exactly one character. Received: "{character}" (length: {len(character)})'
+            print(f"Validation error: {error_msg}")
+            return jsonify({'error': error_msg}), 400
 
         # Check if SVG data was provided
         if 'svg_data' not in request.files:

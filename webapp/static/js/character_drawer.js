@@ -167,6 +167,28 @@ const CharacterDrawer = (function() {
 
         // Stroke width change
         document.getElementById('draw-stroke-width').addEventListener('change', updateStrokeWidth);
+
+        // Character input - prevent browser filtering of special characters
+        const charInput = document.getElementById('draw-character');
+        if (charInput) {
+            // Prevent autocomplete interference
+            charInput.setAttribute('autocomplete', 'new-password');
+
+            // Handle input to preserve special characters
+            charInput.addEventListener('input', function(e) {
+                // Only keep first character, but preserve ALL characters including @, #, etc.
+                if (this.value.length > 1) {
+                    this.value = this.value.charAt(0);
+                }
+            });
+
+            // Prevent form submission on Enter
+            charInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                }
+            });
+        }
     }
 
     /**
@@ -290,12 +312,18 @@ ${svgPaths}</svg>`;
      * Save the drawing as a character override
      */
     async function saveDrawing() {
-        const character = document.getElementById('draw-character').value;
+        const charInput = document.getElementById('draw-character');
+        const character = charInput ? charInput.value : '';
         const baselineOffset = parseFloat(document.getElementById('draw-baseline-offset').value) || 0;
+
+        // Debug logging
+        console.log('Character input value:', character);
+        console.log('Character length:', character.length);
+        console.log('Character code:', character.charCodeAt(0));
 
         // Validation
         if (!character || character.length !== 1) {
-            alert('Please enter exactly one character.');
+            alert('Please enter exactly one character.\nCurrent value: "' + character + '"');
             return;
         }
 
@@ -325,8 +353,13 @@ ${svgPaths}</svg>`;
         formData.append('baseline_offset', baselineOffset);
 
         // Create a blob from SVG data and append as file
+        // Use a safe filename but preserve the character in the form field
         const blob = new Blob([svgData], { type: 'image/svg+xml' });
-        formData.append('svg_data', blob, `${character}.svg`);
+        // URL encode character for filename to avoid issues with special chars
+        const safeFilename = 'char_' + encodeURIComponent(character) + '.svg';
+        formData.append('svg_data', blob, safeFilename);
+
+        console.log('Sending character:', character, 'with filename:', safeFilename);
 
         // Send to server
         try {
