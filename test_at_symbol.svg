@@ -1,0 +1,30 @@
+<svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg">
+  <!-- @ symbol for testing character overrides -->
+  <!-- Designed to be pen-plotter compatible (stroke-based, not filled) -->
+
+  <!-- Outer circle of @ -->
+  <path d="M 50 20
+           A 30 30 0 1 1 50 19.99"
+        stroke="black"
+        stroke-width="3"
+        fill="none"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Inner circle (the 'a' part) -->
+  <circle cx="50" cy="60" r="15"
+          stroke="black"
+          stroke-width="3"
+          fill="none"/>
+
+  <!-- Vertical tail of @ -->
+  <path d="M 65 60
+           L 65 85
+           Q 65 95 55 95
+           Q 45 95 42 87"
+        stroke="black"
+        stroke-width="3"
+        fill="none"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+</svg>
