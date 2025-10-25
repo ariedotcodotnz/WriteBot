@@ -93,6 +93,17 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> tuple[str, Dict[
     if character_override_collection_id is not None:
         character_override_collection_id = int(character_override_collection_id)
 
+    # Load character overrides to get override characters BEFORE text normalization
+    override_chars = None
+    if character_override_collection_id is not None:
+        try:
+            from handwriting_synthesis.hand.character_override_utils import get_character_overrides
+            overrides_dict = get_character_overrides(character_override_collection_id)
+            if overrides_dict:
+                override_chars = set(overrides_dict.keys())
+        except Exception as e:
+            print(f"Warning: Could not load character overrides: {e}")
+
     # Chunk-based generation params
     use_chunked = payload.get("use_chunked", True)
     words_per_chunk = int(payload.get("words_per_chunk", 3))
@@ -120,7 +131,8 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> tuple[str, Dict[
         else (lh_px * float(wrap_ratio) if wrap_ratio is not None else 10.5)
     )
 
-    norm_lines_in = ["" if ln.strip() == "\\" else normalize_text_for_model(ln) for ln in lines_in]
+    # Normalize text, preserving characters that have overrides
+    norm_lines_in = ["" if ln.strip() == "\\" else normalize_text_for_model(ln, override_chars) for ln in lines_in]
 
     # Generate to temp file, then read text
     tmp_dir = tempfile.mkdtemp(prefix="writebot_api_")

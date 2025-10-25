@@ -31,18 +31,24 @@ _REPLACEMENTS = {
 }
 
 
-def normalize_text_for_model(s: str) -> str:
+def normalize_text_for_model(s: str, override_chars: Optional[set] = None) -> str:
     """
     Normalize text to fit the model's allowed alphabet.
 
     Args:
         s: Input string
+        override_chars: Optional set of additional characters to preserve (for character overrides)
 
     Returns:
         Normalized string with only allowed characters
     """
     if s is None:
         return ''
+
+    # Combine base alphabet with override characters
+    allowed = ALLOWED_CHARS
+    if override_chars:
+        allowed = ALLOWED_CHARS.union(override_chars)
 
     # Apply typographic replacements
     for k, v in _REPLACEMENTS.items():
@@ -55,11 +61,11 @@ def normalize_text_for_model(s: str) -> str:
     # Map disallowed uppercase letters to lowercase if that becomes allowed
     out_chars: List[str] = []
     for ch in s:
-        if ch in ALLOWED_CHARS:
+        if ch in allowed:
             out_chars.append(ch)
             continue
         lower = ch.lower()
-        if lower in ALLOWED_CHARS:
+        if lower in allowed:
             out_chars.append(lower)
             continue
         # Replace anything else with space
