@@ -171,11 +171,8 @@ def _draw(
                         'width': width
                     })
                 else:
-                    # No override found - log detailed warning
-                    available_chars = ', '.join(sorted(overrides_dict.keys())) if overrides_dict else 'none'
-                    print(f"WARNING: No override data found for character '{segment['text']}'")
-                    print(f"  Available override characters: {available_chars}")
-                    print(f"  This character will be skipped in the output (will appear as a gap)")
+                    # No override found, skip or handle error
+                    print(f"Warning: No override data found for character '{segment['text']}'")
             else:
                 # Generated segment
                 offsets = segment['strokes']
@@ -306,10 +303,9 @@ def _draw(
                 scale_y = scale
 
                 # Position: cursor_x, baseline adjusted
-                # The baseline should account for the scaled height, not the target height
                 baseline_offset = override_data.get('baseline_offset', 0.0)
                 pos_x = cursor_x
-                pos_y = line_offset_y - (target_h * s_global * 0.75) + baseline_offset * s_global
+                pos_y = line_offset_y - (target_h * 0.75) + baseline_offset * s_global
 
                 # Create a group for the override character
                 g = dwg.g(transform=f"translate({pos_x},{pos_y}) scale({scale_x},{scale_y})")

@@ -215,7 +215,7 @@ Try it out with your own text and see the difference!"""
 
     # Default alphabet (from the original code)
     alphabet = [
-        '\x00', ' ', '!', '"', '#', "'", '(', ')', ',', '-', '.',
+        '\x00', ' ', '!', '"', '@' ,'#', "'", '(', ')', ',', '-', '.',
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';',
         '?', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K',
         'L', 'M', 'N', 'O', 'P', 'R', 'S', 'T', 'U', 'V', 'W', 'Y',

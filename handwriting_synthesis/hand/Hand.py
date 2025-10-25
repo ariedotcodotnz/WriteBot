@@ -116,20 +116,24 @@ class Hand(object):
                 )
             return [cast_fn(v) if cast_fn else v for v in seq]
 
-        # Load character overrides if enabled
+        # CRITICAL FIX: Load character overrides FIRST (before validation)
         overrides_dict = {}
         if character_override_collection_id is not None:
             try:
                 from handwriting_synthesis.hand.character_override_utils import get_character_overrides
                 overrides_dict = get_character_overrides(character_override_collection_id)
+                print(f"DEBUG: Loaded overrides for characters: {list(overrides_dict.keys())}")
             except Exception as e:
                 print(f"Warning: Could not load character overrides: {e}")
 
-        # Expand valid character set with overrides
+        # CRITICAL FIX: Expand valid character set with overrides BEFORE validation
         valid_char_set = set(drawing.alphabet)
         if overrides_dict:
             valid_char_set = valid_char_set.union(overrides_dict.keys())
+            print(f"DEBUG: Expanded character set with override characters: {sorted(overrides_dict.keys())}")
+            print(f"DEBUG: Total valid characters: {len(valid_char_set)}")
 
+        # Now validate using the expanded character set
         for line_num, line in enumerate(lines):
             if len(line) > drawing.MAX_CHAR_LEN:
                 raise ValueError(
@@ -145,7 +149,7 @@ class Hand(object):
                         (
                             "Invalid character {} detected in line {}. "
                             "Valid character set is {}"
-                        ).format(char, line_num, valid_char_set)
+                        ).format(repr(char), line_num, sorted(valid_char_set))
                     )
 
         # Normalize optional sequences to match number of lines
@@ -157,6 +161,7 @@ class Hand(object):
 
         # Split lines with character overrides
         if overrides_dict:
+            print(f"DEBUG: Processing text with overrides enabled")
             from handwriting_synthesis.hand.character_override_utils import split_text_with_overrides
 
             # Create expanded line data with override info
@@ -165,10 +170,13 @@ class Hand(object):
             segment_to_line_idx = []
 
             for line_idx, line in enumerate(lines):
+                print(f"DEBUG: Processing line {line_idx}: '{line}'")
                 chunks = split_text_with_overrides(line, overrides_dict)
+                print(f"DEBUG:   Split into {len(chunks)} chunks: {chunks}")
                 line_segment_list = []
 
                 for chunk_text, is_override in chunks:
+                    print(f"DEBUG:     Chunk: '{chunk_text}', is_override={is_override}")
                     if is_override:
                         line_segment_list.append({
                             'type': 'override',
@@ -200,6 +208,8 @@ class Hand(object):
 
                 line_segments.append(line_segment_list)
 
+            print(f"DEBUG: Texts to generate: {texts_to_generate}")
+
             # Generate strokes for non-override chunks
             if texts_to_generate:
                 gen_biases = [biases[idx] if biases else None for idx in segment_to_line_idx]
@@ -215,6 +225,7 @@ class Hand(object):
                         segment['strokes'] = generated_strokes[segment['gen_idx']]
         else:
             # No overrides, use normal generation
+            print(f"DEBUG: No overrides, using normal generation")
             generated_strokes = self._sample(lines, biases=biases, styles=styles)
             line_segments = []
             for line_idx, (line, strokes) in enumerate(zip(lines, generated_strokes)):
@@ -224,6 +235,12 @@ class Hand(object):
                     'strokes': strokes,
                     'line_idx': line_idx
                 }])
+
+        print(f"DEBUG: Final line_segments structure: {len(line_segments)} lines")
+        for i, segments in enumerate(line_segments):
+            print(f"DEBUG:   Line {i}: {len(segments)} segments")
+            for j, seg in enumerate(segments):
+                print(f"DEBUG:     Segment {j}: type={seg['type']}, text='{seg.get('text', '')}'")
 
         _draw(
             line_segments,
@@ -328,12 +345,13 @@ class Hand(object):
                              'sentence', 'punctuation', 'off')
             ... (other params same as write())
         """
-        # Load character overrides if enabled
+        # CRITICAL FIX: Load character overrides FIRST (before validation)
         overrides_dict = {}
         if character_override_collection_id is not None:
             try:
                 from handwriting_synthesis.hand.character_override_utils import get_character_overrides
                 overrides_dict = get_character_overrides(character_override_collection_id)
+                print(f"DEBUG: Loaded overrides for characters: {list(overrides_dict.keys())}")
             except Exception as e:
                 print(f"Warning: Could not load character overrides: {e}")
 
