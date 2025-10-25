@@ -17,10 +17,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 def test_character_override():
     """Test character override upload and rendering."""
-    from webapp.app import create_app, db
+    from webapp.app import app, db
     from webapp.models import CharacterOverrideCollection, CharacterOverride
-
-    app = create_app()
 
     with app.app_context():
         print("=" * 60)
