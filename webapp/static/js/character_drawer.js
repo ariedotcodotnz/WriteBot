@@ -1,19 +1,26 @@
 /**
- * Character Drawer Module
- * Simple vanilla JavaScript SVG drawing interface
- * Generates pen-plotter-compatible stroke-based SVG characters
+ * Character Drawer Module - Canvas API Implementation
+ *
+ * Built from scratch using HTML5 Canvas for drawing
+ * Converts strokes to pen-plotter-compatible SVG format
+ * Features auto-cropping and proper viewBox calculation
  */
 
 const CharacterDrawer = (function() {
-    let svg;
-    let currentPath;
+    let canvas;
+    let ctx;
     let isDrawing = false;
-    let paths = [];
+    let strokes = []; // Array of strokes, each stroke is an array of points
+    let currentStroke = null;
     let collectionId;
     let penWidth = 3;
 
+    // Canvas dimensions
+    const CANVAS_WIDTH = 400;
+    const CANVAS_HEIGHT = 600;
+
     /**
-     * Initialize the character drawer with vanilla SVG
+     * Initialize the character drawer with HTML5 Canvas
      */
     function init(collId) {
         collectionId = collId;
@@ -25,25 +32,36 @@ const CharacterDrawer = (function() {
         }
 
         try {
-            // Create SVG element
-            svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            svg.setAttribute('width', '200');
-            svg.setAttribute('height', '300');
-            svg.setAttribute('viewBox', '0 0 200 300');
-            svg.style.cursor = 'crosshair';
-            svg.style.touchAction = 'none'; // Prevent scrolling on touch devices
-            
-            // Clear container and add SVG
+            // Create canvas element
+            canvas = document.createElement('canvas');
+            canvas.width = CANVAS_WIDTH;
+            canvas.height = CANVAS_HEIGHT;
+            canvas.style.cursor = 'crosshair';
+            canvas.style.touchAction = 'none'; // Prevent scrolling on touch devices
+            canvas.style.borderRadius = '4px';
+
+            // Get 2D context
+            ctx = canvas.getContext('2d');
+
+            // Set initial canvas style
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = '#000000';
+
+            // Clear container and add canvas
             container.innerHTML = '';
-            container.appendChild(svg);
+            container.appendChild(canvas);
+
+            // Clear canvas with white background
+            clearCanvas();
 
             // Attach drawing event listeners
             attachDrawingListeners();
-            attachEventListeners();
+            attachControlListeners();
 
-            console.log('Character drawer initialized successfully');
+            console.log('Character drawer initialized successfully with Canvas API');
         } catch (error) {
-            console.error('Error initializing SVG drawing:', error);
+            console.error('Error initializing Canvas drawing:', error);
             container.innerHTML = '<div style="padding: 20px; text-align: center; color: #da1e28;">Error initializing drawing canvas: ' + error.message + '</div>';
         }
     }
@@ -53,25 +71,26 @@ const CharacterDrawer = (function() {
      */
     function attachDrawingListeners() {
         // Mouse events
-        svg.addEventListener('mousedown', startDrawing);
-        svg.addEventListener('mousemove', draw);
-        svg.addEventListener('mouseup', stopDrawing);
-        svg.addEventListener('mouseleave', stopDrawing);
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseleave', stopDrawing);
 
         // Touch events for mobile
-        svg.addEventListener('touchstart', handleTouchStart);
-        svg.addEventListener('touchmove', handleTouchMove);
-        svg.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+        canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
     }
 
     /**
-     * Get coordinates relative to SVG
+     * Get coordinates relative to canvas
      */
     function getCoordinates(event) {
-        const rect = svg.getBoundingClientRect();
-        const scaleX = 200 / rect.width;
-        const scaleY = 300 / rect.height;
-        
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = CANVAS_WIDTH / rect.width;
+        const scaleY = CANVAS_HEIGHT / rect.height;
+
         let clientX, clientY;
         if (event.touches && event.touches.length > 0) {
             clientX = event.touches[0].clientX;
@@ -80,7 +99,7 @@ const CharacterDrawer = (function() {
             clientX = event.clientX;
             clientY = event.clientY;
         }
-        
+
         return {
             x: (clientX - rect.left) * scaleX,
             y: (clientY - rect.top) * scaleY
@@ -88,56 +107,58 @@ const CharacterDrawer = (function() {
     }
 
     /**
-     * Start drawing a new path
+     * Start drawing a new stroke
      */
     function startDrawing(event) {
         event.preventDefault();
         isDrawing = true;
-        
+
         const coords = getCoordinates(event);
-        
-        // Create new path element
-        currentPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        currentPath.setAttribute('stroke', 'black');
-        currentPath.setAttribute('stroke-width', penWidth);
-        currentPath.setAttribute('stroke-linecap', 'round');
-        currentPath.setAttribute('stroke-linejoin', 'round');
-        currentPath.setAttribute('fill', 'none');
-        currentPath.setAttribute('d', `M ${coords.x} ${coords.y}`);
-        
-        svg.appendChild(currentPath);
+
+        // Start new stroke
+        currentStroke = [{ x: coords.x, y: coords.y }];
+
+        // Begin canvas path
+        ctx.beginPath();
+        ctx.moveTo(coords.x, coords.y);
     }
 
     /**
-     * Continue drawing the current path
+     * Continue drawing the current stroke
      */
     function draw(event) {
-        if (!isDrawing || !currentPath) return;
-        
+        if (!isDrawing || !currentStroke) return;
+
         event.preventDefault();
         const coords = getCoordinates(event);
-        
-        const d = currentPath.getAttribute('d');
-        currentPath.setAttribute('d', `${d} L ${coords.x} ${coords.y}`);
+
+        // Add point to current stroke
+        currentStroke.push({ x: coords.x, y: coords.y });
+
+        // Draw line on canvas
+        ctx.lineWidth = penWidth;
+        ctx.lineTo(coords.x, coords.y);
+        ctx.stroke();
     }
 
     /**
-     * Stop drawing and save the path
+     * Stop drawing and save the stroke
      */
     function stopDrawing(event) {
         if (!isDrawing) return;
-        
+
         event.preventDefault();
         isDrawing = false;
-        
-        if (currentPath) {
-            // Only save if path has actual movement
-            const d = currentPath.getAttribute('d');
-            if (d && d.includes('L')) {
-                paths.push(currentPath.cloneNode(true));
-            }
-            currentPath = null;
+
+        if (currentStroke && currentStroke.length > 1) {
+            // Save the stroke
+            strokes.push({
+                points: currentStroke,
+                width: penWidth
+            });
         }
+
+        currentStroke = null;
     }
 
     /**
@@ -159,13 +180,10 @@ const CharacterDrawer = (function() {
     /**
      * Attach event listeners for controls
      */
-    function attachEventListeners() {
-        // Control buttons
+    function attachControlListeners() {
         document.getElementById('clear-canvas').addEventListener('click', clearCanvas);
         document.getElementById('undo-stroke').addEventListener('click', undoStroke);
         document.getElementById('save-drawing').addEventListener('click', saveDrawing);
-
-        // Stroke width change
         document.getElementById('draw-stroke-width').addEventListener('change', updateStrokeWidth);
     }
 
@@ -180,89 +198,119 @@ const CharacterDrawer = (function() {
      * Clear the drawing
      */
     function clearCanvas() {
-        // Remove all paths from SVG
-        while (svg.firstChild) {
-            svg.removeChild(svg.firstChild);
-        }
-        paths = [];
-        currentPath = null;
+        if (!ctx) return;
+
+        // Clear all strokes
+        strokes = [];
+        currentStroke = null;
         isDrawing = false;
+
+        // Clear canvas and set white background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     }
 
     /**
      * Undo the last stroke
      */
     function undoStroke() {
-        if (paths.length > 0) {
-            // Remove last saved path
-            paths.pop();
-            
-            // Redraw all remaining paths
-            while (svg.firstChild) {
-                svg.removeChild(svg.firstChild);
-            }
-            
-            paths.forEach(path => {
-                svg.appendChild(path.cloneNode(true));
-            });
-        }
+        if (strokes.length === 0) return;
+
+        // Remove last stroke
+        strokes.pop();
+
+        // Redraw all remaining strokes
+        redrawCanvas();
     }
 
     /**
-     * Calculate bounding box of path data
+     * Redraw all strokes on canvas
      */
-    function calculateBoundingBox(paths) {
+    function redrawCanvas() {
+        // Clear canvas
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+        // Redraw all strokes
+        strokes.forEach(stroke => {
+            if (stroke.points.length < 2) return;
+
+            ctx.beginPath();
+            ctx.lineWidth = stroke.width;
+            ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+
+            for (let i = 1; i < stroke.points.length; i++) {
+                ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+            }
+
+            ctx.stroke();
+        });
+    }
+
+    /**
+     * Calculate bounding box of all strokes
+     */
+    function calculateBoundingBox() {
+        if (strokes.length === 0) {
+            return null;
+        }
+
         let minX = Infinity, minY = Infinity;
         let maxX = -Infinity, maxY = -Infinity;
+        let maxStrokeWidth = 0;
 
-        paths.forEach(path => {
-            const d = path.getAttribute('d');
-            if (!d) return;
+        strokes.forEach(stroke => {
+            maxStrokeWidth = Math.max(maxStrokeWidth, stroke.width);
 
-            // Extract all numbers from the path data
-            // This regex matches numbers (including decimals and negatives)
-            const numbers = d.match(/-?\d+\.?\d*/g);
-            if (!numbers) return;
-
-            // Process coordinate pairs (x, y)
-            for (let i = 0; i < numbers.length - 1; i += 2) {
-                const x = parseFloat(numbers[i]);
-                const y = parseFloat(numbers[i + 1]);
-
-                if (!isNaN(x) && !isNaN(y)) {
-                    minX = Math.min(minX, x);
-                    minY = Math.min(minY, y);
-                    maxX = Math.max(maxX, x);
-                    maxY = Math.max(maxY, y);
-                }
-            }
+            stroke.points.forEach(point => {
+                minX = Math.min(minX, point.x);
+                minY = Math.min(minY, point.y);
+                maxX = Math.max(maxX, point.x);
+                maxY = Math.max(maxY, point.y);
+            });
         });
 
-        return { minX, minY, maxX, maxY };
+        return { minX, minY, maxX, maxY, maxStrokeWidth };
     }
 
     /**
-     * Convert drawing to pen-plotter-compatible SVG with auto-crop
+     * Convert canvas strokes to pen-plotter-compatible SVG path data
      */
-    function drawingToSVG() {
-        if (!svg) {
+    function strokeToSVGPath(stroke) {
+        if (!stroke.points || stroke.points.length < 2) {
+            return '';
+        }
+
+        let pathData = `M ${stroke.points[0].x.toFixed(2)} ${stroke.points[0].y.toFixed(2)}`;
+
+        for (let i = 1; i < stroke.points.length; i++) {
+            pathData += ` L ${stroke.points[i].x.toFixed(2)} ${stroke.points[i].y.toFixed(2)}`;
+        }
+
+        return pathData;
+    }
+
+    /**
+     * Convert canvas drawing to pen-plotter-compatible SVG with auto-crop
+     *
+     * This function generates an SVG that is:
+     * - Stroke-based (not fill-based) for pen plotter compatibility
+     * - Auto-cropped to the drawing bounds with padding
+     * - Compatible with the existing codebase's viewBox handling
+     */
+    function canvasToSVG() {
+        if (strokes.length === 0) {
             return null;
         }
 
-        // Get all path elements
-        const pathElements = svg.querySelectorAll('path');
-
-        if (pathElements.length === 0) {
+        // Calculate bounding box with stroke width consideration
+        const bbox = calculateBoundingBox();
+        if (!bbox) {
             return null;
         }
 
-        const strokeWidth = parseFloat(document.getElementById('draw-stroke-width').value) || 3;
-
-        // Calculate bounding box of all paths
-        const bbox = calculateBoundingBox(pathElements);
-
-        // Add padding around the content (include stroke width in padding)
-        const padding = strokeWidth * 2 + 5;
+        // Add padding around the content (include max stroke width in padding)
+        const padding = Math.max(bbox.maxStrokeWidth * 2, 10);
         const viewBoxX = Math.max(0, bbox.minX - padding);
         const viewBoxY = Math.max(0, bbox.minY - padding);
         const viewBoxWidth = (bbox.maxX - bbox.minX) + (padding * 2);
@@ -271,16 +319,24 @@ const CharacterDrawer = (function() {
         // Build pen-plotter-compatible SVG with stroke-based paths
         let svgPaths = '';
 
-        pathElements.forEach(path => {
-            const d = path.getAttribute('d');
-            if (d) {
-                // Override to ensure stroke-based rendering (critical for pen plotter!)
-                svgPaths += `  <path d="${d}" stroke="black" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" fill="none"/>\n`;
+        strokes.forEach(stroke => {
+            const pathData = strokeToSVGPath(stroke);
+            if (pathData) {
+                // Pen-plotter compatible attributes:
+                // - stroke="black" for black ink
+                // - stroke-width for line thickness
+                // - stroke-linecap="round" for smooth line endings
+                // - stroke-linejoin="round" for smooth corners
+                // - fill="none" critical for pen plotter (no filling!)
+                svgPaths += `  <path d="${pathData}" stroke="black" stroke-width="${stroke.width}" stroke-linecap="round" stroke-linejoin="round" fill="none"/>\n`;
             }
         });
 
+        // Generate final SVG with proper XML declaration and viewBox for auto-crop
         const svgData = `<?xml version="1.0" encoding="UTF-8"?>
-<svg viewBox="${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="${viewBoxX.toFixed(2)} ${viewBoxY.toFixed(2)} ${viewBoxWidth.toFixed(2)} ${viewBoxHeight.toFixed(2)}" xmlns="http://www.w3.org/2000/svg">
+  <!-- Auto-generated from Canvas drawing -->
+  <!-- Pen-plotter compatible: stroke-based, not filled -->
 ${svgPaths}</svg>`;
 
         return svgData;
@@ -299,21 +355,13 @@ ${svgPaths}</svg>`;
             return;
         }
 
-        if (!svg) {
-            alert('Drawing not initialized.');
-            return;
-        }
-
-        // Check if there are any drawn paths
-        const pathElements = svg.querySelectorAll('path');
-
-        if (pathElements.length === 0) {
+        if (strokes.length === 0) {
             alert('Please draw something first!');
             return;
         }
 
-        // Convert to pen-plotter-compatible SVG
-        const svgData = drawingToSVG();
+        // Convert canvas to pen-plotter-compatible SVG
+        const svgData = canvasToSVG();
         if (!svgData) {
             alert('Failed to generate SVG data.');
             return;

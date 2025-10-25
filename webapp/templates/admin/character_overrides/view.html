@@ -89,7 +89,7 @@
                 <div class="canvas-label">Draw your character below:</div>
                 <div id="draw-area"></div>
                 <div class="canvas-help">
-                    Use your mouse or touchscreen to draw. The character will be saved as a pen-plotter-compatible stroke-based SVG.
+                    Use your mouse or touchscreen to draw. The character will be automatically converted to a pen-plotter-compatible stroke-based SVG with auto-cropping.
                 </div>
             </div>
         </div>
@@ -230,17 +230,22 @@
     }
 
     #draw-area {
-        width: 200px;
-        height: 300px;
+        width: 400px;
+        height: 600px;
         border: 2px solid #8d8d8d;
         border-radius: 4px;
         background: white;
         position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    #draw-area svg {
+    #draw-area canvas {
         cursor: crosshair;
         border-radius: 4px;
+        max-width: 100%;
+        max-height: 100%;
     }
 
     .canvas-help {

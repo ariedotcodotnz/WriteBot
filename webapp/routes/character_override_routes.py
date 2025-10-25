@@ -18,26 +18,45 @@ def parse_svg_viewbox(svg_content):
     """
     Parse SVG content and extract viewBox dimensions.
     Returns tuple: (viewbox_x, viewbox_y, viewbox_width, viewbox_height)
+
+    Enhanced to handle:
+    - Standard viewBox with spaces
+    - viewBox with commas
+    - Mixed separators
+    - Width/height fallback with various units
     """
     try:
-        # Parse SVG
+        # Parse SVG (handle with or without namespace)
         root = ET.fromstring(svg_content)
 
-        # Get viewBox attribute
-        viewbox = root.get('viewBox')
+        # Get viewBox attribute (case-insensitive)
+        viewbox = root.get('viewBox') or root.get('viewbox')
         if viewbox:
-            parts = viewbox.strip().split()
+            # Handle various separators: spaces, commas, or mixed
+            viewbox_clean = re.sub(r'[,\s]+', ' ', viewbox.strip())
+            parts = viewbox_clean.split()
             if len(parts) == 4:
-                return tuple(float(x) for x in parts)
+                try:
+                    return tuple(float(x) for x in parts)
+                except ValueError as e:
+                    print(f"Warning: Could not parse viewBox values: {e}")
+                    pass
 
         # Fallback to width and height attributes
         width = root.get('width')
         height = root.get('height')
         if width and height:
-            # Remove units if present
-            width = re.sub(r'[a-zA-Z]+$', '', width)
-            height = re.sub(r'[a-zA-Z]+$', '', height)
-            return (0.0, 0.0, float(width), float(height))
+            try:
+                # Remove units if present (px, pt, mm, cm, in, etc.)
+                width = re.sub(r'[a-zA-Z%]+$', '', str(width).strip())
+                height = re.sub(r'[a-zA-Z%]+$', '', str(height).strip())
+                w = float(width)
+                h = float(height)
+                if w > 0 and h > 0:
+                    return (0.0, 0.0, w, h)
+            except ValueError as e:
+                print(f"Warning: Could not parse width/height: {e}")
+                pass
 
         return None
     except Exception as e:
@@ -49,25 +68,58 @@ def validate_svg(svg_content):
     """
     Validate SVG content and check if it meets requirements.
     Returns (is_valid, error_message, viewbox_data)
+
+    Enhanced validation:
+    - Handles XML parsing errors gracefully
+    - Checks for root SVG element (with or without namespace)
+    - Validates viewBox dimensions are positive
+    - Provides detailed error messages
     """
     try:
-        # Try to parse as XML
-        root = ET.fromstring(svg_content)
+        # Strip whitespace and check for empty content
+        if not svg_content or not svg_content.strip():
+            return False, "SVG content is empty", None
 
-        # Check if root element is svg
-        if not root.tag.endswith('svg'):
-            return False, "Invalid SVG: Root element must be <svg>", None
+        # Try to parse as XML
+        try:
+            root = ET.fromstring(svg_content)
+        except ET.ParseError as e:
+            return False, f"Invalid XML format: {str(e)}", None
+
+        # Check if root element is svg (handle namespaces)
+        tag_name = root.tag.lower()
+        if not (tag_name == 'svg' or tag_name.endswith('}svg')):
+            return False, f"Root element must be <svg>, found: {root.tag}", None
 
         # Get viewbox dimensions
         viewbox_data = parse_svg_viewbox(svg_content)
         if not viewbox_data:
-            return False, "SVG must have a viewBox or width/height attributes", None
+            return False, "SVG must have a viewBox or width/height attributes with valid numeric values", None
+
+        # Validate viewbox dimensions are positive
+        x, y, width, height = viewbox_data
+        if width <= 0 or height <= 0:
+            return False, f"Invalid viewBox dimensions: width and height must be positive (got {width}x{height})", None
+
+        # Check if SVG has any drawable content
+        has_content = False
+        drawable_elements = ['path', 'circle', 'ellipse', 'rect', 'line', 'polyline', 'polygon', 'text']
+        for elem in root.iter():
+            elem_name = elem.tag.lower()
+            for drawable in drawable_elements:
+                if drawable in elem_name:
+                    has_content = True
+                    break
+            if has_content:
+                break
+
+        if not has_content:
+            return False, "SVG appears to be empty (no drawable elements found)", None
 
         return True, None, viewbox_data
-    except ET.ParseError as e:
-        return False, f"Invalid XML: {str(e)}", None
+
     except Exception as e:
-        return False, f"Error validating SVG: {str(e)}", None
+        return False, f"Unexpected error validating SVG: {str(e)}", None
 
 
 @character_override_bp.route('/')
