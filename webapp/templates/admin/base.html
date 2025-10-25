@@ -6,6 +6,7 @@
     {% assets "css_admin" %}
         <link rel="stylesheet" href="{{ ASSET_URL }}">
     {% endassets %}
+    {% block admin_extra_css %}{% endblock %}
 {% endblock %}
 
 {% block content %}
@@ -88,4 +89,5 @@
     {% assets "js_admin" %}
         <script src="{{ ASSET_URL }}"></script>
     {% endassets %}
+    {% block admin_extra_js %}{% endblock %}
 {% endblock %}
