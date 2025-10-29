@@ -109,79 +109,187 @@
 
   /**
    * Add click-to-zoom functionality for variant previews
+   * Improved with better contrast, animations, and professional styling
    */
   function initSVGZoom() {
     const variantPreviews = document.querySelectorAll('.variant-preview');
 
     variantPreviews.forEach(preview => {
       preview.style.cursor = 'pointer';
+      preview.setAttribute('title', 'Click to enlarge');
+
       preview.addEventListener('click', function () {
         const img = this.querySelector('img');
         if (!img) return;
 
-        // Create modal overlay
+        // Create modal overlay with improved contrast
         const modal = document.createElement('div');
+        modal.className = 'svg-modal-overlay';
         modal.style.cssText = `
           position: fixed;
           top: 0;
           left: 0;
           width: 100%;
           height: 100%;
-          background: rgba(0, 0, 0, 0.85);
+          background: rgba(0, 0, 0, 0.95);
+          backdrop-filter: blur(4px);
           display: flex;
           align-items: center;
           justify-content: center;
           z-index: 10000;
           cursor: pointer;
+          animation: fadeIn 0.2s ease-out;
+          padding: 20px;
+        `;
+
+        // Create white container for better SVG contrast
+        const imgContainer = document.createElement('div');
+        imgContainer.style.cssText = `
+          background: white;
+          padding: 40px;
+          border-radius: 8px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+          max-width: 90%;
+          max-height: 90%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: default;
+          animation: scaleIn 0.2s ease-out;
         `;
 
         // Create zoomed image
         const zoomedImg = document.createElement('img');
         zoomedImg.src = img.src;
+        zoomedImg.alt = 'Character SVG Preview';
         zoomedImg.style.cssText = `
-          max-width: 90%;
-          max-height: 90%;
+          max-width: 800px;
+          max-height: 600px;
+          width: auto;
+          height: auto;
           object-fit: contain;
+          image-rendering: -webkit-optimize-contrast;
+          image-rendering: crisp-edges;
         `;
 
-        // Add close button
+        // Add improved close button
         const closeBtn = document.createElement('button');
-        closeBtn.textContent = 'Close';
+        closeBtn.innerHTML = '✕';
+        closeBtn.setAttribute('aria-label', 'Close preview');
         closeBtn.style.cssText = `
           position: absolute;
-          top: 20px;
-          right: 20px;
+          top: 24px;
+          right: 24px;
           background: white;
           color: #161616;
-          border: 1px solid #e0e0e0;
-          border-radius: 4px;
-          padding: 8px 16px;
-          font-size: 14px;
+          border: 2px solid #e0e0e0;
+          border-radius: 50%;
+          width: 44px;
+          height: 44px;
+          font-size: 24px;
+          font-weight: 300;
+          line-height: 1;
           cursor: pointer;
-          transition: background-color 0.2s ease;
+          transition: all 0.2s ease;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10001;
         `;
 
         closeBtn.addEventListener('mouseenter', function () {
           this.style.background = '#f4f4f4';
+          this.style.borderColor = '#0f62fe';
+          this.style.color = '#0f62fe';
+          this.style.transform = 'scale(1.1)';
         });
 
         closeBtn.addEventListener('mouseleave', function () {
           this.style.background = 'white';
+          this.style.borderColor = '#e0e0e0';
+          this.style.color = '#161616';
+          this.style.transform = 'scale(1)';
         });
 
-        modal.appendChild(zoomedImg);
+        // Add keyboard hint
+        const hint = document.createElement('div');
+        hint.textContent = 'Press ESC or click anywhere to close';
+        hint.style.cssText = `
+          position: absolute;
+          bottom: 24px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(255, 255, 255, 0.95);
+          color: #525252;
+          padding: 8px 16px;
+          border-radius: 4px;
+          font-size: 13px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+          pointer-events: none;
+        `;
+
+        imgContainer.appendChild(zoomedImg);
+        modal.appendChild(imgContainer);
         modal.appendChild(closeBtn);
+        modal.appendChild(hint);
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+          }
+          @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+          }
+        `;
+        document.head.appendChild(style);
+
         document.body.appendChild(modal);
 
-        // Close on click
-        modal.addEventListener('click', function () {
-          document.body.removeChild(modal);
+        // Prevent body scroll when modal is open
+        document.body.style.overflow = 'hidden';
+
+        // Close modal function with fade out animation
+        function closeModal() {
+          modal.style.animation = 'fadeOut 0.15s ease-out';
+          setTimeout(() => {
+            if (document.body.contains(modal)) {
+              document.body.removeChild(modal);
+              document.body.style.overflow = '';
+            }
+          }, 150);
+        }
+
+        // Close on background click
+        modal.addEventListener('click', closeModal);
+
+        // Close on close button click
+        closeBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          closeModal();
         });
 
-        // Prevent image click from closing modal
-        zoomedImg.addEventListener('click', function (e) {
+        // Prevent image container click from closing modal
+        imgContainer.addEventListener('click', function (e) {
           e.stopPropagation();
         });
+
+        // Close on ESC key (already handled globally, but adding here for redundancy)
+        function handleEscape(e) {
+          if (e.key === 'Escape') {
+            closeModal();
+            document.removeEventListener('keydown', handleEscape);
+          }
+        }
+        document.addEventListener('keydown', handleEscape);
       });
     });
   }

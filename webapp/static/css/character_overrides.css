@@ -262,6 +262,36 @@
     border-radius: 4px;
     padding: 8px;
     border: 1px solid #e0e0e0;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.variant-preview:hover {
+    background: #ffffff;
+    border-color: #0f62fe;
+    box-shadow: 0 2px 8px rgba(15, 98, 254, 0.15);
+    transform: translateY(-2px);
+}
+
+.variant-preview::after {
+    content: '🔍 Click to enlarge';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: #6f6f6f;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 2px 6px;
+    border-radius: 3px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.variant-preview:hover::after {
+    opacity: 1;
 }
 
 .variant-preview img {
