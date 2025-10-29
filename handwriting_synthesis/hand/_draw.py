@@ -258,9 +258,9 @@ def _draw(
                         next_text = next_segment.get('text', '')
                         has_space_after = next_text.strip() == '' or next_text.startswith(' ')
 
-                # Add spacing only if not adjacent to spaces
-                spacing_before = 0.0 if has_space_before else override_width * 0.15
-                spacing_after = 0.0 if has_space_after else override_width * 0.15
+                # Use reduced spacing (5%) when adjacent to spaces, full spacing (15%) otherwise
+                spacing_before = override_width * 0.05 if has_space_before else override_width * 0.15
+                spacing_after = override_width * 0.05 if has_space_after else override_width * 0.15
                 total_line_width += spacing_before + override_width + spacing_after
 
         # Horizontal alignment
@@ -367,8 +367,8 @@ def _draw(
                             # Check if previous segment is all spaces or ends with space
                             has_space_before = prev_text.strip() == '' or prev_text.endswith(' ')
 
-                    # Add spacing before the character (15% of character width) only if no space before
-                    character_spacing_before = 0.0 if has_space_before else rendered_width * 0.15
+                    # Use reduced spacing (5%) when adjacent to spaces, full spacing (15%) otherwise
+                    character_spacing_before = rendered_width * 0.05 if has_space_before else rendered_width * 0.15
                     cursor_x += character_spacing_before
 
                     # POSITIONING:
@@ -427,8 +427,8 @@ def _draw(
                             # Check if next segment is all spaces or starts with space
                             has_space_after = next_text.strip() == '' or next_text.startswith(' ')
 
-                    # Advance cursor by character width plus spacing after (15%) only if no space after
-                    character_spacing_after = 0.0 if has_space_after else rendered_width * 0.15
+                    # Use reduced spacing (5%) when adjacent to spaces, full spacing (15%) otherwise
+                    character_spacing_after = rendered_width * 0.05 if has_space_after else rendered_width * 0.15
                     cursor_x += rendered_width + character_spacing_after
 
                 except Exception as e:
