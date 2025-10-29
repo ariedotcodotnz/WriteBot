@@ -103,6 +103,13 @@ body {
   background: var(--ui-background);
 }
 
+.bx--grid {
+  max-width: 1584px;
+  margin: 0 auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
 /* Enhanced Section Headers */
 .section-header {
   display: flex;
@@ -957,6 +964,67 @@ body {
   }
 }
 
+/* Fix for two-column layout overflow */
+.bx--row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: -1rem;
+  margin-right: -1rem;
+}
+
+.bx--col-lg-5,
+.bx--col-lg-11,
+.bx--col-lg-16 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  width: 100%;
+  min-width: 0; /* Prevent overflow */
+}
+
+/* Large screens: proper column widths */
+@media (min-width: 1056px) {
+  .bx--col-lg-5 {
+    flex: 0 0 31.25%;
+    max-width: 31.25%;
+  }
+
+  .bx--col-lg-11 {
+    flex: 0 0 68.75%;
+    max-width: 68.75%;
+  }
+
+  .bx--col-lg-16 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+/* Medium screens: stack columns */
+@media (min-width: 672px) and (max-width: 1055px) {
+  .bx--col-md-8 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+/* Ensure cards don't overflow their containers */
+.card {
+  max-width: 100%;
+  overflow: visible;
+}
+
+/* Ensure preview doesn't cause overflow */
+.preview-container {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Ensure code container doesn't overflow */
+.code-container {
+  width: 100%;
+  max-width: 100%;
+}
+
 /* Large Screen Optimizations */
 @media (min-width: 1600px) {
   /* Optimize form grid for large screens - better field sizing */
@@ -967,7 +1035,7 @@ body {
 
   /* Make cards in left column more compact */
   .bx--col-lg-5 .card {
-    max-width: 700px;
+    max-width: 100%;
   }
 
   /* Optimize input fields */
