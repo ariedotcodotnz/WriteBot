@@ -1,15 +1,38 @@
+# Model data directories
 model/data/raw/ascii
 model/data/raw/lineStrokes
 model/data/raw/original
 model/data/processed
 
+# Application logs and outputs
 logs
 predictions
 
+# IDE and editor files
 .idea
+.vscode
+*.swp
+*.swo
+*~
+
+# Python virtual environments and cache
 venv
-img
+env
+.env
 __pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Flask/webapp specific
 /_main.py
 /webapp/static/.webassets-cache/
 /webapp/static/admin.css
@@ -17,3 +40,36 @@ __pycache__
 /webapp/static/common.css
 /webapp/static/common.js
 /instance/writebot.db
+instance/*.db
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+img
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Documentation build files
+docs/build/
+docs/_build/
+
+# Migration backups
+webapp/migrations/backups/
+
+# Jupyter notebooks
+.ipynb_checkpoints
+*.ipynb
+
+# Test outputs
+test_output/
+output/
+*.svg
+
+# Compressed files (unless specific ones are needed)
+*.tar.gz
+*.zip
+*.rar
