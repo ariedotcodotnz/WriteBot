@@ -258,9 +258,12 @@ def _draw(
                         next_text = next_segment.get('text', '')
                         has_space_after = next_text.strip() == '' or next_text.startswith(' ')
 
-                # Add spacing only if not adjacent to spaces
-                spacing_before = 0.0 if has_space_before else override_width * 0.15
-                spacing_after = 0.0 if has_space_after else override_width * 0.15
+                # FIXED: When there's a space adjacent, add space-width spacing
+                # When there's no space, add minimal character spacing to prevent touching
+                # This accounts for spaces being normalized away in AI-generated segments
+                space_width = override_width * 0.35  # Typical space is about 35% of character width
+                spacing_before = space_width if has_space_before else override_width * 0.15
+                spacing_after = space_width if has_space_after else override_width * 0.15
                 total_line_width += spacing_before + override_width + spacing_after
 
         # Horizontal alignment
@@ -367,8 +370,10 @@ def _draw(
                             # Check if previous segment is all spaces or ends with space
                             has_space_before = prev_text.strip() == '' or prev_text.endswith(' ')
 
-                    # Add spacing before the character (15% of character width) only if no space before
-                    character_spacing_before = 0.0 if has_space_before else rendered_width * 0.15
+                    # FIXED: Add space-width spacing when there's a space, minimal spacing otherwise
+                    # This accounts for spaces being normalized away in AI-generated segments
+                    space_width = rendered_width * 0.35  # Typical space is about 35% of character width
+                    character_spacing_before = space_width if has_space_before else rendered_width * 0.15
                     cursor_x += character_spacing_before
 
                     # POSITIONING:
@@ -427,8 +432,10 @@ def _draw(
                             # Check if next segment is all spaces or starts with space
                             has_space_after = next_text.strip() == '' or next_text.startswith(' ')
 
-                    # Advance cursor by character width plus spacing after (15%) only if no space after
-                    character_spacing_after = 0.0 if has_space_after else rendered_width * 0.15
+                    # FIXED: Add space-width spacing when there's a space, minimal spacing otherwise
+                    # This accounts for spaces being normalized away in AI-generated segments
+                    space_width = rendered_width * 0.35  # Typical space is about 35% of character width
+                    character_spacing_after = space_width if has_space_after else rendered_width * 0.15
                     cursor_x += rendered_width + character_spacing_after
 
                 except Exception as e:
