@@ -288,79 +288,107 @@ def _draw(
                 cursor_x += segment_width
 
             elif segment.get('type') == 'override':
-                # Insert override SVG
                 override_data = segment['override_data']
 
-                # Calculate scaling
-                vb_height = override_data['viewbox_height']
-                if vb_height > 0:
-                    scale = (target_h / vb_height) * s_global
-                else:
-                    scale = s_global
-
-                # Apply x_stretch
-                scale_x = scale * x_stretch
-                scale_y = scale
-
-                # Position: cursor_x, baseline adjusted
-                baseline_offset = override_data.get('baseline_offset', 0.0)
-                pos_x = cursor_x
-                # Align top of override SVG with top of generated text at line_offset_y
-                pos_y = line_offset_y + baseline_offset * scale_y
-
-                # Create a group for the override character
-                g = dwg.g(transform=f"translate({pos_x},{pos_y}) scale({scale_x},{scale_y})")
-
-                # Parse and add SVG paths
                 import xml.etree.ElementTree as ET
+                import re
+
+                # Extract actual character bounds from path data
                 try:
                     svg_root = ET.fromstring(override_data['svg_data'])
+                    all_x_coords = []
+                    all_y_coords = []
+
                     for elem in svg_root.iter():
-                        if elem.tag.endswith('path'):
+                        tag_name = elem.tag.split('}')[-1] if '}' in elem.tag else elem.tag
+                        if tag_name == 'path':
+                            d = elem.get('d', '')
+                            coords = re.findall(r'[ML]\s*([-\d.]+)\s+([-\d.]+)', d)
+                            for x, y in coords:
+                                all_x_coords.append(float(x))
+                                all_y_coords.append(float(y))
+
+                    if not all_x_coords or not all_y_coords:
+                        print(f"Warning: No coordinates found for override '{segment.get('char', '?')}'")
+                        continue
+
+                    # Character bounding box in viewbox coordinates
+                    char_min_x = min(all_x_coords)
+                    char_max_x = max(all_x_coords)
+                    char_min_y = min(all_y_coords)
+                    char_max_y = max(all_y_coords)
+
+                    char_width = char_max_x - char_min_x
+                    char_height = char_max_y - char_min_y
+
+                    # Calculate scale - target_h already includes s_global
+                    if char_height > 0:
+                        scale = target_h / char_height
+                    else:
+                        scale = 1.0
+
+                    scale_x = scale * x_stretch
+                    scale_y = scale
+
+                    # Rendered dimensions
+                    rendered_width = char_width * scale_x
+                    rendered_height = char_height * scale_y
+
+                    # BASELINE ALIGNMENT:
+                    # Position the character so its BOTTOM aligns with the text baseline
+                    # line_offset_y is the baseline (where text sits)
+                    # Generated text extends upward from this baseline by ~target_h
+
+                    pos_x = cursor_x - (char_min_x * scale_x)
+
+                    # Position vertically:
+                    # We want the BOTTOM of the character at the baseline (line_offset_y)
+                    # The character's bottom in viewbox coords is char_max_y (Y increases downward in SVG)
+                    # After scaling, this becomes char_max_y * scale_y
+                    # To position it at line_offset_y, we translate by: line_offset_y - (char_max_y * scale_y)
+                    pos_y = (line_offset_y/2) - ((char_max_y/2) * (scale_y))
+
+                    # Create group
+                    g = dwg.g(transform=f"translate({pos_x},{pos_y}) scale({scale_x},{scale_y})")
+
+                    # Add paths
+                    for elem in svg_root.iter():
+                        tag_name = elem.tag.split('}')[-1] if '}' in elem.tag else elem.tag
+
+                        if tag_name == 'path':
                             d = elem.get('d')
-                            if d:
-                                # Get original attributes
-                                orig_fill = elem.get('fill')
-                                orig_stroke = elem.get('stroke')
-                                orig_stroke_width = elem.get('stroke-width')
-                                orig_stroke_linecap = elem.get('stroke-linecap')
-                                orig_stroke_linejoin = elem.get('stroke-linejoin')
+                            if not d:
+                                continue
 
-                                # Determine if this path uses fill or stroke
-                                uses_stroke = (orig_stroke and orig_stroke.lower() not in ('none', 'transparent'))
-                                uses_fill = (not orig_fill or orig_fill.lower() not in ('none', 'transparent'))
+                            orig_stroke = elem.get('stroke', 'none')
+                            orig_stroke_width = elem.get('stroke-width', '3')
 
-                                # Create path with appropriate attributes
-                                if uses_stroke and not uses_fill:
-                                    # Stroke-based rendering
-                                    path = dwg.path(d=d)
-                                    path = path.stroke(
-                                        color=segment['color'],
-                                        width=float(orig_stroke_width) if orig_stroke_width else segment['width'],
-                                        linecap=orig_stroke_linecap or 'round',
-                                        linejoin=orig_stroke_linejoin or 'round'
-                                    ).fill('none')
-                                else:
-                                    # Fill-based rendering (default)
-                                    path = dwg.path(d=d, fill=segment['color'])
-                                    if uses_stroke:
-                                        # Has both fill and stroke
-                                        path = path.stroke(
-                                            color=segment['color'],
-                                            width=float(orig_stroke_width) if orig_stroke_width else 1
-                                        )
+                            path = dwg.path(d=d)
 
-                                g.add(path)
-                        # Add support for other SVG elements if needed
+                            if orig_stroke and orig_stroke.lower() not in ('none', 'transparent'):
+                                try:
+                                    stroke_width = min(float(orig_stroke_width), 4.0)
+                                except:
+                                    stroke_width = 2.0
+
+                                path = path.stroke(
+                                    color=segment['color'],
+                                    width=stroke_width,
+                                    linecap='round',
+                                    linejoin='round'
+                                ).fill('none')
+                            else:
+                                path = path.fill(segment['color'])
+
+                            g.add(path)
+
+                    dwg.add(g)
+                    cursor_x += rendered_width
+
                 except Exception as e:
-                    print(f"Error rendering override character '{segment['char']}': {e}")
-
-                dwg.add(g)
-
-                # Advance cursor
-                cursor_x += segment['estimated_width'] * s_global
-
-        cursor_y += line_height_px
+                    print(f"Error rendering override '{segment.get('char', '?')}': {e}")
+                    import traceback
+                    traceback.print_exc()
 
     # Add metadata comment if character overrides are enabled
     if character_override_collection_id is not None and overrides_dict:
