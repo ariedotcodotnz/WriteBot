@@ -209,9 +209,37 @@ class TemplatePreset(db.Model):
     # Line settings
     line_height = db.Column(db.Float, nullable=True)  # Optional
     line_height_unit = db.Column(db.String(10), default='mm')
+    empty_line_spacing = db.Column(db.Float, nullable=True)  # Spacing for empty lines
+
+    # Text alignment and scaling
+    text_alignment = db.Column(db.String(20), default='left', nullable=False)  # 'left', 'center', or 'right'
+    global_scale = db.Column(db.Float, default=1.0)  # Overall scaling factor
+    auto_size = db.Column(db.Boolean, default=False)  # Auto-size mode
+    manual_size_scale = db.Column(db.Float, nullable=True)  # Manual size scale override
 
     # Styling
     background_color = db.Column(db.String(20), nullable=True)  # Optional, e.g., 'white', '#FFFFFF'
+
+    # Style control
+    biases = db.Column(db.Text, nullable=True)  # Pipe-separated values for style variance
+    per_line_styles = db.Column(db.Text, nullable=True)  # Comma-separated style indices
+    stroke_colors = db.Column(db.Text, nullable=True)  # Comma-separated color values per line
+    stroke_widths = db.Column(db.Text, nullable=True)  # Comma-separated width values per line
+    horizontal_stretch = db.Column(db.Float, default=1.0)  # Horizontal scaling (1.0 = normal)
+    denoise = db.Column(db.Boolean, default=False)  # Enable/disable denoising
+
+    # Text wrapping
+    character_width = db.Column(db.Float, nullable=True)  # Character width in pixels for wrapping
+    wrap_ratio = db.Column(db.Float, nullable=True)  # Text wrapping ratio
+    wrap_utilization = db.Column(db.Float, nullable=True)  # Wrap utilization factor
+
+    # Advanced generation
+    use_chunked_generation = db.Column(db.Boolean, default=False)  # Enable chunked generation
+    adaptive_chunking = db.Column(db.Boolean, default=False)  # Enable adaptive chunking
+    adaptive_strategy = db.Column(db.String(50), nullable=True)  # 'balanced', 'word_length', 'sentence', 'punctuation', 'fixed'
+    words_per_chunk = db.Column(db.Integer, nullable=True)  # Number of words per chunk
+    chunk_spacing = db.Column(db.Float, nullable=True)  # Spacing between chunks
+    max_line_width = db.Column(db.Float, nullable=True)  # Maximum line width
 
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -239,7 +267,27 @@ class TemplatePreset(db.Model):
             },
             'line_height': self.line_height,
             'line_height_unit': self.line_height_unit,
+            'empty_line_spacing': self.empty_line_spacing,
+            'text_alignment': self.text_alignment,
+            'global_scale': self.global_scale,
+            'auto_size': self.auto_size,
+            'manual_size_scale': self.manual_size_scale,
             'background_color': self.background_color,
+            'biases': self.biases,
+            'per_line_styles': self.per_line_styles,
+            'stroke_colors': self.stroke_colors,
+            'stroke_widths': self.stroke_widths,
+            'horizontal_stretch': self.horizontal_stretch,
+            'denoise': self.denoise,
+            'character_width': self.character_width,
+            'wrap_ratio': self.wrap_ratio,
+            'wrap_utilization': self.wrap_utilization,
+            'use_chunked_generation': self.use_chunked_generation,
+            'adaptive_chunking': self.adaptive_chunking,
+            'adaptive_strategy': self.adaptive_strategy,
+            'words_per_chunk': self.words_per_chunk,
+            'chunk_spacing': self.chunk_spacing,
+            'max_line_width': self.max_line_width,
             'is_active': self.is_active,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }

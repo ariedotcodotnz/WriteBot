@@ -101,6 +101,47 @@
                     <option value="px" {{ 'selected' if template and template.line_height_unit == 'px' else '' }}>Pixels (px)</option>
                 </select>
             </div>
+
+            <div class="form-group">
+                <label for="empty_line_spacing">Empty Line Spacing</label>
+                <input type="number" id="empty_line_spacing" name="empty_line_spacing" step="0.1" min="0"
+                       value="{{ template.empty_line_spacing if template and template.empty_line_spacing else '' }}">
+                <div class="help-text">Spacing for empty lines (optional).</div>
+            </div>
+        </div>
+
+        <div class="form-section-title">Text Alignment & Scaling (Optional)</div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="text_alignment">Text Alignment</label>
+                <select id="text_alignment" name="text_alignment">
+                    <option value="left" {{ 'selected' if not template or template.text_alignment == 'left' else '' }}>Left</option>
+                    <option value="center" {{ 'selected' if template and template.text_alignment == 'center' else '' }}>Center</option>
+                    <option value="right" {{ 'selected' if template and template.text_alignment == 'right' else '' }}>Right</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="global_scale">Global Scale</label>
+                <input type="number" id="global_scale" name="global_scale" step="0.1" min="0.1"
+                       value="{{ template.global_scale if template and template.global_scale else '1.0' }}">
+                <div class="help-text">Overall scaling factor (1.0 = normal).</div>
+            </div>
+
+            <div class="form-group">
+                <label for="manual_size_scale">Manual Size Scale</label>
+                <input type="number" id="manual_size_scale" name="manual_size_scale" step="0.1" min="0"
+                       value="{{ template.manual_size_scale if template and template.manual_size_scale else '' }}">
+                <div class="help-text">Manual size scale override (optional).</div>
+            </div>
+        </div>
+
+        <div class="form-check">
+            <input type="checkbox" id="auto_size" name="auto_size"
+                   {{ 'checked' if template and template.auto_size else '' }}>
+            <label for="auto_size">Enable Auto Size</label>
+            <div class="help-text">Automatically adjust text size to fit the page.</div>
         </div>
 
         <div class="form-section-title">Styling (Optional)</div>
@@ -111,6 +152,135 @@
                    value="{{ template.background_color if template else '' }}"
                    placeholder="e.g., white, #FFFFFF, transparent">
             <div class="help-text">CSS color value for page background.</div>
+        </div>
+
+        <div class="form-section-title">Style Control (Advanced)</div>
+
+        <div class="form-group">
+            <label for="biases">Biases</label>
+            <input type="text" id="biases" name="biases"
+                   value="{{ template.biases if template and template.biases else '' }}"
+                   placeholder="e.g., 0.75|0.8|0.9">
+            <div class="help-text">Pipe-separated values for style variance control.</div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="per_line_styles">Per-Line Styles</label>
+                <input type="text" id="per_line_styles" name="per_line_styles"
+                       value="{{ template.per_line_styles if template and template.per_line_styles else '' }}"
+                       placeholder="e.g., 1,2,3,1">
+                <div class="help-text">Comma-separated style indices for each line.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="stroke_colors">Stroke Colors</label>
+                <input type="text" id="stroke_colors" name="stroke_colors"
+                       value="{{ template.stroke_colors if template and template.stroke_colors else '' }}"
+                       placeholder="e.g., black,blue,red">
+                <div class="help-text">Comma-separated color values per line.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="stroke_widths">Stroke Widths</label>
+                <input type="text" id="stroke_widths" name="stroke_widths"
+                       value="{{ template.stroke_widths if template and template.stroke_widths else '' }}"
+                       placeholder="e.g., 2,3,2">
+                <div class="help-text">Comma-separated width values per line.</div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="horizontal_stretch">Horizontal Stretch</label>
+                <input type="number" id="horizontal_stretch" name="horizontal_stretch" step="0.1" min="0.1"
+                       value="{{ template.horizontal_stretch if template and template.horizontal_stretch else '1.0' }}">
+                <div class="help-text">Horizontal scaling (1.0 = normal).</div>
+            </div>
+        </div>
+
+        <div class="form-check">
+            <input type="checkbox" id="denoise" name="denoise"
+                   {{ 'checked' if template and template.denoise else '' }}>
+            <label for="denoise">Enable Denoise</label>
+            <div class="help-text">Apply denoising to generated handwriting.</div>
+        </div>
+
+        <div class="form-section-title">Text Wrapping (Advanced)</div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="character_width">Character Width (px)</label>
+                <input type="number" id="character_width" name="character_width" step="0.1" min="0"
+                       value="{{ template.character_width if template and template.character_width else '' }}">
+                <div class="help-text">Estimated character width for text wrapping.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="wrap_ratio">Wrap Ratio</label>
+                <input type="number" id="wrap_ratio" name="wrap_ratio" step="0.01" min="0"
+                       value="{{ template.wrap_ratio if template and template.wrap_ratio else '' }}">
+                <div class="help-text">Text wrapping ratio.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="wrap_utilization">Wrap Utilization</label>
+                <input type="number" id="wrap_utilization" name="wrap_utilization" step="0.01" min="0"
+                       value="{{ template.wrap_utilization if template and template.wrap_utilization else '' }}">
+                <div class="help-text">Wrap utilization factor.</div>
+            </div>
+        </div>
+
+        <div class="form-section-title">Chunked Generation (Advanced)</div>
+
+        <div class="form-check">
+            <input type="checkbox" id="use_chunked_generation" name="use_chunked_generation"
+                   {{ 'checked' if template and template.use_chunked_generation else '' }}>
+            <label for="use_chunked_generation">Enable Chunked Generation</label>
+            <div class="help-text">Generate text in smaller chunks for better performance.</div>
+        </div>
+
+        <div class="form-check">
+            <input type="checkbox" id="adaptive_chunking" name="adaptive_chunking"
+                   {{ 'checked' if template and template.adaptive_chunking else '' }}>
+            <label for="adaptive_chunking">Enable Adaptive Chunking</label>
+            <div class="help-text">Use adaptive chunking based on text structure.</div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="adaptive_strategy">Adaptive Strategy</label>
+                <select id="adaptive_strategy" name="adaptive_strategy">
+                    <option value="">-- Select a strategy --</option>
+                    <option value="balanced" {{ 'selected' if template and template.adaptive_strategy == 'balanced' else '' }}>Balanced</option>
+                    <option value="word_length" {{ 'selected' if template and template.adaptive_strategy == 'word_length' else '' }}>Word Length</option>
+                    <option value="sentence" {{ 'selected' if template and template.adaptive_strategy == 'sentence' else '' }}>Sentence</option>
+                    <option value="punctuation" {{ 'selected' if template and template.adaptive_strategy == 'punctuation' else '' }}>Punctuation</option>
+                    <option value="fixed" {{ 'selected' if template and template.adaptive_strategy == 'fixed' else '' }}>Fixed</option>
+                </select>
+                <div class="help-text">Strategy for adaptive chunking.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="words_per_chunk">Words Per Chunk</label>
+                <input type="number" id="words_per_chunk" name="words_per_chunk" step="1" min="1"
+                       value="{{ template.words_per_chunk if template and template.words_per_chunk else '' }}">
+                <div class="help-text">Number of words per chunk.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="chunk_spacing">Chunk Spacing</label>
+                <input type="number" id="chunk_spacing" name="chunk_spacing" step="0.1" min="0"
+                       value="{{ template.chunk_spacing if template and template.chunk_spacing else '' }}">
+                <div class="help-text">Spacing between text chunks.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="max_line_width">Max Line Width</label>
+                <input type="number" id="max_line_width" name="max_line_width" step="0.1" min="0"
+                       value="{{ template.max_line_width if template and template.max_line_width else '' }}">
+                <div class="help-text">Maximum width for each line.</div>
+            </div>
         </div>
 
         <div class="form-check">
