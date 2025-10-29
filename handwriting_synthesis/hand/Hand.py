@@ -450,7 +450,7 @@ class Hand(object):
                 current_line_width = 0.0
                 current_line_segment_list = []
 
-                for segment in line_segments_data:
+                for seg_idx, segment in enumerate(line_segments_data):
                     if segment['type'] == 'override':
                         # Estimate override width for layout
                         from handwriting_synthesis.hand.character_override_utils import get_random_override, estimate_override_width
@@ -461,8 +461,29 @@ class Hand(object):
                         else:
                             override_width = 20  # fallback width
 
-                        # Check if override fits on current line (include spacing: 15% before + 15% after = 30%)
-                        override_width_with_spacing = override_width * 1.30
+                        # FIXED: Check for adjacent spaces and apply appropriate spacing
+                        # This matches the logic in _draw.py for consistent line breaking
+                        has_space_before = False
+                        if seg_idx > 0:
+                            prev_seg = line_segments_data[seg_idx - 1]
+                            if prev_seg.get('type') == 'generated':
+                                prev_text = prev_seg.get('text', '')
+                                has_space_before = prev_text.strip() == '' or prev_text.endswith(' ')
+
+                        has_space_after = False
+                        if seg_idx < len(line_segments_data) - 1:
+                            next_seg = line_segments_data[seg_idx + 1]
+                            if next_seg.get('type') == 'generated':
+                                next_text = next_seg.get('text', '')
+                                has_space_after = next_text.strip() == '' or next_text.startswith(' ')
+
+                        # When there's a space adjacent, use space-width spacing
+                        # When there's no space, use minimal character spacing
+                        space_width = override_width * 0.35
+                        spacing_before = space_width if has_space_before else override_width * 0.15
+                        spacing_after = space_width if has_space_after else override_width * 0.15
+                        override_width_with_spacing = spacing_before + override_width + spacing_after
+
                         potential_width = current_line_width
                         if current_line_width > 0:
                             potential_width += override_width_with_spacing
