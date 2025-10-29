@@ -261,7 +261,7 @@ body {
 /* Enhanced Form Styling - Carbon Design */
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: var(--spacing-05);
   margin-bottom: var(--spacing-06);
 }
@@ -954,6 +954,69 @@ body {
   .toolbar-divider {
     width: 100%;
     height: 1px;
+  }
+}
+
+/* Large Screen Optimizations */
+@media (min-width: 1600px) {
+  /* Optimize form grid for large screens - better field sizing */
+  .form-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--spacing-04);
+  }
+
+  /* Make cards in left column more compact */
+  .bx--col-lg-5 .card {
+    max-width: 700px;
+  }
+
+  /* Optimize input fields */
+  .bx--text-input,
+  .bx--text-area,
+  .bx--select-input {
+    font-size: 0.8125rem;
+  }
+
+  /* Better label sizing */
+  .bx--label {
+    font-size: 0.6875rem;
+  }
+
+  /* Optimize margins grid for 4 columns */
+  .form-grid + .form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Better preview container on large screens */
+  .preview-container {
+    min-height: 500px;
+    max-height: 800px;
+  }
+
+  /* Larger preview area */
+  .bx--col-lg-11 .preview-container {
+    min-height: 600px;
+  }
+
+  /* Better code container sizing */
+  .code-container {
+    max-height: 500px;
+  }
+
+  .code-content {
+    max-height: 420px;
+  }
+}
+
+/* Extra Large Screen Optimizations */
+@media (min-width: 2000px) {
+  /* Even more compact forms on very large screens */
+  .bx--col-lg-5 .card {
+    max-width: 600px;
+  }
+
+  .form-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   }
 }
 
