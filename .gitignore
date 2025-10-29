@@ -11,3 +11,9 @@ venv
 img
 __pycache__
 /_main.py
+/webapp/static/.webassets-cache/
+/webapp/static/admin.css
+/webapp/static/admin.js
+/webapp/static/common.css
+/webapp/static/common.js
+/instance/writebot.db
