@@ -157,19 +157,56 @@ def _draw(
         for segment in segment_list:
             if segment['type'] == 'override':
                 # Get random override variant
-                from handwriting_synthesis.hand.character_override_utils import get_random_override, estimate_override_width
+                from handwriting_synthesis.hand.character_override_utils import get_random_override
+                import xml.etree.ElementTree as ET
+                import re
+
                 override_data = get_random_override(overrides_dict, segment['text'])
                 if override_data:
-                    # Estimate width for this override
-                    estimated_width = estimate_override_width(override_data, target_h, x_stretch)
-                    preprocessed_segments.append({
-                        'type': 'override',
-                        'char': segment['text'],
-                        'override_data': override_data,
-                        'estimated_width': estimated_width,
-                        'color': color,
-                        'width': width
-                    })
+                    # Extract character dimensions to calculate scale limit
+                    try:
+                        svg_root = ET.fromstring(override_data['svg_data'])
+                        all_x_coords = []
+                        all_y_coords = []
+
+                        for elem in svg_root.iter():
+                            tag_name = elem.tag.split('}')[-1] if '}' in elem.tag else elem.tag
+                            if tag_name == 'path':
+                                d = elem.get('d', '')
+                                coords = re.findall(r'[ML]\s*([-\d.]+)\s+([-\d.]+)', d)
+                                for x, y in coords:
+                                    all_x_coords.append(float(x))
+                                    all_y_coords.append(float(y))
+
+                        if all_x_coords and all_y_coords:
+                            char_width = max(all_x_coords) - min(all_x_coords)
+                            char_height = max(all_y_coords) - min(all_y_coords)
+
+                            # Calculate scale limit for this override (same logic as generated text)
+                            if char_height > 0:
+                                s_h = target_h / char_height
+                                s_w = content_width_px / (char_width * x_stretch)
+                                scale_limits.append(min(s_w, s_h))
+
+                            preprocessed_segments.append({
+                                'type': 'override',
+                                'char': segment['text'],
+                                'override_data': override_data,
+                                'char_width': char_width,
+                                'char_height': char_height,
+                                'char_bounds': {
+                                    'min_x': min(all_x_coords),
+                                    'max_x': max(all_x_coords),
+                                    'min_y': min(all_y_coords),
+                                    'max_y': max(all_y_coords),
+                                },
+                                'color': color,
+                                'width': width
+                            })
+                        else:
+                            print(f"Warning: No coordinates found for override '{segment['text']}'")
+                    except Exception as e:
+                        print(f"Warning: Error preprocessing override '{segment['text']}': {e}")
                 else:
                     # No override found, skip or handle error
                     print(f"Warning: No override data found for character '{segment['text']}'")
@@ -240,7 +277,10 @@ def _draw(
                     ls_temp[:, 0] *= x_stretch
                 total_line_width += ls_temp[:, 0].max()
             elif segment.get('type') == 'override':
-                override_width = segment['estimated_width']
+                # Calculate rendered width using s_global (same as actual rendering)
+                char_width = segment.get('char_width', 0)
+                scale_x = s_global * x_stretch
+                override_width = char_width * scale_x
 
                 # Check if there's a space before this override character
                 has_space_before = False
@@ -258,9 +298,9 @@ def _draw(
                         next_text = next_segment.get('text', '')
                         has_space_after = next_text.strip() == '' or next_text.startswith(' ')
 
-                # Use reduced spacing (5%) when adjacent to spaces, full spacing (15%) otherwise
-                spacing_before = override_width * 0.05 if has_space_before else override_width * 0.15
-                spacing_after = override_width * 0.05 if has_space_after else override_width * 0.15
+                # Use reduced spacing (3%) when adjacent to spaces, normal spacing (10%) otherwise
+                spacing_before = override_width * 0.03 if has_space_before else override_width * 0.10
+                spacing_after = override_width * 0.03 if has_space_after else override_width * 0.10
                 total_line_width += spacing_before + override_width + spacing_after
 
         # Horizontal alignment
@@ -310,49 +350,18 @@ def _draw(
 
             elif segment.get('type') == 'override':
                 override_data = segment['override_data']
+                char_bounds = segment['char_bounds']
+                char_width = segment['char_width']
+                char_height = segment['char_height']
 
                 import xml.etree.ElementTree as ET
-                import re
 
-                # Extract actual character bounds from path data
                 try:
                     svg_root = ET.fromstring(override_data['svg_data'])
-                    all_x_coords = []
-                    all_y_coords = []
 
-                    for elem in svg_root.iter():
-                        tag_name = elem.tag.split('}')[-1] if '}' in elem.tag else elem.tag
-                        if tag_name == 'path':
-                            d = elem.get('d', '')
-                            coords = re.findall(r'[ML]\s*([-\d.]+)\s+([-\d.]+)', d)
-                            for x, y in coords:
-                                all_x_coords.append(float(x))
-                                all_y_coords.append(float(y))
-
-                    if not all_x_coords or not all_y_coords:
-                        print(f"Warning: No coordinates found for override '{segment.get('char', '?')}'")
-                        continue
-
-                    # Character bounding box in viewbox coordinates
-                    char_min_x = min(all_x_coords)
-                    char_max_x = max(all_x_coords)
-                    char_min_y = min(all_y_coords)
-                    char_max_y = max(all_y_coords)
-
-                    char_width = char_max_x - char_min_x
-                    char_height = char_max_y - char_min_y
-
-                    # Calculate scale to match generated text height
-                    # Generated text: normalized to start at y=0, height=raw_h, then scaled by s_global
-                    # Final height = raw_h * s_global ≈ target_h
-                    # SVG character should have same final height: char_height * scale = target_h
-                    if char_height > 0:
-                        scale = target_h / char_height
-                    else:
-                        scale = 1.0
-
-                    scale_x = scale * x_stretch
-                    scale_y = scale
+                    # Use s_global for consistent scaling with generated text
+                    scale_x = s_global * x_stretch
+                    scale_y = s_global
 
                     # Rendered dimensions
                     rendered_width = char_width * scale_x
@@ -367,13 +376,16 @@ def _draw(
                             # Check if previous segment is all spaces or ends with space
                             has_space_before = prev_text.strip() == '' or prev_text.endswith(' ')
 
-                    # Use reduced spacing (5%) when adjacent to spaces, full spacing (15%) otherwise
-                    character_spacing_before = rendered_width * 0.05 if has_space_before else rendered_width * 0.15
+                    # Use reduced spacing (3%) when adjacent to spaces, normal spacing (10%) otherwise
+                    character_spacing_before = rendered_width * 0.03 if has_space_before else rendered_width * 0.10
                     cursor_x += character_spacing_before
 
                     # POSITIONING:
                     # Generated text is normalized so y=0 is at the top, then positioned at line_offset_y
                     # SVG character should match: align its TOP (char_min_y) with line_offset_y
+
+                    char_min_x = char_bounds['min_x']
+                    char_min_y = char_bounds['min_y']
 
                     pos_x = cursor_x - (char_min_x * scale_x)
 
@@ -427,8 +439,8 @@ def _draw(
                             # Check if next segment is all spaces or starts with space
                             has_space_after = next_text.strip() == '' or next_text.startswith(' ')
 
-                    # Use reduced spacing (5%) when adjacent to spaces, full spacing (15%) otherwise
-                    character_spacing_after = rendered_width * 0.05 if has_space_after else rendered_width * 0.15
+                    # Use reduced spacing (3%) when adjacent to spaces, normal spacing (10%) otherwise
+                    character_spacing_after = rendered_width * 0.03 if has_space_after else rendered_width * 0.10
                     cursor_x += rendered_width + character_spacing_after
 
                 except Exception as e:
