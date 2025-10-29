@@ -239,9 +239,9 @@ def _draw(
                     ls_temp[:, 0] *= x_stretch
                 total_line_width += ls_temp[:, 0].max()
             elif segment.get('type') == 'override':
-                # Use estimated width scaled, plus 10% spacing
-                override_width = segment['estimated_width'] * s_global
-                total_line_width += override_width * 1.10
+                # Use estimated width plus spacing (15% before + 15% after = 30% total)
+                override_width = segment['estimated_width']
+                total_line_width += override_width * 1.30
 
         # Horizontal alignment
         if align == 'center':
@@ -322,11 +322,14 @@ def _draw(
                     char_width = char_max_x - char_min_x
                     char_height = char_max_y - char_min_y
 
-                    # Calculate scale using s_global for consistency with generated text
+                    # Calculate scale to match generated text height
+                    # Generated text: normalized to start at y=0, height=raw_h, then scaled by s_global
+                    # Final height = raw_h * s_global ≈ target_h
+                    # SVG character should have same final height: char_height * scale = target_h
                     if char_height > 0:
-                        scale = (target_h * s_global) / char_height
+                        scale = target_h / char_height
                     else:
-                        scale = s_global
+                        scale = 1.0
 
                     scale_x = scale * x_stretch
                     scale_y = scale
@@ -335,19 +338,20 @@ def _draw(
                     rendered_width = char_width * scale_x
                     rendered_height = char_height * scale_y
 
-                    # BASELINE ALIGNMENT:
-                    # Position the character so its BOTTOM aligns with the text baseline
-                    # line_offset_y is the baseline (where text sits)
-                    # Generated text extends upward from this baseline by ~target_h
+                    # Add spacing before the character (15% of character width)
+                    character_spacing_before = rendered_width * 0.15
+                    cursor_x += character_spacing_before
+
+                    # POSITIONING:
+                    # Generated text is normalized so y=0 is at the top, then positioned at line_offset_y
+                    # SVG character should match: align its TOP (char_min_y) with line_offset_y
 
                     pos_x = cursor_x - (char_min_x * scale_x)
 
-                    # Position vertically:
-                    # We want the BOTTOM of the character at the baseline (line_offset_y)
-                    # The character's bottom in viewbox coords is char_max_y (Y increases downward in SVG)
-                    # After scaling, this becomes char_max_y * scale_y
-                    # To position it at line_offset_y, we translate by: line_offset_y - (char_max_y * scale_y)
-                    pos_y = line_offset_y - (char_max_y * scale_y)
+                    # Position vertically so the top of the character aligns with line_offset_y
+                    # After transform, we want: char_min_y * scale_y + pos_y = line_offset_y
+                    # Therefore: pos_y = line_offset_y - (char_min_y * scale_y)
+                    pos_y = line_offset_y - (char_min_y * scale_y)
 
                     # Create group
                     g = dwg.g(transform=f"translate({pos_x},{pos_y}) scale({scale_x},{scale_y})")
@@ -384,9 +388,10 @@ def _draw(
                             g.add(path)
 
                     dwg.add(g)
-                    # Add spacing after override character (10% of character width for better separation)
-                    character_spacing = rendered_width * 0.10
-                    cursor_x += rendered_width + character_spacing
+
+                    # Advance cursor by character width plus spacing after (15%)
+                    character_spacing_after = rendered_width * 0.15
+                    cursor_x += rendered_width + character_spacing_after
 
                 except Exception as e:
                     print(f"Error rendering override '{segment.get('char', '?')}': {e}")

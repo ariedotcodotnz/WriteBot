@@ -461,8 +461,8 @@ class Hand(object):
                         else:
                             override_width = 20  # fallback width
 
-                        # Check if override fits on current line (include 10% spacing)
-                        override_width_with_spacing = override_width * 1.10
+                        # Check if override fits on current line (include spacing: 15% before + 15% after = 30%)
+                        override_width_with_spacing = override_width * 1.30
                         potential_width = current_line_width
                         if current_line_width > 0:
                             potential_width += override_width_with_spacing
