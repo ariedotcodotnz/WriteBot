@@ -207,7 +207,8 @@ def _draw(
                     'type': 'generated',
                     'strokes': ls,
                     'color': color,
-                    'width': width
+                    'width': width,
+                    'text': segment.get('text', '')  # Add original text for spacing checks
                 })
 
         preprocessed_lines.append(preprocessed_segments if preprocessed_segments else [{'empty': True}])
@@ -231,7 +232,7 @@ def _draw(
 
         # Calculate total line width by summing all segments
         total_line_width = 0.0
-        for segment in preprocessed_segments:
+        for seg_idx, segment in enumerate(preprocessed_segments):
             if segment.get('type') == 'generated':
                 ls_temp = segment['strokes'].copy()
                 ls_temp[:, :2] *= s_global
@@ -239,9 +240,28 @@ def _draw(
                     ls_temp[:, 0] *= x_stretch
                 total_line_width += ls_temp[:, 0].max()
             elif segment.get('type') == 'override':
-                # Use estimated width plus spacing (15% before + 15% after = 30% total)
                 override_width = segment['estimated_width']
-                total_line_width += override_width * 1.30
+
+                # Check if there's a space before this override character
+                has_space_before = False
+                if seg_idx > 0:
+                    prev_segment = preprocessed_segments[seg_idx - 1]
+                    if prev_segment.get('type') == 'generated':
+                        prev_text = prev_segment.get('text', '')
+                        has_space_before = prev_text.strip() == '' or prev_text.endswith(' ')
+
+                # Check if there's a space after this override character
+                has_space_after = False
+                if seg_idx < len(preprocessed_segments) - 1:
+                    next_segment = preprocessed_segments[seg_idx + 1]
+                    if next_segment.get('type') == 'generated':
+                        next_text = next_segment.get('text', '')
+                        has_space_after = next_text.strip() == '' or next_text.startswith(' ')
+
+                # Add spacing only if not adjacent to spaces
+                spacing_before = 0.0 if has_space_before else override_width * 0.15
+                spacing_after = 0.0 if has_space_after else override_width * 0.15
+                total_line_width += spacing_before + override_width + spacing_after
 
         # Horizontal alignment
         if align == 'center':
@@ -262,7 +282,7 @@ def _draw(
 
         # Render each segment on the line
         cursor_x = line_offset_x
-        for segment in preprocessed_segments:
+        for seg_idx, segment in enumerate(preprocessed_segments):
             if segment.get('type') == 'generated':
                 ls = segment['strokes'].copy()
                 ls[:, :2] *= s_global
@@ -338,8 +358,17 @@ def _draw(
                     rendered_width = char_width * scale_x
                     rendered_height = char_height * scale_y
 
-                    # Add spacing before the character (15% of character width)
-                    character_spacing_before = rendered_width * 0.15
+                    # Check if there's a space before this override character
+                    has_space_before = False
+                    if seg_idx > 0:
+                        prev_segment = preprocessed_segments[seg_idx - 1]
+                        if prev_segment.get('type') == 'generated':
+                            prev_text = prev_segment.get('text', '')
+                            # Check if previous segment is all spaces or ends with space
+                            has_space_before = prev_text.strip() == '' or prev_text.endswith(' ')
+
+                    # Add spacing before the character (15% of character width) only if no space before
+                    character_spacing_before = 0.0 if has_space_before else rendered_width * 0.15
                     cursor_x += character_spacing_before
 
                     # POSITIONING:
@@ -389,8 +418,17 @@ def _draw(
 
                     dwg.add(g)
 
-                    # Advance cursor by character width plus spacing after (15%)
-                    character_spacing_after = rendered_width * 0.15
+                    # Check if there's a space after this override character
+                    has_space_after = False
+                    if seg_idx < len(preprocessed_segments) - 1:
+                        next_segment = preprocessed_segments[seg_idx + 1]
+                        if next_segment.get('type') == 'generated':
+                            next_text = next_segment.get('text', '')
+                            # Check if next segment is all spaces or starts with space
+                            has_space_after = next_text.strip() == '' or next_text.startswith(' ')
+
+                    # Advance cursor by character width plus spacing after (15%) only if no space after
+                    character_spacing_after = 0.0 if has_space_after else rendered_width * 0.15
                     cursor_x += rendered_width + character_spacing_after
 
                 except Exception as e:
