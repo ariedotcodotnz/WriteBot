@@ -450,7 +450,27 @@ def create_template():
         margin_unit = request.form.get('margin_unit', 'mm').strip()
         line_height = request.form.get('line_height', type=float)
         line_height_unit = request.form.get('line_height_unit', 'mm').strip()
+        empty_line_spacing = request.form.get('empty_line_spacing', type=float)
+        text_alignment = request.form.get('text_alignment', 'left').strip()
+        global_scale = request.form.get('global_scale', type=float) or 1.0
+        auto_size = request.form.get('auto_size') == 'on'
+        manual_size_scale = request.form.get('manual_size_scale', type=float)
         background_color = request.form.get('background_color', '').strip()
+        biases = request.form.get('biases', '').strip()
+        per_line_styles = request.form.get('per_line_styles', '').strip()
+        stroke_colors = request.form.get('stroke_colors', '').strip()
+        stroke_widths = request.form.get('stroke_widths', '').strip()
+        horizontal_stretch = request.form.get('horizontal_stretch', type=float) or 1.0
+        denoise = request.form.get('denoise') == 'on'
+        character_width = request.form.get('character_width', type=float)
+        wrap_ratio = request.form.get('wrap_ratio', type=float)
+        wrap_utilization = request.form.get('wrap_utilization', type=float)
+        use_chunked_generation = request.form.get('use_chunked_generation') == 'on'
+        adaptive_chunking = request.form.get('adaptive_chunking') == 'on'
+        adaptive_strategy = request.form.get('adaptive_strategy', '').strip()
+        words_per_chunk = request.form.get('words_per_chunk', type=int)
+        chunk_spacing = request.form.get('chunk_spacing', type=float)
+        max_line_width = request.form.get('max_line_width', type=float)
         is_active = request.form.get('is_active') == 'on'
 
         # Validation
@@ -491,7 +511,27 @@ def create_template():
             margin_unit=margin_unit,
             line_height=line_height,
             line_height_unit=line_height_unit,
+            empty_line_spacing=empty_line_spacing,
+            text_alignment=text_alignment,
+            global_scale=global_scale,
+            auto_size=auto_size,
+            manual_size_scale=manual_size_scale,
             background_color=background_color or None,
+            biases=biases or None,
+            per_line_styles=per_line_styles or None,
+            stroke_colors=stroke_colors or None,
+            stroke_widths=stroke_widths or None,
+            horizontal_stretch=horizontal_stretch,
+            denoise=denoise,
+            character_width=character_width,
+            wrap_ratio=wrap_ratio,
+            wrap_utilization=wrap_utilization,
+            use_chunked_generation=use_chunked_generation,
+            adaptive_chunking=adaptive_chunking,
+            adaptive_strategy=adaptive_strategy or None,
+            words_per_chunk=words_per_chunk,
+            chunk_spacing=chunk_spacing,
+            max_line_width=max_line_width,
             is_active=is_active,
             created_by=current_user.id
         )
@@ -526,7 +566,27 @@ def edit_template(template_id):
         margin_unit = request.form.get('margin_unit', 'mm').strip()
         line_height = request.form.get('line_height', type=float)
         line_height_unit = request.form.get('line_height_unit', 'mm').strip()
+        empty_line_spacing = request.form.get('empty_line_spacing', type=float)
+        text_alignment = request.form.get('text_alignment', 'left').strip()
+        global_scale = request.form.get('global_scale', type=float) or 1.0
+        auto_size = request.form.get('auto_size') == 'on'
+        manual_size_scale = request.form.get('manual_size_scale', type=float)
         background_color = request.form.get('background_color', '').strip()
+        biases = request.form.get('biases', '').strip()
+        per_line_styles = request.form.get('per_line_styles', '').strip()
+        stroke_colors = request.form.get('stroke_colors', '').strip()
+        stroke_widths = request.form.get('stroke_widths', '').strip()
+        horizontal_stretch = request.form.get('horizontal_stretch', type=float) or 1.0
+        denoise = request.form.get('denoise') == 'on'
+        character_width = request.form.get('character_width', type=float)
+        wrap_ratio = request.form.get('wrap_ratio', type=float)
+        wrap_utilization = request.form.get('wrap_utilization', type=float)
+        use_chunked_generation = request.form.get('use_chunked_generation') == 'on'
+        adaptive_chunking = request.form.get('adaptive_chunking') == 'on'
+        adaptive_strategy = request.form.get('adaptive_strategy', '').strip()
+        words_per_chunk = request.form.get('words_per_chunk', type=int)
+        chunk_spacing = request.form.get('chunk_spacing', type=float)
+        max_line_width = request.form.get('max_line_width', type=float)
         is_active = request.form.get('is_active') == 'on'
 
         # Validation
@@ -568,7 +628,27 @@ def edit_template(template_id):
         template.margin_unit = margin_unit
         template.line_height = line_height
         template.line_height_unit = line_height_unit
+        template.empty_line_spacing = empty_line_spacing
+        template.text_alignment = text_alignment
+        template.global_scale = global_scale
+        template.auto_size = auto_size
+        template.manual_size_scale = manual_size_scale
         template.background_color = background_color or None
+        template.biases = biases or None
+        template.per_line_styles = per_line_styles or None
+        template.stroke_colors = stroke_colors or None
+        template.stroke_widths = stroke_widths or None
+        template.horizontal_stretch = horizontal_stretch
+        template.denoise = denoise
+        template.character_width = character_width
+        template.wrap_ratio = wrap_ratio
+        template.wrap_utilization = wrap_utilization
+        template.use_chunked_generation = use_chunked_generation
+        template.adaptive_chunking = adaptive_chunking
+        template.adaptive_strategy = adaptive_strategy or None
+        template.words_per_chunk = words_per_chunk
+        template.chunk_spacing = chunk_spacing
+        template.max_line_width = max_line_width
         template.is_active = is_active
 
         db.session.commit()
