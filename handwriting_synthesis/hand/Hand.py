@@ -461,12 +461,13 @@ class Hand(object):
                         else:
                             override_width = 20  # fallback width
 
-                        # Check if override fits on current line
+                        # Check if override fits on current line (include 10% spacing)
+                        override_width_with_spacing = override_width * 1.10
                         potential_width = current_line_width
                         if current_line_width > 0:
-                            potential_width += override_width
+                            potential_width += override_width_with_spacing
                         else:
-                            potential_width = override_width
+                            potential_width = override_width_with_spacing
 
                         if potential_width <= max_line_width or current_line_width == 0:
                             # Fits on current line
@@ -483,7 +484,7 @@ class Hand(object):
                             current_line_stroke = np.empty((0, 3))
                             current_line_text = [segment['text']]
                             current_line_segment_list = [segment]
-                            current_line_width = override_width
+                            current_line_width = override_width_with_spacing
                     else:
                         # Generated chunk
                         chunk_stroke = segment['strokes']

@@ -239,8 +239,9 @@ def _draw(
                     ls_temp[:, 0] *= x_stretch
                 total_line_width += ls_temp[:, 0].max()
             elif segment.get('type') == 'override':
-                # Use estimated width scaled
-                total_line_width += segment['estimated_width'] * s_global
+                # Use estimated width scaled, plus 10% spacing
+                override_width = segment['estimated_width'] * s_global
+                total_line_width += override_width * 1.10
 
         # Horizontal alignment
         if align == 'center':
@@ -321,11 +322,11 @@ def _draw(
                     char_width = char_max_x - char_min_x
                     char_height = char_max_y - char_min_y
 
-                    # Calculate scale - target_h already includes s_global
+                    # Calculate scale using s_global for consistency with generated text
                     if char_height > 0:
-                        scale = target_h / char_height
+                        scale = (target_h * s_global) / char_height
                     else:
-                        scale = 1.0
+                        scale = s_global
 
                     scale_x = scale * x_stretch
                     scale_y = scale
@@ -346,7 +347,7 @@ def _draw(
                     # The character's bottom in viewbox coords is char_max_y (Y increases downward in SVG)
                     # After scaling, this becomes char_max_y * scale_y
                     # To position it at line_offset_y, we translate by: line_offset_y - (char_max_y * scale_y)
-                    pos_y = (line_offset_y/2) - ((char_max_y/2) * (scale_y))
+                    pos_y = line_offset_y - (char_max_y * scale_y)
 
                     # Create group
                     g = dwg.g(transform=f"translate({pos_x},{pos_y}) scale({scale_x},{scale_y})")
@@ -383,7 +384,9 @@ def _draw(
                             g.add(path)
 
                     dwg.add(g)
-                    cursor_x += rendered_width
+                    # Add spacing after override character (10% of character width for better separation)
+                    character_spacing = rendered_width * 0.10
+                    cursor_x += rendered_width + character_spacing
 
                 except Exception as e:
                     print(f"Error rendering override '{segment.get('char', '?')}': {e}")
