@@ -45,8 +45,13 @@
       }
 
       function createRuler(container, options = {}) {
-        if (container.__rulerCleanup) {
-          container.__rulerCleanup();
+        // Defensively clean up any existing ruler
+        if (container && container.__rulerCleanup) {
+          try {
+            container.__rulerCleanup();
+          } catch (e) {
+            console.warn('Error during ruler cleanup:', e);
+          }
           delete container.__rulerCleanup;
         }
 
@@ -301,18 +306,34 @@
         window.addEventListener("resize", renderTicks);
         container.addEventListener("mousemove", onMouseMove);
 
+        // Store references for cleanup
+        container.__rulerEventHandlers = {
+          mousemove: onMouseMove,
+          resize: renderTicks
+        };
+
         container.__rulerCleanup = function () {
+          // Remove all DOM elements
           [hRule, vRule, corner, vMouse, hMouse, mousePosBox].forEach(
-            (el) => el && el.remove()
+            (el) => el && el.remove && el.remove()
           );
-          container.removeEventListener("mousemove", onMouseMove);
-          window.removeEventListener("resize", renderTicks);
+
+          // Remove event listeners using stored references
+          if (container.__rulerEventHandlers) {
+            container.removeEventListener("mousemove", container.__rulerEventHandlers.mousemove);
+            window.removeEventListener("resize", container.__rulerEventHandlers.resize);
+            delete container.__rulerEventHandlers;
+          }
         };
       }
 
       function clearRuler(container) {
-        if (container.__rulerCleanup) {
-          container.__rulerCleanup();
+        if (container && container.__rulerCleanup) {
+          try {
+            container.__rulerCleanup();
+          } catch (e) {
+            console.warn('Error during ruler cleanup:', e);
+          }
           delete container.__rulerCleanup;
         }
       }

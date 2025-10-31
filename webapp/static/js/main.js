@@ -12,28 +12,36 @@ let TEMPLATE_PRESETS = [];
 function openLightbox(svgContent) {
   const lightbox = document.getElementById('lightbox');
   const lightboxSvg = document.getElementById('lightboxSvg');
+
+  // Clear any existing ruler first before modifying DOM
+  if (window.Ruler) {
+    Ruler.clear(lightbox);
+  }
+
   lightboxSvg.innerHTML = svgContent;
   lightbox.classList.add('active');
   document.body.style.overflow = 'hidden';
 
-  // Initialize ruler with mm units
+  // Initialize ruler after the lightbox is fully rendered
+  // This prevents race conditions and ensures proper initialization
   if (window.Ruler) {
-    // Clear any existing ruler first
-    Ruler.clear(lightbox);
-
-    // Create ruler with mm units
-    Ruler.create(lightbox, {
-      unit: 'mm',
-      unitPrecision: 1,
-      showCrosshair: true,
-      showMousePos: true,
-      tickColor: '#666',
-      crosshairColor: '#ff6b6b',
-      crosshairStyle: 'dotted',
-      mouseBoxBg: '#323232',
-      mouseBoxColor: '#fff',
-      vRuleSize: 20,
-      hRuleSize: 20
+    requestAnimationFrame(() => {
+      // Double-check the lightbox is still active before creating ruler
+      if (lightbox.classList.contains('active')) {
+        Ruler.create(lightbox, {
+          unit: 'mm',
+          unitPrecision: 1,
+          showCrosshair: true,
+          showMousePos: true,
+          tickColor: '#666',
+          crosshairColor: '#ff6b6b',
+          crosshairStyle: 'dotted',
+          mouseBoxBg: '#323232',
+          mouseBoxColor: '#fff',
+          vRuleSize: 20,
+          hRuleSize: 20
+        });
+      }
     });
   }
 }
@@ -44,13 +52,17 @@ function closeLightbox(event) {
   }
   const lightbox = document.getElementById('lightbox');
 
-  // Clear ruler before closing
-  if (window.Ruler) {
-    Ruler.clear(lightbox);
-  }
-
+  // Remove active class first
   lightbox.classList.remove('active');
   document.body.style.overflow = '';
+
+  // Clear ruler after closing to ensure proper cleanup
+  // Use setTimeout to allow the lightbox to finish closing animation
+  if (window.Ruler) {
+    setTimeout(() => {
+      Ruler.clear(lightbox);
+    }, 10);
+  }
 }
 
 // Setup clickable SVG previews
