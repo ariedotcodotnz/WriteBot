@@ -143,6 +143,7 @@ if Environment is not None and Bundle is not None:
         js_common = Bundle(
             'js/main.js',  # List your JS files explicitly
             'js/carbon-components.min.js',
+            'js/ruler-js/ruler-vanilla.js',
             # Add more JS files as needed
             filters='rjsmin',  # Use rjsmin filter
             output='common.js'
