@@ -133,10 +133,8 @@ def template_csv():
     example = (
         "example.svg,The quick brown fox jumps over the lazy dog.,"
         "A4,mm,,,20,,,white,1.0,portrait,"
-        ",,,,,"
-        "normal,1.0,true,,,1.0,,"
-        ",,,"
-        "true,800.0,3,8.0,true,2,8,25,true,balanced\n"
+        ",,,,normal,1.0,true,,,1.0,"
+        ",,,,true,800.0,3,8.0,true,2,8,25,true,balanced\n"
     )
     return Response(header + example, mimetype="text/csv", headers={
         'Content-Disposition': 'attachment; filename=writebot_template.csv'
