@@ -432,11 +432,6 @@ Use \\ on its own line to insert blank space."></textarea>
               <h3 class="card-title">Preview</h3>
               <div style="display: flex; align-items: center; gap: 1rem;">
                 <span class="text-small text-muted" id="previewHint" style="display: none;">Click to enlarge</span>
-                <div class="zoom-control">
-                  <span class="text-small text-muted">Zoom:</span>
-                  <input id="zoom" type="range" min="25" max="200" step="5" value="100" class="zoom-slider" />
-                  <span id="zoomVal" class="zoom-value">100%</span>
-                </div>
               </div>
             </div>
             <div class="preview-container">
@@ -445,6 +440,7 @@ Use \\ on its own line to insert blank space."></textarea>
               </div>
             </div>
           </div>
+        <script src="{{ url_for('static', filename='js/ruler-js/ruler-vanilla.js') }}"></script>
 
           <!-- SVG Source Output -->
           <div class="card">

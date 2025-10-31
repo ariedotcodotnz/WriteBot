@@ -13,22 +13,48 @@ function openLightbox(svgContent) {
   const lightbox = document.getElementById('lightbox');
   const lightboxSvg = document.getElementById('lightboxSvg');
 
-  // Clear any existing ruler first before modifying DOM
+  // Clear any existing ruler from the correct container (lightboxSvg)
   if (window.Ruler) {
-    Ruler.clear(lightbox);
+    Ruler.clear(lightboxSvg);
   }
 
   lightboxSvg.innerHTML = svgContent;
   lightbox.classList.add('active');
   document.body.style.overflow = 'hidden';
 
-  // Initialize ruler after the lightbox is fully rendered
-  // This prevents race conditions and ensures proper initialization
+  // Prevent ALL zoom-related events on the lightbox
+  const preventZoom = (e) => {
+    // Prevent zoom on double-click
+    if (e.type === 'dblclick') {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+    // Prevent zoom with Ctrl+scroll or pinch
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+  };
+
+  // Add event listeners to prevent zoom
+  lightbox.addEventListener('dblclick', preventZoom, { capture: true });
+  lightbox.addEventListener('wheel', preventZoom, { passive: false, capture: true });
+  lightbox.addEventListener('mousewheel', preventZoom, { passive: false, capture: true });
+  lightbox.addEventListener('gesturestart', preventZoom, { capture: true });
+  lightbox.addEventListener('gesturechange', preventZoom, { capture: true });
+  lightbox.addEventListener('gestureend', preventZoom, { capture: true });
+
+  // Store references for cleanup
+  lightbox._preventZoomHandler = preventZoom;
+
+  // Initialize ruler on the correct container (lightboxSvg)
   if (window.Ruler) {
     requestAnimationFrame(() => {
       // Double-check the lightbox is still active before creating ruler
       if (lightbox.classList.contains('active')) {
-        Ruler.create(lightbox, {
+        Ruler.create(lightboxSvg, {
           unit: 'mm',
           unitPrecision: 1,
           showCrosshair: true,
@@ -46,23 +72,47 @@ function openLightbox(svgContent) {
   }
 }
 
-function closeLightbox(event) {
-  if (event && event.target !== event.currentTarget && !event.target.classList.contains('lightbox')) {
-    return;
-  }
-  const lightbox = document.getElementById('lightbox');
 
-  // Remove active class first
+function closeLightbox(event) {
+  // Allow closing if:
+  // 1. No event (programmatic call)
+  // 2. Click on lightbox background
+  // 3. Click on close button
+  if (event) {
+    const isLightboxBackground = event.target.id === 'lightbox';
+    const isCloseButton = event.target.closest('.lightbox-close');
+
+    if (!isLightboxBackground && !isCloseButton) {
+      return;
+    }
+
+    // Prevent event propagation
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  const lightbox = document.getElementById('lightbox');
+  const lightboxSvg = document.getElementById('lightboxSvg');
+
+  // Remove zoom prevention event listeners
+  if (lightbox._preventZoomHandler) {
+    lightbox.removeEventListener('dblclick', lightbox._preventZoomHandler, { capture: true });
+    lightbox.removeEventListener('wheel', lightbox._preventZoomHandler, { capture: true });
+    lightbox.removeEventListener('mousewheel', lightbox._preventZoomHandler, { capture: true });
+    lightbox.removeEventListener('gesturestart', lightbox._preventZoomHandler, { capture: true });
+    lightbox.removeEventListener('gesturechange', lightbox._preventZoomHandler, { capture: true });
+    lightbox.removeEventListener('gestureend', lightbox._preventZoomHandler, { capture: true });
+    delete lightbox._preventZoomHandler;
+  }
+
+  // Clear ruler from the correct container (lightboxSvg) before closing
+  if (window.Ruler) {
+    Ruler.clear(lightboxSvg);
+  }
+
+  // Remove active class
   lightbox.classList.remove('active');
   document.body.style.overflow = '';
-
-  // Clear ruler after closing to ensure proper cleanup
-  // Use setTimeout to allow the lightbox to finish closing animation
-  if (window.Ruler) {
-    setTimeout(() => {
-      Ruler.clear(lightbox);
-    }, 10);
-  }
 }
 
 // Setup clickable SVG previews
@@ -92,7 +142,7 @@ function setLoading(visible) {
 function showNotification(type, title, message, duration = 5000) {
   const container = document.getElementById('notif');
   const id = 'notif-' + Date.now();
-  
+
   const notification = document.createElement('div');
   notification.id = id;
   notification.className = `notification ${type}`;
@@ -112,9 +162,9 @@ function showNotification(type, title, message, duration = 5000) {
       </svg>
     </button>
   `;
-  
+
   container.appendChild(notification);
-  
+
   if (duration > 0) {
     setTimeout(() => {
       const el = document.getElementById(id);
@@ -423,10 +473,10 @@ function buildMargins() {
   const mr = document.getElementById('marginRight').value;
   const mb = document.getElementById('marginBottom').value;
   const ml = document.getElementById('marginLeft').value;
-  
+
   const toNum = v => (v === '' || v === null || v === undefined) ? null : Number(v);
   const t = toNum(mt), r = toNum(mr), b = toNum(mb), l = toNum(ml);
-  
+
   if (t === null && r === null && b === null && l === null) return undefined;
   return { top: t ?? 20, right: r ?? 20, bottom: b ?? 20, left: l ?? 20 };
 }
@@ -449,7 +499,7 @@ function copySvg() {
     toastError('No SVG to copy. Please generate first.');
     return;
   }
-  
+
   navigator.clipboard.writeText(lastSvgText)
     .then(() => toastSuccess('SVG copied to clipboard'))
     .catch(() => toastError('Failed to copy to clipboard'));
@@ -539,31 +589,31 @@ async function generate() {
   };
 
   setLoading(true);
-  
+
   try {
     const res = await fetch('/api/v1/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    
+
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || res.statusText);
     }
-    
+
     const data = await res.json();
     lastSvgText = data.svg;
     lastMetadata = data.meta || {};
-    
+
     // Update preview
     const preview = document.getElementById('preview');
     preview.innerHTML = lastSvgText;
     makePreviewClickable();
-    
+
     // Update source code
     document.getElementById('output').querySelector('code').textContent = lastSvgText;
-    
+
     // Update metadata info
     const metaInfo = document.getElementById('metaInfo');
     if (lastMetadata && Object.keys(lastMetadata).length > 0) {
@@ -575,7 +625,7 @@ async function generate() {
         Orientation: ${page.orientation || 'portrait'}
       `;
     }
-    
+
     toastSuccess('Handwriting generated successfully');
   } catch (error) {
     toastError(error.message);
@@ -590,7 +640,7 @@ function downloadSVG() {
     toastError('Please generate handwriting first');
     return;
   }
-  
+
   const filename = 'handwriting.svg';
   const blob = new Blob([lastSvgText], { type: 'image/svg+xml;charset=utf-8' });
   const url = URL.createObjectURL(blob);
@@ -603,7 +653,7 @@ function downloadSVG() {
     URL.revokeObjectURL(url);
     a.remove();
   }, 0);
-  
+
   toastSuccess(`Downloaded ${filename}`);
 }
 
@@ -616,11 +666,11 @@ function clearBatchUI() {
   document.getElementById('batchLog').innerHTML = '';
   document.getElementById('batchLiveGrid').innerHTML = '';
   document.getElementById('progressFill').style.width = '0%';
-  
+
   const dl = document.getElementById('batchDownload');
   dl.style.display = 'none';
   dl.removeAttribute('href');
-  
+
   document.getElementById('batchContainer').style.display = 'none';
 }
 
@@ -630,63 +680,63 @@ async function batchGenerateStream() {
     toastError('Please select a CSV file');
     return;
   }
-  
+
   clearBatchUI();
   document.getElementById('batchContainer').style.display = 'block';
-  
+
   const form = new FormData();
   form.append('file', file);
-  
+
   setLoading(true);
-  
+
   try {
     const res = await fetch('/api/batch/stream', {
       method: 'POST',
       body: form
     });
-    
+
     if (!res.ok || !res.body) {
       throw new Error('Failed to start batch processing');
     }
-    
+
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
     let ok = 0, err = 0, total = 0;
-    
+
     const liveGrid = document.getElementById('batchLiveGrid');
     const liveLimit = () => {
       const el = document.getElementById('liveLimit');
       return Math.max(1, Math.min(50, Number(el?.value) || 12));
     };
-    
+
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
-      
+
       buffer += decoder.decode(value, { stream: true });
       const parts = buffer.split('\n\n');
       buffer = parts.pop();
-      
+
       for (const chunk of parts) {
         if (!chunk.startsWith('data:')) continue;
-        
+
         try {
           const payload = JSON.parse(chunk.replace(/^data:\s*/, ''));
-          
+
           if (payload.type === 'start') {
             total = payload.total || 0;
             document.getElementById('batchTotal').textContent = String(total);
           } else if (payload.type === 'row') {
             const log = document.getElementById('batchLog');
             const entry = document.createElement('div');
-            
+
             if (payload.status === 'ok') {
               ok += 1;
               entry.className = 'batch-log-entry success';
               entry.textContent = `✓ Row ${payload.row}: ${payload.file}`;
               document.getElementById('batchOk').textContent = String(ok);
-              
+
               // Add live preview card
               if (payload.file && liveGrid.children.length < liveLimit()) {
                 const card = document.createElement('div');
@@ -704,7 +754,7 @@ async function batchGenerateStream() {
               entry.textContent = `✗ Row ${payload.row}: ${payload.error}`;
               document.getElementById('batchErr').textContent = String(err);
             }
-            
+
             log.appendChild(entry);
             log.scrollTop = log.scrollHeight;
           } else if (payload.type === 'progress') {
@@ -718,9 +768,9 @@ async function batchGenerateStream() {
             const dl = document.getElementById('batchDownload');
             dl.href = payload.download;
             dl.style.display = 'inline-flex';
-            
+
             toastSuccess(`Batch processing complete: ${ok} successful, ${err} errors`);
-            
+
             // Load preview SVGs
             const jobId = payload.job_id;
                if (jobId) {
@@ -728,7 +778,7 @@ async function batchGenerateStream() {
               for (const card of cards) {
                 const fname = card.getAttribute('data-filename');
                 if (!fname) continue;
-                
+
                 fetch(`/api/batch/result/${jobId}/file/${encodeURIComponent(fname)}`)
                    .then(r => r.text())
                    .then(svg => {
@@ -768,13 +818,13 @@ function setupCsvDragDrop() {
   const dropzone = document.getElementById('csvDrop');
   const input = document.getElementById('csv');
   const info = document.getElementById('csvInfo');
-  
+
   function showFileInfo(file) {
     if (!file) {
       info.style.display = 'none';
       return;
     }
-    
+
     info.innerHTML = `
       <div class="file-info">
         <span class="file-info-name">${file.name}</span>
@@ -783,12 +833,12 @@ function setupCsvDragDrop() {
     `;
     info.style.display = 'block';
   }
-  
+
   input.addEventListener('change', () => {
     CSV_FILE = input.files[0];
     showFileInfo(CSV_FILE);
   });
-  
+
   ['dragenter', 'dragover'].forEach(event => {
     dropzone.addEventListener(event, (e) => {
       e.preventDefault();
@@ -796,7 +846,7 @@ function setupCsvDragDrop() {
       dropzone.classList.add('dragover');
     });
   });
-  
+
   ['dragleave', 'drop'].forEach(event => {
     dropzone.addEventListener(event, (e) => {
       e.preventDefault();
@@ -804,15 +854,15 @@ function setupCsvDragDrop() {
       dropzone.classList.remove('dragover');
     });
   });
-  
+
   dropzone.addEventListener('drop', (e) => {
     const files = e.dataTransfer?.files;
     if (!files?.length) return;
-    
+
     const file = Array.from(files).find(f => f.name.toLowerCase().endsWith('.csv')) || files[0];
     CSV_FILE = file;
     showFileInfo(CSV_FILE);
-    
+
     // Auto-start batch processing
     if (file.name.toLowerCase().endsWith('.csv')) {
       batchGenerateStream();
@@ -824,11 +874,11 @@ function setupCsvDragDrop() {
 function setupZoomControl() {
   const zoom = document.getElementById('zoom');
   const zoomVal = document.getElementById('zoomVal');
-  
+
   zoom.addEventListener('input', () => {
     const value = Number(zoom.value);
     zoomVal.textContent = `${value}%`;
-    
+
     const preview = document.getElementById('preview');
     preview.style.transform = `scale(${value / 100})`;
     preview.style.transformOrigin = 'top left';
