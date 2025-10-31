@@ -59,7 +59,14 @@ function makePreviewClickable() {
   const hint = document.getElementById('previewHint');
   if (lastSvgText) {
     preview.classList.add('has-content');
-    preview.onclick = () => openLightbox(lastSvgText);
+    // Remove any existing click handler first
+    preview.onclick = null;
+    // Use addEventListener for more reliable event handling
+    preview.onclick = (e) => {
+      if (e.target.closest('#preview')) {
+        openLightbox(lastSvgText);
+      }
+    };
     hint.style.display = 'block';
   }
 }
