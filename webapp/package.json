@@ -9,7 +9,9 @@
   "devDependencies": {
     "html-minifier-terser": "^7.2.0",
     "javascript-obfuscator": "^4.0.2"
+  },
+  "dependencies": {
+    "@carbon/icon-helpers": "^10.68.0",
+    "@carbon/icons": "^11.70.0"
   }
 }
-
-

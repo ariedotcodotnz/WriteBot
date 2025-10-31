@@ -42,6 +42,10 @@ pip-delete-this-directory.txt
 /instance/writebot.db
 instance/*.db
 
+# Node.js dependencies
+node_modules/
+webapp/node_modules/
+
 # Database files
 *.db
 *.sqlite
