@@ -763,6 +763,12 @@ body {
   height: auto;
 }
 
+/* Ruler in Lightbox */
+.lightbox > div[style*="position: absolute"] {
+  /* Ensure ruler elements have proper z-index within lightbox */
+  z-index: 10001 !important;
+}
+
 /* Clickable SVG Previews */
 .clickable-svg {
   cursor: zoom-in;
