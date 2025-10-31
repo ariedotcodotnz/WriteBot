@@ -1,0 +1,6 @@
+filename,text,styles,use_chunked,legibility,x_stretch,denoise,character_override_collection_id
+sample_normal.svg,"The quick brown fox jumps over the lazy dog.",9,false,normal,1.0,true,
+sample_chunked.svg,"This is a much longer text that will benefit from chunked generation. The chunked mode breaks text into smaller pieces and stitches them together, which helps maintain consistency over longer passages. This technique is especially useful for generating full paragraphs or pages of text.",9,true,normal,1.0,true,
+sample_high_legibility.svg,"This text uses high legibility mode for clearer handwriting.",9,false,high,1.0,true,
+sample_stretched.svg,"This text is horizontally stretched.",9,false,normal,1.5,true,
+sample_no_denoise.svg,"This text has denoising disabled to see the raw output.",9,false,normal,1.0,false,

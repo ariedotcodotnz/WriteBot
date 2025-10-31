@@ -18,13 +18,7 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from handwriting_synthesis.hand.Hand import Hand
-from webapp.utils.page_utils import resolve_page_px, margins_to_px, line_height_px as _line_height_px
-from webapp.utils.text_utils import (
-    normalize_text_for_model,
-    wrap_by_canvas,
-    parse_margins as _parse_margins,
-    map_sequence_to_wrapped as _map_sequence_to_wrapped,
-)
+from webapp.utils.generation_utils import parse_generation_params, generate_handwriting_to_file
 
 
 # Create blueprint
@@ -78,116 +72,23 @@ def batch_generate():
     for idx, row in df.fillna("").iterrows():
         row_dict = row.to_dict()
         try:
-            text = _get_row_value(row_dict, "text", defaults.get("text", ""))
-            if not isinstance(text, str):
-                text = str(text)
-            lines_in = text.splitlines()
-            if not lines_in:
+            # Merge row data with defaults
+            merged_params = {**defaults, **{k: v for k, v in row_dict.items() if v not in (None, "", "nan")}}
+
+            # Ensure we have text
+            if not merged_params.get("text"):
                 raise ValueError("Empty text")
 
+            # Get filename
             filename = _get_row_value(row_dict, "filename", f"sample_{idx}.svg")
-
-            biases = _get_row_value(row_dict, "biases", defaults.get("biases"))
-            styles = _get_row_value(row_dict, "styles", defaults.get("styles"))
-            stroke_colors = _get_row_value(row_dict, "stroke_colors", defaults.get("stroke_colors"))
-            stroke_widths = _get_row_value(row_dict, "stroke_widths", defaults.get("stroke_widths"))
-            page_size = _get_row_value(row_dict, "page_size", defaults.get("page_size", "A4"))
-            units = _get_row_value(row_dict, "units", defaults.get("units", "mm"))
-            page_width = _get_row_value(row_dict, "page_width", defaults.get("page_width"))
-            page_height = _get_row_value(row_dict, "page_height", defaults.get("page_height"))
-            margins = _get_row_value(row_dict, "margins", defaults.get("margins", 20))
-            line_height = _get_row_value(row_dict, "line_height", defaults.get("line_height"))
-            align = _get_row_value(row_dict, "align", defaults.get("align", "left"))
-            background = _get_row_value(row_dict, "background", defaults.get("background", "white"))
-            global_scale = float(_get_row_value(row_dict, "global_scale", defaults.get("global_scale", 1.0)))
-            orientation = _get_row_value(row_dict, "orientation", defaults.get("orientation", "portrait"))
-
-            # Convert some string-encoded lists
-            def parse_list(v, cast):
-                if v is None or v == "":
-                    return None
-                if isinstance(v, list):
-                    out = []
-                    for x in v:
-                        s = str(x).strip()
-                        if s == "" or s.lower() == "nan":
-                            continue
-                        try:
-                            out.append(cast(s))
-                        except Exception:
-                            continue
-                    return out or None
-                if isinstance(v, str):
-                    out = []
-                    for p in v.split("|"):
-                        s = p.strip()
-                        if s == "" or s.lower() == "nan":
-                            continue
-                        try:
-                            out.append(cast(s))
-                        except Exception:
-                            continue
-                    return out or None
-                try:
-                    return [cast(v)]
-                except Exception:
-                    return None
-
-            biases = parse_list(biases, float)
-            styles = parse_list(styles, int)
-            stroke_colors = parse_list(stroke_colors, str)
-            stroke_widths = parse_list(stroke_widths, float)
-            margins = _parse_margins(margins)
-
-            # Compute wrapping by canvas width
-            w_px, h_px = resolve_page_px(page_size, units, page_width, page_height, orientation)
-            m_top, m_right, m_bottom, m_left = margins_to_px(margins, units)
-            content_width_px = max(1.0, w_px - (m_left + m_right))
-            norm_lines_in = ["" if ln.strip() == "\\" else normalize_text_for_model(ln) for ln in lines_in]
-            lh_px = _line_height_px(units, line_height)
-            wrap_char_px = _get_row_value(row_dict, "wrap_char_px", defaults.get("wrap_char_px"))
-            wrap_ratio = _get_row_value(row_dict, "wrap_ratio", defaults.get("wrap_ratio"))
-            wrap_utilization = _get_row_value(row_dict, "wrap_utilization", defaults.get("wrap_utilization"))
-            approx_char_px = (
-                float(wrap_char_px)
-                if wrap_char_px not in (None, "")
-                else (lh_px * float(wrap_ratio) if wrap_ratio not in (None, "") else 10.5)
-            )
-            util = float(wrap_utilization) if wrap_utilization not in (None, "") else 1.35
-            lines, src_index = wrap_by_canvas(
-                norm_lines_in,
-                content_width_px,
-                max_chars_per_line=75,
-                approx_char_px=approx_char_px,
-                utilization=util,
-            )
-            orig_len = len(norm_lines_in)
-            wrapped_len = len(lines)
-            biases_m = _map_sequence_to_wrapped(biases, src_index, orig_len, wrapped_len)
-            styles_m = _map_sequence_to_wrapped(styles, src_index, orig_len, wrapped_len)
-            stroke_colors_m = _map_sequence_to_wrapped(stroke_colors, src_index, orig_len, wrapped_len)
-            stroke_widths_m = _map_sequence_to_wrapped(stroke_widths, src_index, orig_len, wrapped_len)
-            if not any(line.strip() for line in lines):
-                raise ValueError("No non-empty text lines provided")
-
             out_path = os.path.join(out_dir, os.path.basename(filename))
 
-            hand.write(
-                filename=out_path,
-                lines=lines,
-                biases=biases_m,
-                styles=styles_m,
-                stroke_colors=stroke_colors_m,
-                stroke_widths=stroke_widths_m,
-                page_size=page_size if not (page_width and page_height) else [float(page_width), float(page_height)],
-                units=units,
-                margins=margins,
-                line_height=line_height,
-                align=align,
-                background=background,
-                global_scale=global_scale,
-                orientation=orientation,
-            )
+            # Parse all generation parameters using shared utility
+            params = parse_generation_params(merged_params, defaults)
+
+            # Generate using shared utility
+            generate_handwriting_to_file(hand, out_path, params)
+
             generated_files.append(out_path)
         except Exception as e:
             errors.append((idx, str(e)))
@@ -219,12 +120,25 @@ def batch_generate():
 @login_required
 def template_csv():
     """Download a template CSV file for batch processing."""
+    # Comprehensive CSV template with all available parameters
     header = (
-        "filename,text,page_size,units,page_width,page_height,margins,line_height,align,background,global_scale,orientation,"
-        "biases,styles,stroke_colors,stroke_widths,wrap_char_px,wrap_ratio,wrap_utilization,legibility,x_stretch,denoise,"
-        "use_chunked,words_per_chunk,chunk_spacing,rotate_chunks,min_words_per_chunk,max_words_per_chunk,target_chars_per_chunk\n"
+        "filename,text,"
+        "page_size,units,page_width,page_height,margins,line_height,align,background,global_scale,orientation,"
+        "biases,styles,stroke_colors,stroke_widths,"
+        "legibility,x_stretch,denoise,empty_line_spacing,auto_size,manual_size_scale,character_override_collection_id,"
+        "wrap_char_px,wrap_ratio,wrap_utilization,"
+        "use_chunked,max_line_width,words_per_chunk,chunk_spacing,rotate_chunks,min_words_per_chunk,max_words_per_chunk,target_chars_per_chunk,adaptive_chunking,adaptive_strategy\n"
     )
-    return Response(header, mimetype="text/csv", headers={
+    # Add example row to show users the format
+    example = (
+        "example.svg,The quick brown fox jumps over the lazy dog.,"
+        "A4,mm,,,20,,,white,1.0,portrait,"
+        ",,,,,"
+        "normal,1.0,true,,,1.0,,"
+        ",,,"
+        "true,800.0,3,8.0,true,2,8,25,true,balanced\n"
+    )
+    return Response(header + example, mimetype="text/csv", headers={
         'Content-Disposition': 'attachment; filename=writebot_template.csv'
     })
 
@@ -264,14 +178,27 @@ def batch_stream():
         generated_files: List[str] = []
         errors: List[Tuple[int, str]] = []
 
-        # ... (rest of the streaming batch logic - similar to batch_generate but with yield statements)
-        # For brevity, I'll include a simplified version
-
         for idx, row in df.fillna("").iterrows():
+            row_dict = row.to_dict()
             try:
-                # Process row (similar logic to batch_generate)
-                # ... (processing logic)
+                # Merge row data with defaults
+                merged_params = {**defaults, **{k: v for k, v in row_dict.items() if v not in (None, "", "nan")}}
 
+                # Ensure we have text
+                if not merged_params.get("text"):
+                    raise ValueError("Empty text")
+
+                # Get filename
+                filename = _get_row_value(row_dict, "filename", f"sample_{idx}.svg")
+                out_path = os.path.join(out_dir, os.path.basename(filename))
+
+                # Parse all generation parameters using shared utility
+                params = parse_generation_params(merged_params, defaults)
+
+                # Generate using shared utility
+                generate_handwriting_to_file(hand, out_path, params)
+
+                generated_files.append(out_path)
                 yield _sse({
                     "type": "row",
                     "status": "ok",
