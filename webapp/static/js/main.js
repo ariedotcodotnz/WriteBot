@@ -15,6 +15,27 @@ function openLightbox(svgContent) {
   lightboxSvg.innerHTML = svgContent;
   lightbox.classList.add('active');
   document.body.style.overflow = 'hidden';
+
+  // Initialize ruler with mm units
+  if (window.Ruler) {
+    // Clear any existing ruler first
+    Ruler.clear(lightbox);
+
+    // Create ruler with mm units
+    Ruler.create(lightbox, {
+      unit: 'mm',
+      unitPrecision: 1,
+      showCrosshair: true,
+      showMousePos: true,
+      tickColor: '#666',
+      crosshairColor: '#ff6b6b',
+      crosshairStyle: 'dotted',
+      mouseBoxBg: '#323232',
+      mouseBoxColor: '#fff',
+      vRuleSize: 20,
+      hRuleSize: 20
+    });
+  }
 }
 
 function closeLightbox(event) {
@@ -22,6 +43,12 @@ function closeLightbox(event) {
     return;
   }
   const lightbox = document.getElementById('lightbox');
+
+  // Clear ruler before closing
+  if (window.Ruler) {
+    Ruler.clear(lightbox);
+  }
+
   lightbox.classList.remove('active');
   document.body.style.overflow = '';
 }
