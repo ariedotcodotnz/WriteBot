@@ -165,6 +165,11 @@
             if (Math.abs(frac) < 0.001) return "major";
             if (Math.abs(frac - 0.5) < 0.001) return "medium";
             return "small";
+          } else if (u === "mm") {
+            const mod = unitValue % 10;
+            if (mod === 0) return "major";
+            if (mod === 5) return "medium";
+            return "small";
           } else if (u === "px") {
             const mod = unitValue % 100;
             if (mod === 0) return "major";
@@ -184,7 +189,7 @@
             hMax - settings.vRuleSize,
             settings.unit
           );
-          const step = settings.unit === "px" ? 10 : 0.1;
+          const step = settings.unit === "px" ? 10 : settings.unit === "mm" ? 1 : 0.1;
 
           for (let i = 0; i <= totalHUnits / step; i++) {
             const unitValue = i * step;
@@ -209,17 +214,15 @@
             });
 
             if (tickType === "major") {
-              const label = createElement("div", {
+              const label = createElement("span", {
                 position: "absolute",
-                bottom: "16px",
-                left: "12px",
+                top: "2px",
+                left: "4px",
                 fontSize: "10px",
                 color: settings.tickColor,
-                transform: "translate(-50%, 100%)",
-                whiteSpace: "nowrap",
               });
               label.textContent =
-                unitValue.toFixed(settings.unitPrecision) + " " + settings.unit;
+                unitValue.toFixed(settings.unitPrecision);
               tick.appendChild(label);
             }
             hRule.appendChild(tick);
@@ -252,20 +255,19 @@
               width: tickWidth,
             });
 
-            if (tickType === "major") {
+            if (tickType === "major" && unitValue > 0) {
               const label = createElement("span", {
                 display: "block",
                 position: "absolute",
-                top: "2px",
-                right: "0",
-                transform: "rotate(-90deg)",
-                transformOrigin: "top right",
-                marginRight: settings.vRuleSize + "px",
+                top: "4px",
+                left: "50%",
+                transform: "translateX(-50%) rotate(-90deg)",
+                transformOrigin: "top center",
                 color: settings.tickColor,
                 fontSize: "10px",
               });
               label.textContent =
-                unitValue.toFixed(settings.unitPrecision) + " " + settings.unit;
+                unitValue.toFixed(settings.unitPrecision);
               tick.appendChild(label);
             }
             vRule.appendChild(tick);

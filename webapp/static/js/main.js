@@ -7,129 +7,118 @@ let CSV_FILE = null;
 let CHARACTER_OVERRIDE_COLLECTIONS = [];
 let PAGE_SIZE_PRESETS = [];
 let TEMPLATE_PRESETS = [];
+let rulerActive = false;
 
-// Lightbox Functions
-function openLightbox(svgContent) {
-  const lightbox = document.getElementById('lightbox');
-  const lightboxSvg = document.getElementById('lightboxSvg');
+// Parse SVG dimensions
+function parseSvgDimensions(svgElement) {
+  if (!svgElement) return null;
 
-  // Clear any existing ruler from the correct container (lightboxSvg)
-  if (window.Ruler) {
-    Ruler.clear(lightboxSvg);
-  }
+  const width = svgElement.getAttribute('width');
+  const height = svgElement.getAttribute('height');
 
-  lightboxSvg.innerHTML = svgContent;
-  lightbox.classList.add('active');
-  document.body.style.overflow = 'hidden';
+  if (!width || !height) return null;
 
-  // Prevent ALL zoom-related events on the lightbox
-  const preventZoom = (e) => {
-    // Prevent zoom on double-click
-    if (e.type === 'dblclick') {
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    }
-    // Prevent zoom with Ctrl+scroll or pinch
-    if (e.ctrlKey || e.metaKey) {
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    }
+  // Parse dimensions with units (e.g., "210.0mm", "800px")
+  const parseValue = (val) => {
+    const match = val.match(/^([\d.]+)(\w+)?$/);
+    if (!match) return { value: parseFloat(val), unit: 'px' };
+    return { value: parseFloat(match[1]), unit: match[2] || 'px' };
   };
 
-  // Add event listeners to prevent zoom
-  lightbox.addEventListener('dblclick', preventZoom, { capture: true });
-  lightbox.addEventListener('wheel', preventZoom, { passive: false, capture: true });
-  lightbox.addEventListener('mousewheel', preventZoom, { passive: false, capture: true });
-  lightbox.addEventListener('gesturestart', preventZoom, { capture: true });
-  lightbox.addEventListener('gesturechange', preventZoom, { capture: true });
-  lightbox.addEventListener('gestureend', preventZoom, { capture: true });
+  const w = parseValue(width);
+  const h = parseValue(height);
 
-  // Store references for cleanup
-  lightbox._preventZoomHandler = preventZoom;
+  return {
+    width: w.value,
+    height: h.value,
+    widthUnit: w.unit,
+    heightUnit: h.unit
+  };
+}
 
-  // Initialize ruler on the correct container (lightboxSvg)
+// Ruler Functions
+function initializeRuler() {
+  const preview = document.getElementById('preview');
+  const container = document.getElementById('previewContainerRuler');
+
+  if (!preview || !container || !lastSvgText) {
+    console.log('Ruler init skipped: missing elements or SVG');
+    return;
+  }
+
+  // Clear existing ruler
+  clearRuler();
+
+  // FIX: This line is the required change.
+  container.style.position = 'relative';
+
+  // Get the SVG element
+  const svgElement = preview.querySelector('svg');
+  if (!svgElement) {
+    console.log('Ruler init skipped: no SVG element found');
+    return;
+  }
+
+  // Parse SVG dimensions
+  const dims = parseSvgDimensions(svgElement);
+  if (!dims) {
+    console.warn('Could not parse SVG dimensions');
+    return;
+  }
+
+  console.log('SVG Dimensions:', dims);
+  console.log('Container dimensions:', container.offsetWidth, 'x', container.offsetHeight);
+
+  // Only initialize ruler if there's SVG content and dimensions
   if (window.Ruler) {
+    // Wait for next frame to ensure SVG is rendered and container has dimensions
     requestAnimationFrame(() => {
-      // Double-check the lightbox is still active before creating ruler
-      if (lightbox.classList.contains('active')) {
-        Ruler.create(lightboxSvg, {
+      // Double check container has dimensions
+      if (container.offsetWidth === 0 || container.offsetHeight === 0) {
+        console.warn('Container has no dimensions, retrying...');
+        setTimeout(() => initializeRuler(), 100);
+        return;
+      }
+
+      try {
+        console.log('Creating ruler...');
+
+        // Create ruler with mm units (matching SVG)
+        Ruler.create(container, {
           unit: 'mm',
-          unitPrecision: 1,
+          unitPrecision: 0,
           showCrosshair: true,
           showMousePos: true,
-          tickColor: '#666',
-          crosshairColor: '#ff6b6b',
-          crosshairStyle: 'dotted',
-          mouseBoxBg: '#323232',
+          tickColor: '#161616',
+          crosshairColor: '#0f62fe',
+          crosshairStyle: 'solid',
+          mouseBoxBg: '#161616',
           mouseBoxColor: '#fff',
-          vRuleSize: 20,
-          hRuleSize: 20
+          vRuleSize: 30,
+          hRuleSize: 30
         });
+
+        rulerActive = true;
+        console.log('Ruler initialized successfully');
+      } catch (e) {
+        console.error('Failed to initialize ruler:', e);
       }
     });
+  } else {
+    console.error('Ruler library not loaded!');
   }
 }
 
-
-function closeLightbox(event) {
-  // Allow closing if:
-  // 1. No event (programmatic call)
-  // 2. Click on lightbox background
-  // 3. Click on close button
-  if (event) {
-    const isLightboxBackground = event.target.id === 'lightbox';
-    const isCloseButton = event.target.closest('.lightbox-close');
-
-    if (!isLightboxBackground && !isCloseButton) {
-      return;
+function clearRuler() {
+  const container = document.getElementById('previewContainerRuler');
+  if (window.Ruler && rulerActive && container) {
+    try {
+      Ruler.clear(container);
+      console.log('Ruler cleared');
+    } catch (e) {
+      console.error('Error clearing ruler:', e);
     }
-
-    // Prevent event propagation
-    event.preventDefault();
-    event.stopPropagation();
-  }
-
-  const lightbox = document.getElementById('lightbox');
-  const lightboxSvg = document.getElementById('lightboxSvg');
-
-  // Remove zoom prevention event listeners
-  if (lightbox._preventZoomHandler) {
-    lightbox.removeEventListener('dblclick', lightbox._preventZoomHandler, { capture: true });
-    lightbox.removeEventListener('wheel', lightbox._preventZoomHandler, { capture: true });
-    lightbox.removeEventListener('mousewheel', lightbox._preventZoomHandler, { capture: true });
-    lightbox.removeEventListener('gesturestart', lightbox._preventZoomHandler, { capture: true });
-    lightbox.removeEventListener('gesturechange', lightbox._preventZoomHandler, { capture: true });
-    lightbox.removeEventListener('gestureend', lightbox._preventZoomHandler, { capture: true });
-    delete lightbox._preventZoomHandler;
-  }
-
-  // Clear ruler from the correct container (lightboxSvg) before closing
-  if (window.Ruler) {
-    Ruler.clear(lightboxSvg);
-  }
-
-  // Remove active class
-  lightbox.classList.remove('active');
-  document.body.style.overflow = '';
-}
-
-// Setup clickable SVG previews
-function makePreviewClickable() {
-  const preview = document.getElementById('preview');
-  const hint = document.getElementById('previewHint');
-  if (lastSvgText) {
-    preview.classList.add('has-content');
-    // Remove any existing click handler first
-    preview.onclick = null;
-    // Use addEventListener for more reliable event handling
-    preview.onclick = (e) => {
-      if (e.target.closest('#preview')) {
-        openLightbox(lastSvgText);
-      }
-    };
-    hint.style.display = 'block';
+    rulerActive = false;
   }
 }
 
@@ -147,23 +136,24 @@ function showNotification(type, title, message, duration = 5000) {
   notification.id = id;
   notification.className = `notification ${type}`;
   notification.innerHTML = `
-    <svg class="notification-icon" viewBox="0 0 20 20">
+    <div class="notification-icon">
       ${type === 'error' ? 
-        '<path fill="#da1e28" d="M10 0C4.5 0 0 4.5 0 10s4.5 10 10 10 10-4.5 10-10S15.5 0 10 0zm5 13.6L13.6 15 10 11.4 6.4 15 5 13.6 8.6 10 5 6.4 6.4 5 10 8.6 13.6 5 15 6.4 11.4 10 15 13.6z"/>' :
-        '<path fill="#24a148" d="M10 0C4.5 0 0 4.5 0 10s4.5 10 10 10 10-4.5 10-10S15.5 0 10 0zm4.2 8.3l-5 5c-.2.2-.5.3-.7.3s-.5-.1-.7-.3l-2-2c-.4-.4-.4-1 0-1.4s1-.4 1.4 0l1.3 1.3 4.3-4.3c.4-.4 1-.4 1.4 0s.4 1 0 1.4z"/>'}
-    </svg>
+        '<i data-feather="alert-circle" style="color: #da1e28;"></i>' :
+        '<i data-feather="check-circle" style="color: #24a148;"></i>'}
+    </div>
     <div class="notification-content">
       <div class="notification-title">${title}</div>
       <div class="notification-message">${message}</div>
     </div>
     <button class="notification-close" onclick="this.parentElement.remove()">
-      <svg width="16" height="16" viewBox="0 0 16 16">
-        <path fill="currentColor" d="M12 4.7L11.3 4 8 7.3 4.7 4 4 4.7 7.3 8 4 11.3l.7.7L8 8.7l3.3 3.3.7-.7L8.7 8z"/>
-      </svg>
+      <i data-feather="x" style="width: 16px; height: 16px;"></i>
     </button>
   `;
 
   container.appendChild(notification);
+
+  // Replace feather icons in notification
+  if (typeof feather !== 'undefined') feather.replace();
 
   if (duration > 0) {
     setTimeout(() => {
@@ -218,7 +208,6 @@ async function loadStyles() {
       preview.src = `/api/style-preview/${style.id}`;
       preview.alt = `Style ${style.id} preview`;
       preview.onerror = function() {
-        // Fallback if SVG doesn't load
         this.style.display = 'none';
       };
 
@@ -239,196 +228,26 @@ async function loadStyles() {
       customDropdown.appendChild(optionDiv);
     });
 
-    SELECTED_STYLE_ID = STYLE_LIST[0].id;
-    sel.value = String(SELECTED_STYLE_ID);
-    updateSelectedStyle(SELECTED_STYLE_ID);
-
-    // Standard select change handler (fallback)
-    sel.addEventListener('change', () => {
-      SELECTED_STYLE_ID = sel.value;
-      updateSelectedStyle(SELECTED_STYLE_ID);
-    });
-  } catch (e) {
-    console.error('Failed to load styles:', e);
-    sel.innerHTML = '';
-    for (let i = 0; i <= 12; i++) {
-      const opt = document.createElement('option');
-      opt.value = String(i);
-      opt.textContent = `Style ${i}`;
-      sel.appendChild(opt);
+    // Select first style by default
+    if (STYLE_LIST.length > 0) {
+      selectStyle(STYLE_LIST[0].id);
     }
-    SELECTED_STYLE_ID = '9';
-    sel.value = '9';
+  } catch (err) {
+    console.error('Failed to load styles:', err);
+    toastError('Failed to load styles: ' + err.message);
   }
 }
 
-// Load Character Override Collections
-async function loadCharacterOverrideCollections() {
-  const sel = document.getElementById('characterOverrideCollection');
-  if (!sel) return; // Element might not exist
-
-  sel.innerHTML = '<option value="">None (use AI)</option>';
-
-  try {
-    const res = await fetch('/admin/character-overrides/api/collections');
-    if (!res.ok) {
-      throw new Error('Failed to load collections');
-    }
-    const collections = await res.json();
-    CHARACTER_OVERRIDE_COLLECTIONS = collections || [];
-
-    collections.forEach(collection => {
-      const opt = document.createElement('option');
-      opt.value = String(collection.id);
-      opt.textContent = `${collection.name} (${collection.unique_characters} chars, ${collection.character_count} variants)`;
-      sel.appendChild(opt);
-    });
-  } catch (e) {
-    console.error('Failed to load character override collections:', e);
-    // Keep the default "None" option
-  }
-}
-
-// Load Page Size Presets
-async function loadPageSizePresets() {
-  const sel = document.getElementById('pageSize');
-  if (!sel) return;
-
-  sel.innerHTML = '<option value="">Loading...</option>';
-
-  try {
-    const res = await fetch('/api/page-sizes');
-    if (!res.ok) {
-      throw new Error('Failed to load page size presets');
-    }
-    const data = await res.json();
-    PAGE_SIZE_PRESETS = data.page_sizes || [];
-
-    sel.innerHTML = '';
-    PAGE_SIZE_PRESETS.forEach(pageSize => {
-      const opt = document.createElement('option');
-      opt.value = pageSize.name;
-      opt.dataset.id = pageSize.id;
-      opt.dataset.width = pageSize.width;
-      opt.dataset.height = pageSize.height;
-      opt.dataset.unit = pageSize.unit;
-      opt.textContent = `${pageSize.name} (${pageSize.width} × ${pageSize.height} ${pageSize.unit})`;
-      sel.appendChild(opt);
-    });
-
-    // Add custom option at the end
-    const customOpt = document.createElement('option');
-    customOpt.value = 'custom';
-    customOpt.textContent = 'Custom Size';
-    sel.appendChild(customOpt);
-
-    // Set default to A4 if available
-    const a4Option = Array.from(sel.options).find(opt => opt.value === 'A4');
-    if (a4Option) {
-      sel.value = 'A4';
-    }
-  } catch (e) {
-    console.error('Failed to load page size presets:', e);
-    // Fallback to hardcoded options
-    sel.innerHTML = `
-      <option value="A4">A4 (210 × 297 mm)</option>
-      <option value="A5">A5 (148 × 210 mm)</option>
-      <option value="Letter">Letter (8.5 × 11")</option>
-      <option value="Legal">Legal (8.5 × 14")</option>
-      <option value="custom">Custom Size</option>
-    `;
-  }
-}
-
-// Load Template Presets
-async function loadTemplatePresets() {
-  const sel = document.getElementById('templatePreset');
-  if (!sel) return;
-
-  try {
-    const res = await fetch('/api/templates');
-    if (!res.ok) {
-      throw new Error('Failed to load template presets');
-    }
-    const data = await res.json();
-    TEMPLATE_PRESETS = data.templates || [];
-
-    // Keep the "None" option and add templates
-    sel.innerHTML = '<option value="">None (Manual Settings)</option>';
-    TEMPLATE_PRESETS.forEach(template => {
-      const opt = document.createElement('option');
-      opt.value = String(template.id);
-      opt.textContent = template.name;
-      if (template.description) {
-        opt.title = template.description;
-      }
-      sel.appendChild(opt);
-    });
-  } catch (e) {
-    console.error('Failed to load template presets:', e);
-    // Keep the default "None" option
-  }
-}
-
-// Apply Template Preset
-function applyTemplatePreset(templateId) {
-  if (!templateId) return;
-
-  const template = TEMPLATE_PRESETS.find(t => t.id === parseInt(templateId));
-  if (!template) return;
-
-  // Set page size
-  const pageSizeSelect = document.getElementById('pageSize');
-  const pageSizeOption = Array.from(pageSizeSelect.options).find(
-    opt => opt.dataset.id === String(template.page_size_preset_id)
-  );
-  if (pageSizeOption) {
-    pageSizeSelect.value = pageSizeOption.value;
-  }
-
-  // Set orientation
-  document.getElementById('orientation').value = template.orientation;
-
-  // Set margins
-  if (template.margins) {
-    document.getElementById('marginTop').value = template.margins.top || '';
-    document.getElementById('marginRight').value = template.margins.right || '';
-    document.getElementById('marginBottom').value = template.margins.bottom || '';
-    document.getElementById('marginLeft').value = template.margins.left || '';
-  }
-
-  // Set line height if specified
-  if (template.line_height) {
-    document.getElementById('lineHeight').value = template.line_height;
-  }
-
-  // Set background color if specified
-  if (template.background_color) {
-    document.getElementById('background').value = template.background_color;
-  }
-
-  // Update units if needed (assuming margins and template use same units)
-  if (template.margins && template.margins.unit) {
-    document.getElementById('units').value = template.margins.unit;
-  }
-
-  toastSuccess(`Applied template: ${template.name}`);
-}
-
-// Custom Dropdown Functions
 function selectStyle(styleId) {
   SELECTED_STYLE_ID = styleId;
-  document.getElementById('styleSelect').value = String(styleId);
-  updateSelectedStyle(styleId);
-}
+  const sel = document.getElementById('styleSelect');
+  sel.value = String(styleId);
 
-function updateSelectedStyle(styleId) {
-  const options = document.querySelectorAll('.style-option');
-  options.forEach(opt => {
+  // Update visual selection in custom dropdown
+  document.querySelectorAll('.style-option').forEach(opt => {
+    opt.classList.remove('selected');
     if (opt.dataset.styleId === String(styleId)) {
       opt.classList.add('selected');
-    } else {
-      opt.classList.remove('selected');
     }
   });
 }
@@ -436,27 +255,119 @@ function updateSelectedStyle(styleId) {
 function toggleStyleDropdown() {
   const dropdown = document.getElementById('styleDropdown');
   dropdown.classList.toggle('active');
-
-  // Close on outside click
-  if (dropdown.classList.contains('active')) {
-    setTimeout(() => {
-      document.addEventListener('click', outsideClickHandler);
-    }, 0);
-  } else {
-    document.removeEventListener('click', outsideClickHandler);
-  }
 }
 
 function closeStyleDropdown() {
   const dropdown = document.getElementById('styleDropdown');
   dropdown.classList.remove('active');
-  document.removeEventListener('click', outsideClickHandler);
 }
 
-function outsideClickHandler(event) {
-  const wrapper = document.getElementById('styleSelectWrapper');
-  if (!wrapper.contains(event.target)) {
-    closeStyleDropdown();
+// Character Override Collections
+async function loadCharacterOverrideCollections() {
+  try {
+    const res = await fetch('/api/character-override-collections');
+    const data = await res.json();
+    CHARACTER_OVERRIDE_COLLECTIONS = data.collections || [];
+
+    const sel = document.getElementById('characterOverrideCollection');
+    sel.innerHTML = '<option value="">None (use AI)</option>';
+
+    CHARACTER_OVERRIDE_COLLECTIONS.forEach(col => {
+      const opt = document.createElement('option');
+      opt.value = col.id;
+      opt.textContent = col.name;
+      sel.appendChild(opt);
+    });
+  } catch (err) {
+    console.error('Failed to load character override collections:', err);
+  }
+}
+
+// Page Size Presets
+async function loadPageSizePresets() {
+  try {
+    const res = await fetch('/api/page-size-presets');
+    const data = await res.json();
+    PAGE_SIZE_PRESETS = data.presets || [];
+
+    const sel = document.getElementById('pageSize');
+    sel.innerHTML = '';
+
+    PAGE_SIZE_PRESETS.forEach(preset => {
+      const opt = document.createElement('option');
+      opt.value = preset.id;
+      opt.textContent = preset.name;
+      sel.appendChild(opt);
+    });
+
+    // Add custom option
+    const customOpt = document.createElement('option');
+    customOpt.value = 'custom';
+    customOpt.textContent = 'Custom';
+    sel.appendChild(customOpt);
+
+    // Select first preset by default
+    if (PAGE_SIZE_PRESETS.length > 0) {
+      sel.value = PAGE_SIZE_PRESETS[0].id;
+    }
+  } catch (err) {
+    console.error('Failed to load page size presets:', err);
+  }
+}
+
+// Template Presets
+async function loadTemplatePresets() {
+  try {
+    const res = await fetch('/api/template-presets');
+    const data = await res.json();
+    TEMPLATE_PRESETS = data.presets || [];
+
+    const sel = document.getElementById('templatePreset');
+    sel.innerHTML = '<option value="">None (Manual Settings)</option>';
+
+    TEMPLATE_PRESETS.forEach(preset => {
+      const opt = document.createElement('option');
+      opt.value = preset.id;
+      opt.textContent = preset.name;
+      sel.appendChild(opt);
+    });
+  } catch (err) {
+    console.error('Failed to load template presets:', err);
+  }
+}
+
+async function applyTemplatePreset(templateId) {
+  if (!templateId) return;
+
+  try {
+    const res = await fetch(`/api/template-preset/${templateId}`);
+    const template = await res.json();
+
+    // Apply all template fields
+    if (template.text) document.getElementById('text').value = template.text;
+    if (template.style !== undefined) selectStyle(template.style);
+    if (template.legibility) document.getElementById('legibility').value = template.legibility;
+    if (template.page_size) document.getElementById('pageSize').value = template.page_size;
+    if (template.orientation) document.getElementById('orientation').value = template.orientation;
+    if (template.units) document.getElementById('units').value = template.units;
+    if (template.align) document.getElementById('align').value = template.align;
+
+    // Margins
+    if (template.margins) {
+      if (template.margins.top !== undefined) document.getElementById('marginTop').value = template.margins.top;
+      if (template.margins.right !== undefined) document.getElementById('marginRight').value = template.margins.right;
+      if (template.margins.bottom !== undefined) document.getElementById('marginBottom').value = template.margins.bottom;
+      if (template.margins.left !== undefined) document.getElementById('marginLeft').value = template.margins.left;
+    }
+
+    if (template.line_height) document.getElementById('lineHeight').value = template.line_height;
+    if (template.background) document.getElementById('background').value = template.background;
+
+    syncCustomSizeVisibility();
+    toastSuccess(`Applied template: ${template.name || 'Template'}`);
+  } catch (err) {
+    console.error('Failed to apply template preset:', err);
+    toastError('Failed to apply template preset');
   }
 }
 
@@ -493,10 +404,10 @@ function applyPreset(size, orient, margin) {
   toastSuccess(`Applied preset: ${size} ${orient}`);
 }
 
-// Copy SVG to Clipboard
+// Copy SVG
 function copySvg() {
   if (!lastSvgText) {
-    toastError('No SVG to copy. Please generate first.');
+    toastError('No SVG to copy. Generate handwriting first.');
     return;
   }
 
@@ -505,7 +416,7 @@ function copySvg() {
     .catch(() => toastError('Failed to copy to clipboard'));
 }
 
-// Generate Handwriting
+// Main Generation
 async function generate() {
   const text = document.getElementById('text').value;
   if (!text.trim()) {
@@ -535,13 +446,9 @@ async function generate() {
   const xStretch = document.getElementById('xStretch').value;
   const denoise = document.getElementById('denoise').value;
   const globalScale = document.getElementById('globalScale').value;
-
-  // New spacing and sizing options
   const emptyLineSpacing = document.getElementById('emptyLineSpacing').value;
   const autoSize = document.getElementById('autoSize').checked;
   const manualSizeScale = document.getElementById('manualSizeScale').value;
-
-  // Chunked generation options
   const useChunked = document.getElementById('useChunked').checked;
   const adaptiveChunking = document.getElementById('adaptiveChunking').checked;
   const adaptiveStrategy = document.getElementById('adaptiveStrategy').value;
@@ -575,11 +482,9 @@ async function generate() {
     wrap_utilization: wrapUtil ? Number(wrapUtil) : undefined,
     x_stretch: xStretch ? Number(xStretch) : undefined,
     denoise: denoise || undefined,
-    // New spacing and sizing options
     empty_line_spacing: emptyLineSpacing ? Number(emptyLineSpacing) : undefined,
     auto_size: autoSize,
     manual_size_scale: manualSizeScale ? Number(manualSizeScale) : undefined,
-    // Chunked generation options
     use_chunked: useChunked,
     adaptive_chunking: adaptiveChunking,
     adaptive_strategy: adaptiveStrategy || undefined,
@@ -609,7 +514,6 @@ async function generate() {
     // Update preview
     const preview = document.getElementById('preview');
     preview.innerHTML = lastSvgText;
-    makePreviewClickable();
 
     // Update source code
     document.getElementById('output').querySelector('code').textContent = lastSvgText;
@@ -625,6 +529,10 @@ async function generate() {
         Orientation: ${page.orientation || 'portrait'}
       `;
     }
+
+    // Initialize ruler with the preview
+    clearRuler();
+    initializeRuler();
 
     toastSuccess('Handwriting generated successfully');
   } catch (error) {
@@ -649,66 +557,63 @@ function downloadSVG() {
   a.download = filename;
   document.body.appendChild(a);
   a.click();
-  setTimeout(() => {
-    URL.revokeObjectURL(url);
-    a.remove();
-  }, 0);
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 
-  toastSuccess(`Downloaded ${filename}`);
+  toastSuccess('SVG downloaded');
 }
 
 // Batch Processing
 function clearBatchUI() {
+  document.getElementById('batchContainer').style.display = 'none';
+  document.getElementById('batchLiveGrid').innerHTML = '';
+  document.getElementById('batchLog').innerHTML = '';
   document.getElementById('batchProg').textContent = '0';
   document.getElementById('batchTotal').textContent = '0';
   document.getElementById('batchOk').textContent = '0';
   document.getElementById('batchErr').textContent = '0';
-  document.getElementById('batchLog').innerHTML = '';
-  document.getElementById('batchLiveGrid').innerHTML = '';
   document.getElementById('progressFill').style.width = '0%';
-
-  const dl = document.getElementById('batchDownload');
-  dl.style.display = 'none';
-  dl.removeAttribute('href');
-
-  document.getElementById('batchContainer').style.display = 'none';
+  document.getElementById('batchDownload').style.display = 'none';
 }
 
 async function batchGenerateStream() {
-  const file = CSV_FILE || document.getElementById('csv').files[0];
-  if (!file) {
-    toastError('Please select a CSV file');
+  if (!CSV_FILE) {
+    toastError('Please select a CSV file first');
     return;
   }
 
   clearBatchUI();
   document.getElementById('batchContainer').style.display = 'block';
-
-  const form = new FormData();
-  form.append('file', file);
-
   setLoading(true);
 
+  const formData = new FormData();
+  formData.append('csv', CSV_FILE);
+
+  // Add current configuration as defaults
+  const config = {
+    style: SELECTED_STYLE_ID,
+    legibility: document.getElementById('legibility').value,
+    page_size: document.getElementById('pageSize').value,
+    orientation: document.getElementById('orientation').value,
+    units: document.getElementById('units').value,
+    margins: buildMargins(),
+  };
+
+  formData.append('config', JSON.stringify(config));
+
+  let ok = 0, err = 0, total = 0;
+  const liveGrid = document.getElementById('batchLiveGrid');
+  const liveLimit = () => parseInt(document.getElementById('liveLimit').value) || 12;
+
   try {
-    const res = await fetch('/api/batch/stream', {
+    const response = await fetch('/api/batch-generate-stream', {
       method: 'POST',
-      body: form
+      body: formData
     });
 
-    if (!res.ok || !res.body) {
-      throw new Error('Failed to start batch processing');
-    }
-
-    const reader = res.body.getReader();
+    const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
-    let ok = 0, err = 0, total = 0;
-
-    const liveGrid = document.getElementById('batchLiveGrid');
-    const liveLimit = () => {
-      const el = document.getElementById('liveLimit');
-      return Math.max(1, Math.min(50, Number(el?.value) || 12));
-    };
 
     while (true) {
       const { value, done } = await reader.read();
@@ -734,10 +639,9 @@ async function batchGenerateStream() {
             if (payload.status === 'ok') {
               ok += 1;
               entry.className = 'batch-log-entry success';
-              entry.textContent = `✓ Row ${payload.row}: ${payload.file}`;
+              entry.innerHTML = `<i data-feather="check"></i> Row ${payload.row}: ${payload.file}`;
               document.getElementById('batchOk').textContent = String(ok);
 
-              // Add live preview card
               if (payload.file && liveGrid.children.length < liveLimit()) {
                 const card = document.createElement('div');
                 card.className = 'live-preview-card';
@@ -751,11 +655,12 @@ async function batchGenerateStream() {
             } else {
               err += 1;
               entry.className = 'batch-log-entry error';
-              entry.textContent = `✗ Row ${payload.row}: ${payload.error}`;
+              entry.innerHTML = `<i data-feather="x"></i> Row ${payload.row}: ${payload.error}`;
               document.getElementById('batchErr').textContent = String(err);
             }
 
             log.appendChild(entry);
+            if (typeof feather !== 'undefined') feather.replace();
             log.scrollTop = log.scrollHeight;
           } else if (payload.type === 'progress') {
             const completed = payload.completed || 0;
@@ -769,34 +674,28 @@ async function batchGenerateStream() {
             dl.href = payload.download;
             dl.style.display = 'inline-flex';
 
+            if (typeof feather !== 'undefined') feather.replace();
+
             toastSuccess(`Batch processing complete: ${ok} successful, ${err} errors`);
 
-            // Load preview SVGs
             const jobId = payload.job_id;
-               if (jobId) {
+            if (jobId) {
               const cards = Array.from(liveGrid.children);
               for (const card of cards) {
                 const fname = card.getAttribute('data-filename');
                 if (!fname) continue;
 
                 fetch(`/api/batch/result/${jobId}/file/${encodeURIComponent(fname)}`)
-                   .then(r => r.text())
-                   .then(svg => {
-                     const encoded = encodeURIComponent(svg);
-                     card.innerHTML = `
-                       <div class="live-preview-filename">${fname}</div>
-                       <div class="clickable-svg" data-svg="${encoded}">
-                         ${svg}
-                       </div>
-                       <div class="live-preview-status">Complete</div>
-                     `;
-                     // Add click handler after inserting HTML
-                     const svgDiv = card.querySelector('.clickable-svg');
-                     svgDiv.addEventListener('click', () => {
-                       const raw = decodeURIComponent(svgDiv.getAttribute('data-svg'));
-                       openLightbox(raw);
-                     });
-                   })
+                  .then(r => r.text())
+                  .then(svg => {
+                    card.innerHTML = `
+                      <div class="live-preview-filename">${fname}</div>
+                      <div class="batch-svg-preview">
+                        ${svg}
+                      </div>
+                      <div class="live-preview-status">Complete</div>
+                    `;
+                  })
                   .catch(() => {});
               }
             }
@@ -863,7 +762,6 @@ function setupCsvDragDrop() {
     CSV_FILE = file;
     showFileInfo(CSV_FILE);
 
-    // Auto-start batch processing
     if (file.name.toLowerCase().endsWith('.csv')) {
       batchGenerateStream();
     }
@@ -887,57 +785,61 @@ function setupZoomControl() {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    loadStyles();
-    loadCharacterOverrideCollections();
-    loadPageSizePresets();
-    loadTemplatePresets();
-    syncCustomSizeVisibility();
-    setupCsvDragDrop();
-    setupZoomControl();
+  loadStyles();
+  loadCharacterOverrideCollections();
+  loadPageSizePresets();
+  loadTemplatePresets();
+  syncCustomSizeVisibility();
+  setupCsvDragDrop();
+  setupZoomControl();
 
-    document.getElementById('pageSize').addEventListener('change', syncCustomSizeVisibility);
+  document.getElementById('pageSize').addEventListener('change', syncCustomSizeVisibility);
 
-    // Template preset selection
-    const templatePresetSelect = document.getElementById('templatePreset');
-    if (templatePresetSelect) {
-        templatePresetSelect.addEventListener('change', (e) => {
-            const templateId = e.target.value;
-            if (templateId) {
-                applyTemplatePreset(templateId);
-            }
-        });
-    }
-
-    // Setup custom style dropdown trigger
-    const selectWrapper = document.querySelector('.style-select-trigger');
-    if (selectWrapper) {
-        selectWrapper.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleStyleDropdown();
-        });
-    }
-
-    // Toggle manual size scale input based on auto size checkbox
-    const autoSizeCheckbox = document.getElementById('autoSize');
-    const manualSizeScaleInput = document.getElementById('manualSizeScale');
-    autoSizeCheckbox.addEventListener('change', () => {
-        manualSizeScaleInput.disabled = autoSizeCheckbox.checked;
+  // Template preset selection
+  const templatePresetSelect = document.getElementById('templatePreset');
+  if (templatePresetSelect) {
+    templatePresetSelect.addEventListener('change', (e) => {
+      const templateId = e.target.value;
+      applyTemplatePreset(templateId);
     });
+  }
 
-    // Add keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-            closeLightbox();
-            closeStyleDropdown();
-        }
-        if (e.ctrlKey || e.metaKey) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                generate();
-            } else if (e.key === 's') {
-                e.preventDefault();
-                downloadSVG();
-            }
-        }
+  // Setup custom style dropdown trigger
+  const selectWrapper = document.querySelector('.style-select-trigger');
+  if (selectWrapper) {
+    selectWrapper.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleStyleDropdown();
     });
-})
+  }
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.style-dropdown-wrapper')) {
+      closeStyleDropdown();
+    }
+  });
+
+  // Toggle manual size scale input based on auto size checkbox
+  const autoSizeCheckbox = document.getElementById('autoSize');
+  const manualSizeScaleInput = document.getElementById('manualSizeScale');
+  autoSizeCheckbox.addEventListener('change', () => {
+    manualSizeScaleInput.disabled = autoSizeCheckbox.checked;
+  });
+
+  // Add keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeStyleDropdown();
+    }
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        generate();
+      } else if (e.key === 's') {
+        e.preventDefault();
+        downloadSVG();
+      }
+    }
+  });
+});
