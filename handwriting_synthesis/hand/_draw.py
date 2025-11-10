@@ -443,6 +443,9 @@ def _draw(
                     import traceback
                     traceback.print_exc()
 
+        # CRITICAL FIX: Increment cursor_y after processing each line
+        cursor_y += line_height_px
+
     # Add metadata comment if character overrides are enabled
     if character_override_collection_id is not None and overrides_dict:
         try:

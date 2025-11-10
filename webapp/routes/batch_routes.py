@@ -150,17 +150,31 @@ def _sse(obj: Dict[str, Any]) -> str:
 @login_required
 def batch_stream():
     """Process batch CSV with streaming progress updates."""
+    # Debug: Print what we received
+    print(f"DEBUG: request.files keys: {list(request.files.keys())}")
+    print(f"DEBUG: request.form keys: {list(request.form.keys())}")
+
     if "file" not in request.files:
-        return jsonify({"error": "CSV file is required under 'file' field"}), 400
+        error_msg = f"CSV file is required under 'file' field. Received files: {list(request.files.keys())}"
+        print(f"ERROR: {error_msg}")
+        return jsonify({"error": error_msg}), 400
 
     csv_file = request.files["file"]
+    print(f"DEBUG: CSV file received: {csv_file.filename}")
+
     try:
         import pandas as pd
-        df = pd.read_csv(csv_file)
+        # Important: Don't use first column as index
+        df = pd.read_csv(csv_file, index_col=False)
+        print(f"DEBUG: CSV parsed successfully. Rows: {len(df)}, Columns: {list(df.columns)}")
     except Exception as e:
-        return jsonify({"error": f"Failed to read CSV: {e}"}), 400
+        error_msg = f"Failed to read CSV: {e}"
+        print(f"ERROR: {error_msg}")
+        return jsonify({"error": error_msg}), 400
 
-    defaults = request.form.to_dict(flat=True)
+    # Get defaults from form, but filter out None/empty values
+    defaults = {k: v for k, v in request.form.to_dict(flat=True).items() if v}
+    print(f"DEBUG: Form defaults: {defaults}")
 
     job_id = str(uuid.uuid4())
     job_dir = os.path.join(JOBS_ROOT, job_id)
@@ -176,19 +190,26 @@ def batch_stream():
         generated_files: List[str] = []
         errors: List[Tuple[int, str]] = []
 
-        for idx, row in df.fillna("").iterrows():
+        for row_num, row in df.fillna("").iterrows():
             row_dict = row.to_dict()
             try:
-                # Merge row data with defaults
-                merged_params = {**defaults, **{k: v for k, v in row_dict.items() if v not in (None, "", "nan")}}
+                # CSV row values should override defaults, not the other way around
+                # Filter out empty/nan values from CSV
+                csv_values = {k: v for k, v in row_dict.items() if v not in (None, "", "nan", "NaN") and pd.notna(v)}
+
+                # Merge: defaults first, then CSV overrides
+                merged_params = {**defaults, **csv_values}
 
                 # Ensure we have text
                 if not merged_params.get("text"):
                     raise ValueError("Empty text")
 
                 # Get filename
-                filename = _get_row_value(row_dict, "filename", f"sample_{idx}.svg")
+                filename = _get_row_value(row_dict, "filename", f"sample_{row_num}.svg")
                 out_path = os.path.join(out_dir, os.path.basename(filename))
+
+                print(f"DEBUG: Processing row {row_num}: filename={filename}")
+                print(f"DEBUG: Merged params: {merged_params}")
 
                 # Parse all generation parameters using shared utility
                 params = parse_generation_params(merged_params, defaults)
@@ -200,20 +221,22 @@ def batch_stream():
                 yield _sse({
                     "type": "row",
                     "status": "ok",
-                    "row": int(idx),
+                    "row": int(row_num),
+                    "file": filename,
                     "job_id": job_id,
                 })
             except Exception as e:
-                errors.append((int(idx), str(e)))
+                print(f"ERROR: Row {row_num} failed: {e}")
+                errors.append((int(row_num), str(e)))
                 yield _sse({
                     "type": "row",
                     "status": "error",
-                    "row": int(idx),
+                    "row": int(row_num),
                     "error": str(e),
                     "job_id": job_id,
                 })
 
-            yield _sse({"type": "progress", "completed": int(idx) + 1, "total": int(len(df))})
+            yield _sse({"type": "progress", "completed": int(row_num) + 1, "total": int(len(df))})
 
         # Package zip
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:

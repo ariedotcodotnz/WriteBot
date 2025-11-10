@@ -1,6 +1,6 @@
 filename,text,page_size,units,page_width,page_height,margins,line_height,align,background,global_scale,orientation,biases,styles,stroke_colors,stroke_widths,legibility,x_stretch,denoise,empty_line_spacing,auto_size,manual_size_scale,character_override_collection_id,wrap_char_px,wrap_ratio,wrap_utilization,use_chunked,max_line_width,words_per_chunk,chunk_spacing,rotate_chunks,min_words_per_chunk,max_words_per_chunk,target_chars_per_chunk,adaptive_chunking,adaptive_strategy
-sample1.svg,The quick brown fox jumps over the lazy dog.,A4,mm,,,20,,,white,1.0,portrait,,,,,,1.0,true,,,1.0,,,,,,true,800.0,3,8.0,true,2,8,25,true,balanced
+sample1.svg,The quick brown fox jumps over the lazy dog.,A4,mm,,,20,,,white,1.0,portrait,,,,,normal,1.0,true,,,1.0,,,,,,true,800.0,3,8.0,true,2,8,25,true,balanced
 sample2.svg,Hello World! This is a test of the handwriting synthesis system.,Letter,mm,,,15,,,white,1.0,portrait,,9,,,normal,1.0,true,,,1.0,,,,,,true,800.0,3,8.0,true,2,8,25,true,balanced
-sample3.svg,I can write multiple lines.\nEach line will be on a separate line.\nThis is pretty cool!,A4,mm,,,20,,,white,1.0,landscape,,,,,,1.0,true,,,1.0,,,,,,true,800.0,4,8.0,true,2,8,25,true,balanced
-sample4.svg,Testing with different legibility: natural handwriting style,A4,mm,,,20,,,white,1.0,portrait,,,,,,natural,1.0,true,,,1.0,,,,,,true,800.0,3,8.0,true,2,8,25,true,balanced
-sample5.svg,Testing with high legibility for clear readable output,A4,mm,,,20,,,white,1.0,portrait,,,,,,high,1.0,true,,,1.0,,,,,,true,800.0,3,8.0,true,2,8,25,true,balanced
+sample3.svg,I can write multiple lines.\nEach line will be on a separate line.\nThis is pretty cool!,A4,mm,,,20,,,white,1.0,landscape,,,,,normal,1.0,true,,,1.0,,,,,,true,800.0,4,8.0,true,2,8,25,true,balanced
+sample4.svg,Testing with different legibility natural handwriting style,A4,mm,,,20,,,white,1.0,portrait,,,,,natural,1.0,true,,,1.0,,,,,,true,800.0,3,8.0,true,2,8,25,true,balanced
+sample5.svg,Testing with high legibility for clear readable output,A4,mm,,,20,,,white,1.0,portrait,,,,,high,1.0,true,,,1.0,,,,,,true,800.0,3,8.0,true,2,8,25,true,balanced
