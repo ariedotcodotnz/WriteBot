@@ -83,7 +83,25 @@ def parse_generation_params(params: Dict[str, Any], defaults: Optional[Dict[str,
     units = _get("units", "mm")
     page_width = _parse_float(_get("page_width"))
     page_height = _parse_float(_get("page_height"))
-    margins = _parse_margins(_get("margins", 20))
+
+    # Handle margins - check for individual margin fields first, then fall back to "margins"
+    margin_top = _parse_float(_get("margin_top"))
+    margin_right = _parse_float(_get("margin_right"))
+    margin_bottom = _parse_float(_get("margin_bottom"))
+    margin_left = _parse_float(_get("margin_left"))
+
+    if any(x is not None for x in [margin_top, margin_right, margin_bottom, margin_left]):
+        # Individual margins specified - build dict
+        margins = {
+            "top": margin_top if margin_top is not None else 20.0,
+            "right": margin_right if margin_right is not None else 20.0,
+            "bottom": margin_bottom if margin_bottom is not None else 20.0,
+            "left": margin_left if margin_left is not None else 20.0,
+        }
+    else:
+        # Fall back to old "margins" field (single value or comma-separated)
+        margins = _parse_margins(_get("margins", 20))
+
     line_height = _get("line_height")
     align = _get("align", "left")
     background = _get("background")

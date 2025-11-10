@@ -931,12 +931,16 @@ function setupCsvDragDrop() {
     const files = e.dataTransfer?.files;
     if (!files?.length) return;
 
-    const file = Array.from(files).find(f => f.name.toLowerCase().endsWith('.csv')) || files[0];
+    const file = Array.from(files).find(f => {
+      const name = f.name.toLowerCase();
+      return name.endsWith('.csv') || name.endsWith('.xlsx');
+    }) || files[0];
     CSV_FILE = file;
     showFileInfo(CSV_FILE);
 
     // Only auto-start if checkbox is enabled
-    if (file.name.toLowerCase().endsWith('.csv')) {
+    const filename = file.name.toLowerCase();
+    if (filename.endsWith('.csv') || filename.endsWith('.xlsx')) {
       const autoStart = document.getElementById('autoStartBatch');
       if (autoStart && autoStart.checked) {
         batchGenerateStream();

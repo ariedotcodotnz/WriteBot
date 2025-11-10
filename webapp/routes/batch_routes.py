@@ -89,8 +89,14 @@ def batch_generate():
             if not merged_params.get("text"):
                 raise ValueError("Empty text")
 
-            # Get filename
+            # Handle line breaks: convert literal \n to actual newlines
+            if "text" in merged_params:
+                merged_params["text"] = merged_params["text"].replace("\\n", "\n")
+
+            # Get filename and ensure .svg extension
             filename = _get_row_value(row_dict, "filename", f"sample_{idx}.svg")
+            if not filename.lower().endswith('.svg'):
+                filename = filename + '.svg'
             out_path = os.path.join(out_dir, os.path.basename(filename))
 
             # Parse all generation parameters using shared utility
@@ -133,20 +139,39 @@ def template_csv():
     # Comprehensive CSV template with all available parameters
     header = (
         "filename,text,"
-        "page_size,units,page_width,page_height,margins,line_height,align,background,global_scale,orientation,"
+        "page_size,page_width,page_height,orientation,units,"
+        "margin_top,margin_right,margin_bottom,margin_left,line_height,empty_line_spacing,"
+        "align,background,global_scale,legibility,x_stretch,denoise,auto_size,manual_size_scale,"
         "biases,styles,stroke_colors,stroke_widths,"
-        "legibility,x_stretch,denoise,empty_line_spacing,auto_size,manual_size_scale,character_override_collection_id,"
         "wrap_char_px,wrap_ratio,wrap_utilization,"
-        "use_chunked,max_line_width,words_per_chunk,chunk_spacing,rotate_chunks,min_words_per_chunk,max_words_per_chunk,target_chars_per_chunk,adaptive_chunking,adaptive_strategy\n"
+        "use_chunked,adaptive_chunking,adaptive_strategy,words_per_chunk,chunk_spacing,max_line_width\n"
     )
-    # Add example row to show users the format
-    example = (
-        "example.svg,The quick brown fox jumps over the lazy dog.,"
-        "A4,mm,,,20,,,white,1.0,portrait,"
-        ",,,,normal,1.0,true,,,1.0,"
-        ",,,,true,800.0,3,8.0,true,2,8,25,true,balanced\n"
+    # Add example rows to show users the format
+    example1 = (
+        "example1,The quick brown fox jumps over the lazy dog.,"
+        "A4,,,portrait,mm,"
+        "20,20,20,20,,,"
+        "left,white,1.0,normal,1.0,true,true,,"
+        ",,,,,,,"
+        "true,true,balanced,3,8.0,800\n"
     )
-    return Response(header + example, mimetype="text/csv", headers={
+    example2 = (
+        "example2,Hello World!\\nThis is a new line.,"
+        "Letter,,,portrait,mm,"
+        "15,15,15,15,,,"
+        "center,white,1.0,high,1.0,true,true,,"
+        ",,,,,,,"
+        "true,false,,,,\n"
+    )
+    example3 = (
+        "custom_size,Custom page dimensions example.,"
+        "Custom,200,300,portrait,mm,"
+        "10,15,10,15,,,"
+        "left,white,1.0,normal,1.0,true,true,,"
+        ",,,,,,,"
+        "true,true,balanced,3,8.0,800\n"
+    )
+    return Response(header + example1 + example2 + example3, mimetype="text/csv", headers={
         'Content-Disposition': 'attachment; filename=writebot_template.csv'
     })
 
@@ -156,9 +181,16 @@ def template_csv():
 def template_xlsx():
     """Download a fancy formatted XLSX template with data validation, instructions, and about page."""
     from openpyxl import Workbook
-    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side, numbers
     from openpyxl.worksheet.datavalidation import DataValidation
+    from openpyxl.comments import Comment
     from io import BytesIO
+    from webapp.models import PageSizePreset
+
+    # Fetch page size presets from database
+    page_sizes = PageSizePreset.query.filter_by(is_active=True).order_by(PageSizePreset.name).all()
+    page_size_names = [ps.name for ps in page_sizes] + ["Custom"]
+    page_size_list = ",".join(page_size_names)
 
     wb = Workbook()
 
@@ -166,16 +198,45 @@ def template_xlsx():
     ws_data = wb.active
     ws_data.title = "Data"
 
-    # Define headers
-    headers = [
-        "filename", "text", "page_size", "orientation", "units", "margins",
-        "line_height", "empty_line_spacing", "align", "background", "global_scale",
-        "legibility", "x_stretch", "denoise", "auto_size", "manual_size_scale",
-        "biases", "styles", "stroke_colors", "stroke_widths",
-        "wrap_char_px", "wrap_ratio", "wrap_utilization",
-        "use_chunked", "adaptive_chunking", "adaptive_strategy",
-        "words_per_chunk", "chunk_spacing", "max_line_width"
+    # Define headers with tooltips
+    headers_with_notes = [
+        ("filename", "Output filename WITHOUT extension (e.g., 'example1' or 'my-document'). The .svg extension will be added automatically."),
+        ("text", "The text to convert to handwriting. Use \\n for line breaks (e.g., 'Line 1\\nLine 2')."),
+        ("page_size", f"Page size preset. Available: {', '.join(page_size_names[:5])}... Select from dropdown. Use 'Custom' to specify custom dimensions."),
+        ("page_width", "Custom page width (only used when page_size is 'Custom'). Specify in the units you selected (mm or px)."),
+        ("page_height", "Custom page height (only used when page_size is 'Custom'). Specify in the units you selected (mm or px)."),
+        ("orientation", "Page orientation: portrait (vertical) or landscape (horizontal)."),
+        ("units", "Measurement units: mm (millimeters) or px (pixels). Used for margins and dimensions."),
+        ("margin_top", "Top margin. Specify in the units you selected (mm or px). Default: 20."),
+        ("margin_right", "Right margin. Specify in the units you selected (mm or px). Default: 20."),
+        ("margin_bottom", "Bottom margin. Specify in the units you selected (mm or px). Default: 20."),
+        ("margin_left", "Left margin. Specify in the units you selected (mm or px). Default: 20."),
+        ("line_height", "Vertical spacing between lines of text. Leave empty for automatic spacing based on text size."),
+        ("empty_line_spacing", "Spacing when you use \\\\ to create blank lines. Leave empty for automatic."),
+        ("align", "Text alignment: left, center, or right. Aligns text horizontally on the page."),
+        ("background", "Background color for the page. Use color names (white, blue) or hex codes (#FFFFFF). Use 'transparent' for no background."),
+        ("global_scale", "Scales the entire output. 1.0 = normal size, >1.0 = larger, <1.0 = smaller."),
+        ("legibility", "Controls how clear and readable the handwriting is. Higher = more legible but less natural. Options: natural, normal, high."),
+        ("x_stretch", "Stretches handwriting horizontally. 1.0 = normal, >1.0 = wider, <1.0 = narrower."),
+        ("denoise", "Smooths out handwriting strokes for cleaner lines. Recommended to keep enabled (true)."),
+        ("auto_size", "Automatically adjust text size to fit the page. Set to true to enable."),
+        ("manual_size_scale", "Manual size scale override when auto_size is false. 1.0 = normal."),
+        ("biases", "Controls writing style variance. Lower (0.5-0.7) = more random/natural, higher (0.8-1.0) = more consistent. Separate with | for per-line (e.g., 0.75|0.8|0.6)."),
+        ("styles", "Use different handwriting styles for each line. Separate style numbers with | (e.g., 9|9|12)."),
+        ("stroke_colors", "Set ink color for each line. Use color names (black, blue) or hex codes (#333). Separate with | (e.g., black|blue|red)."),
+        ("stroke_widths", "Controls pen thickness for each line. Default is 2. Separate with | for different widths per line (e.g., 2|3|2)."),
+        ("wrap_char_px", "Estimated character width in pixels for text wrapping calculations."),
+        ("wrap_ratio", "Text wrapping ratio for line breaking calculations."),
+        ("wrap_utilization", "Wrap utilization factor for optimizing line width usage."),
+        ("use_chunked", "Enable chunked generation for better quality and longer lines. Recommended: true."),
+        ("adaptive_chunking", "Enable adaptive chunking based on text structure (word boundaries, punctuation)."),
+        ("adaptive_strategy", "Strategy for adaptive chunking: balanced, word_length, sentence, punctuation, or fixed."),
+        ("words_per_chunk", "Number of words per chunk when using chunked generation (e.g., 3)."),
+        ("chunk_spacing", "Spacing between chunks in pixels (e.g., 8.0)."),
+        ("max_line_width", "Maximum line width in coordinate units (default: 800)."),
     ]
+
+    headers = [h[0] for h in headers_with_notes]
 
     # Style headers
     header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
@@ -188,21 +249,33 @@ def template_xlsx():
         bottom=Side(style='thin')
     )
 
-    # Write and style headers
-    for col_num, header in enumerate(headers, 1):
+    # Write and style headers, add comments
+    for col_num, (header, note) in enumerate(headers_with_notes, 1):
         cell = ws_data.cell(row=1, column=col_num, value=header)
         cell.fill = header_fill
         cell.font = header_font
         cell.alignment = header_alignment
         cell.border = border
 
+        # Add comment/note to header
+        comment = Comment(note, "WriteBot")
+        comment.width = 300
+        comment.height = 100
+        cell.comment = comment
+
     # Set column widths
+    # A=filename, B=text, C=page_size, D=page_width, E=page_height, F=orientation, G=units,
+    # H=margin_top, I=margin_right, J=margin_bottom, K=margin_left, L=line_height, M=empty_line_spacing,
+    # N=align, O=background, P=global_scale, Q=legibility, R=x_stretch, S=denoise, T=auto_size, U=manual_size_scale,
+    # V=biases, W=styles, X=stroke_colors, Y=stroke_widths, Z=wrap_char_px, AA=wrap_ratio, AB=wrap_utilization,
+    # AC=use_chunked, AD=adaptive_chunking, AE=adaptive_strategy, AF=words_per_chunk, AG=chunk_spacing, AH=max_line_width
     col_widths = {
-        'A': 20, 'B': 50, 'C': 15, 'D': 12, 'E': 10, 'F': 10,
-        'G': 12, 'H': 18, 'I': 10, 'J': 12, 'K': 12, 'L': 12,
-        'M': 12, 'N': 10, 'O': 12, 'P': 18, 'Q': 15, 'R': 15,
-        'S': 15, 'T': 15, 'U': 15, 'V': 15, 'W': 18, 'X': 15,
-        'Y': 18, 'Z': 18, 'AA': 18, 'AB': 15, 'AC': 15
+        'A': 20, 'B': 50, 'C': 15, 'D': 12, 'E': 12, 'F': 12, 'G': 10,
+        'H': 12, 'I': 12, 'J': 12, 'K': 12, 'L': 12, 'M': 18,
+        'N': 10, 'O': 12, 'P': 12, 'Q': 12, 'R': 12, 'S': 10,
+        'T': 12, 'U': 18, 'V': 15, 'W': 15, 'X': 15, 'Y': 15,
+        'Z': 15, 'AA': 15, 'AB': 18, 'AC': 15, 'AD': 18, 'AE': 18,
+        'AF': 18, 'AG': 15, 'AH': 15
     }
     for col, width in col_widths.items():
         ws_data.column_dimensions[col].width = width
@@ -210,9 +283,41 @@ def template_xlsx():
     # Freeze header row
     ws_data.freeze_panes = "A2"
 
+    # Set column data types and number formats
+    # Column mapping: A=filename, B=text, C=page_size, D=page_width, E=page_height, F=orientation, G=units,
+    # H=margin_top, I=margin_right, J=margin_bottom, K=margin_left, L=line_height, M=empty_line_spacing,
+    # N=align, O=background, P=global_scale, Q=legibility, R=x_stretch, S=denoise, T=auto_size, U=manual_size_scale,
+    # V=biases, W=styles, X=stroke_colors, Y=stroke_widths, Z=wrap_char_px, AA=wrap_ratio, AB=wrap_utilization,
+    # AC=use_chunked, AD=adaptive_chunking, AE=adaptive_strategy, AF=words_per_chunk, AG=chunk_spacing, AH=max_line_width
+
+    # Numeric columns with decimal format
+    numeric_cols_decimal = ['D', 'E', 'H', 'I', 'J', 'K', 'L', 'M', 'P', 'R', 'U', 'Z', 'AA', 'AB', 'AG', 'AH']
+    # page_width, page_height, margin_top, margin_right, margin_bottom, margin_left, line_height, empty_line_spacing,
+    # global_scale, x_stretch, manual_size_scale, wrap_char_px, wrap_ratio, wrap_utilization, chunk_spacing, max_line_width
+    for col in numeric_cols_decimal:
+        for row in range(2, 1001):
+            cell = ws_data[f'{col}{row}']
+            cell.number_format = numbers.FORMAT_NUMBER_00  # Two decimal places
+
+    # Integer columns
+    integer_cols = ['AF']  # words_per_chunk
+    for col in integer_cols:
+        for row in range(2, 1001):
+            cell = ws_data[f'{col}{row}']
+            cell.number_format = numbers.FORMAT_NUMBER
+
+    # Text columns (explicitly set for clarity)
+    text_cols = ['A', 'B', 'C', 'F', 'G', 'N', 'O', 'Q', 'S', 'T', 'V', 'W', 'X', 'Y', 'AC', 'AD', 'AE']
+    # filename, text, page_size, orientation, units, align, background, legibility, denoise, auto_size,
+    # biases, styles, stroke_colors, stroke_widths, use_chunked, adaptive_chunking, adaptive_strategy
+    for col in text_cols:
+        for row in range(2, 1001):
+            cell = ws_data[f'{col}{row}']
+            cell.number_format = numbers.FORMAT_TEXT
+
     # Add data validation dropdowns
-    # Page size dropdown
-    page_size_dv = DataValidation(type="list", formula1='"A4,A5,Letter,Legal,Custom"', allow_blank=True)
+    # Page size dropdown (dynamic from database)
+    page_size_dv = DataValidation(type="list", formula1=f'"{page_size_list}"', allow_blank=True)
     page_size_dv.error = 'Please select from the dropdown'
     page_size_dv.errorTitle = 'Invalid Page Size'
     ws_data.add_data_validation(page_size_dv)
@@ -223,50 +328,62 @@ def template_xlsx():
     orientation_dv.error = 'Please select portrait or landscape'
     orientation_dv.errorTitle = 'Invalid Orientation'
     ws_data.add_data_validation(orientation_dv)
-    orientation_dv.add(f'D2:D1000')
+    orientation_dv.add(f'F2:F1000')
 
     # Units dropdown
     units_dv = DataValidation(type="list", formula1='"mm,px"', allow_blank=True)
     units_dv.error = 'Please select mm or px'
     units_dv.errorTitle = 'Invalid Units'
     ws_data.add_data_validation(units_dv)
-    units_dv.add(f'E2:E1000')
+    units_dv.add(f'G2:G1000')
 
     # Align dropdown
     align_dv = DataValidation(type="list", formula1='"left,center,right"', allow_blank=True)
     align_dv.error = 'Please select left, center, or right'
     align_dv.errorTitle = 'Invalid Alignment'
     ws_data.add_data_validation(align_dv)
-    align_dv.add(f'I2:I1000')
+    align_dv.add(f'N2:N1000')
 
     # Legibility dropdown
     legibility_dv = DataValidation(type="list", formula1='"natural,normal,high"', allow_blank=True)
     legibility_dv.error = 'Please select natural, normal, or high'
     legibility_dv.errorTitle = 'Invalid Legibility'
     ws_data.add_data_validation(legibility_dv)
-    legibility_dv.add(f'L2:L1000')
+    legibility_dv.add(f'Q2:Q1000')
 
     # Boolean dropdowns (true/false)
     bool_dv = DataValidation(type="list", formula1='"true,false"', allow_blank=True)
     bool_dv.error = 'Please select true or false'
     bool_dv.errorTitle = 'Invalid Boolean'
     ws_data.add_data_validation(bool_dv)
-    bool_dv.add(f'N2:N1000')  # denoise
-    bool_dv.add(f'O2:O1000')  # auto_size
-    bool_dv.add(f'X2:X1000')  # use_chunked
-    bool_dv.add(f'Y2:Y1000')  # adaptive_chunking
+    bool_dv.add(f'S2:S1000')  # denoise
+    bool_dv.add(f'T2:T1000')  # auto_size
+    bool_dv.add(f'AC2:AC1000')  # use_chunked
+    bool_dv.add(f'AD2:AD1000')  # adaptive_chunking
 
     # Adaptive strategy dropdown
     strategy_dv = DataValidation(type="list", formula1='"balanced,word_length,sentence,punctuation,fixed"', allow_blank=True)
     strategy_dv.error = 'Please select from the dropdown'
     strategy_dv.errorTitle = 'Invalid Strategy'
     ws_data.add_data_validation(strategy_dv)
-    strategy_dv.add(f'Z2:Z1000')
+    strategy_dv.add(f'AE2:AE1000')
 
     # Add example rows with default values
+    # Columns: filename, text, page_size, page_width, page_height, orientation, units,
+    # margin_top, margin_right, margin_bottom, margin_left, line_height, empty_line_spacing,
+    # align, background, global_scale, legibility, x_stretch, denoise, auto_size, manual_size_scale,
+    # biases, styles, stroke_colors, stroke_widths, wrap_char_px, wrap_ratio, wrap_utilization,
+    # use_chunked, adaptive_chunking, adaptive_strategy, words_per_chunk, chunk_spacing, max_line_width
     example_data = [
-        ["example1.svg", "The quick brown fox jumps over the lazy dog.", "A4", "portrait", "mm", "20", "", "", "left", "white", "1.0", "normal", "1.0", "true", "true", "", "", "", "", "", "", "", "", "true", "true", "balanced", "3", "8.0", "800"],
-        ["example2.svg", "Hello World!\\nThis is a new line.", "Letter", "portrait", "mm", "15", "", "", "center", "white", "1.0", "high", "1.0", "true", "true", "", "", "", "", "", "", "", "", "true", "false", "", "", "", ""],
+        ["example1", "The quick brown fox jumps over the lazy dog.", "A4", "", "", "portrait", "mm",
+         "20", "20", "20", "20", "", "", "left", "white", "1.0", "normal", "1.0", "true", "true", "",
+         "", "", "", "", "", "", "", "true", "true", "balanced", "3", "8.0", "800"],
+        ["example2", "Hello World!\\nThis is a new line.", "Letter", "", "", "portrait", "mm",
+         "15", "15", "15", "15", "", "", "center", "white", "1.0", "high", "1.0", "true", "true", "",
+         "", "", "", "", "", "", "", "true", "false", "", "", "", ""],
+        ["custom_example", "Custom page size example.", "Custom", "200", "300", "portrait", "mm",
+         "10", "10", "10", "10", "", "", "left", "white", "1.0", "normal", "1.0", "true", "true", "",
+         "", "", "", "", "", "", "", "true", "true", "balanced", "3", "8.0", "800"],
     ]
 
     for row_num, row_data in enumerate(example_data, 2):
@@ -294,7 +411,8 @@ def template_xlsx():
         ("   - Leave optional fields blank to use defaults", instructions_text_font),
         ("", None),
         ("2. Required Fields:", instructions_heading_font),
-        ("   - filename: Output filename (e.g., 'output.svg')", instructions_text_font),
+        ("   - filename: Output name WITHOUT extension (e.g., 'example1')", instructions_text_font),
+        ("     Note: .svg extension is added automatically", instructions_text_font),
         ("   - text: The text to convert to handwriting", instructions_text_font),
         ("", None),
         ("3. Line Breaks in Text:", instructions_heading_font),
@@ -302,10 +420,11 @@ def template_xlsx():
         ("   - Use \\\\ on its own line to create blank space", instructions_text_font),
         ("", None),
         ("4. Common Fields:", instructions_heading_font),
-        ("   - page_size: A4, A5, Letter, Legal, or Custom", instructions_text_font),
+        ("   - page_size: A4, A5, Letter, Legal, or Custom (for custom dimensions)", instructions_text_font),
+        ("   - page_width/page_height: Required when page_size is 'Custom'", instructions_text_font),
         ("   - orientation: portrait or landscape", instructions_text_font),
         ("   - units: mm (millimeters) or px (pixels)", instructions_text_font),
-        ("   - margins: Single value for all margins (e.g., '20')", instructions_text_font),
+        ("   - margin_top/right/bottom/left: Individual margins for each side", instructions_text_font),
         ("   - align: left, center, or right", instructions_text_font),
         ("   - legibility: natural, normal, or high", instructions_text_font),
         ("", None),
@@ -473,8 +592,14 @@ def batch_stream():
                 if not merged_params.get("text"):
                     raise ValueError("Empty text")
 
-                # Get filename
+                # Handle line breaks: convert literal \n to actual newlines
+                if "text" in merged_params:
+                    merged_params["text"] = merged_params["text"].replace("\\n", "\n")
+
+                # Get filename and ensure .svg extension
                 filename = _get_row_value(row_dict, "filename", f"sample_{row_num}.svg")
+                if not filename.lower().endswith('.svg'):
+                    filename = filename + '.svg'
                 out_path = os.path.join(out_dir, os.path.basename(filename))
 
                 print(f"DEBUG: Processing row {row_num}: filename={filename}")

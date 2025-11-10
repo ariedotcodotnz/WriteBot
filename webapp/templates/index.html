@@ -486,20 +486,24 @@ Use \\ on its own line to insert blank space."></textarea>
               <div class="dropzone-icon">
                 <i data-feather="file-text" style="width: 48px; height: 48px; stroke-width: 1.5;"></i>
               </div>
-              <div class="dropzone-text">Drop CSV file here or click to browse</div>
+              <div class="dropzone-text">Drop CSV or XLSX file here or click to browse</div>
               <div class="dropzone-subtext">Maximum file size: 10MB</div>
               <div id="csvInfo" style="display: none;"></div>
             </div>
-            <input id="csv" type="file" accept=".csv" style="display: none;" />
+            <input id="csv" type="file" accept=".csv,.xlsx" style="display: none;" />
 
             <div class="actions-bar">
               <button class="bx--btn bx--btn--primary" onclick="batchGenerateStream()">
                 <i data-feather="layers" style="margin-right: 0.5rem; width: 16px; height: 16px;"></i>
                 Start Batch Processing
               </button>
-              <a href="/api/template-csv" class="bx--btn bx--btn--secondary">
+              <a href="/api/template-xlsx" class="bx--btn bx--btn--secondary">
                 <i data-feather="download" style="margin-right: 0.5rem; width: 16px; height: 16px;"></i>
-                Download CSV Template
+                Download XLSX Template
+              </a>
+              <a href="/api/template-csv" class="bx--btn bx--btn--tertiary">
+                <i data-feather="file" style="margin-right: 0.5rem; width: 16px; height: 16px;"></i>
+                CSV Template
               </a>
               <div class="actions-secondary">
                 <label style="display: flex; align-items: center; gap: 0.5rem; margin-right: 1rem;">
