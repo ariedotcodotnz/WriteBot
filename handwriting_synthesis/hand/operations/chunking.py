@@ -40,15 +40,26 @@ def split_text_into_chunks(
     Returns:
         List of text chunks
     """
+    # Preserve leading/trailing whitespace
+    leading_space = len(text) - len(text.lstrip())
+    trailing_space = len(text) - len(text.rstrip())
+
     words = text.split()
     if not words:
-        return []
+        # If only whitespace, return it as-is
+        return [text] if text else []
 
     # Non-adaptive mode: fixed chunk sizes
     if not adaptive_chunking or adaptive_strategy == 'off':
         chunks = []
         for i in range(0, len(words), words_per_chunk):
             chunk = ' '.join(words[i:i + words_per_chunk])
+            # Add leading space to first chunk
+            if i == 0 and leading_space > 0:
+                chunk = ' ' * leading_space + chunk
+            # Add trailing space to last chunk
+            if i + words_per_chunk >= len(words) and trailing_space > 0:
+                chunk = chunk + ' ' * trailing_space
             chunks.append(chunk)
         return chunks
 
@@ -131,6 +142,14 @@ def split_text_into_chunks(
             chunk_word_count = max(min_words, len(chunk_words) // 2)
             chunk_words = words[i:i + chunk_word_count]
             chunk_text = ' '.join(chunk_words)
+
+        # Add leading space to first chunk
+        if i == 0 and leading_space > 0:
+            chunk_text = ' ' * leading_space + chunk_text
+
+        # Add trailing space to last chunk
+        if i + chunk_word_count >= len(words) and trailing_space > 0:
+            chunk_text = chunk_text + ' ' * trailing_space
 
         chunks.append(chunk_text)
         i += chunk_word_count

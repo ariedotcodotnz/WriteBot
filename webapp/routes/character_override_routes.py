@@ -445,19 +445,8 @@ def preview_character(override_id):
     return override.svg_data, 200, {'Content-Type': 'image/svg+xml'}
 
 
-@character_override_bp.route('/api/collections')
-@login_required
-def get_collections():
-    """API endpoint to get all active collections (for generation form)."""
-    collections = CharacterOverrideCollection.query.filter_by(is_active=True).order_by(CharacterOverrideCollection.name).all()
-
-    return jsonify([{
-        'id': c.id,
-        'name': c.name,
-        'description': c.description,
-        'character_count': c.get_character_count(),
-        'unique_characters': len(c.get_unique_characters())
-    } for c in collections])
+# Public API endpoint (not under admin prefix)
+# This will be registered separately in app.py
 
 
 def get_character_override(collection_id, character):

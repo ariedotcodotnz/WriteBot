@@ -206,6 +206,22 @@ app.register_blueprint(admin_bp)
 from webapp.routes.character_override_routes import character_override_bp
 app.register_blueprint(character_override_bp)
 
+# Public API endpoint for character override collections (not under admin prefix)
+@app.route('/api/collections')
+@login_required
+def get_character_override_collections():
+    """API endpoint to get all active character override collections for generation form."""
+    from webapp.models import CharacterOverrideCollection
+    collections = CharacterOverrideCollection.query.filter_by(is_active=True).order_by(CharacterOverrideCollection.name).all()
+
+    return jsonify([{
+        'id': c.id,
+        'name': c.name,
+        'description': c.description,
+        'character_count': c.get_character_count(),
+        'unique_characters': len(c.get_unique_characters())
+    } for c in collections])
+
 
 @app.route("/")
 def index():

@@ -173,32 +173,123 @@ body {
 
 /* Preview Container with Ruler Enhancement */
 .preview-container-with-ruler {
-  position: relative; /* CRITICAL: needed for ruler absolute positioning */
-  background: #f4f4f4;
+  position: relative;
+  background: var(--layer-02);
   border: 1px solid var(--border-subtle-00);
-  overflow: visible; /* Allow rulers to show */
+  overflow: hidden;
   min-height: 500px;
-  max-height: 700px;
+  max-height: 732px; /* 700px + 32px for rulers */
+}
+
+/* SVG Ruler System */
+.svg-ruler-wrapper {
+  position: relative;
+  display: grid;
+  grid-template-columns: 30px 1fr 12px;
+  grid-template-rows: 30px 1fr 12px;
   width: 100%;
+  height: 100%;
+  gap: 0;
+}
+
+.svg-ruler-corner {
+  grid-column: 1;
+  grid-row: 1;
+  background: #e0e0e0;
+  border-right: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  z-index: 3;
+}
+
+.svg-ruler {
+  position: relative;
+  overflow: hidden;
+  background: #f4f4f4;
+  border: 1px solid #ccc;
+}
+
+.svg-ruler-horizontal {
+  grid-column: 2;
+  grid-row: 1;
+  height: 30px;
+  border-left: none;
+  border-top: none;
+  z-index: 2;
+}
+
+.svg-ruler-vertical {
+  grid-column: 1;
+  grid-row: 2;
+  width: 30px;
+  border-left: none;
+  border-top: none;
+  z-index: 2;
+}
+
+.ruler-canvas {
+  display: block;
+  image-rendering: crisp-edges;
+}
+
+/* Crosshairs */
+.ruler-crosshair-v,
+.ruler-crosshair-h {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1000;
+  display: none;
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.ruler-crosshair-v {
+  width: 1px;
+  height: 100%;
+  background: rgba(0, 123, 255, 0.5);
+  top: 0;
+  box-shadow: 0 0 2px rgba(0, 123, 255, 0.8);
+}
+
+.ruler-crosshair-h {
+  height: 1px;
+  width: 100%;
+  background: rgba(0, 123, 255, 0.5);
+  left: 0;
+  box-shadow: 0 0 2px rgba(0, 123, 255, 0.8);
+}
+
+/* Coordinate Display */
+.ruler-coordinates {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+  pointer-events: none;
+  z-index: 10000;
+  display: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .preview-container {
   background: white;
   min-height: 500px;
   max-height: 700px;
-  overflow: auto;
+  overflow: scroll;
   position: relative;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  padding: 35px 0 0 35px; /* Space for rulers (increased) */
-  width: 100%;
-  height: 100%;
+  grid-column: 2;
+  grid-row: 2;
+  /* Extend scrollbar area into the extra grid space */
+  margin-right: -12px;
+  margin-bottom: -12px;
 }
 
 .preview-container::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
 }
 
 .preview-container::-webkit-scrollbar-track {
@@ -215,17 +306,21 @@ body {
 }
 
 #preview {
-  padding: 2rem;
+  padding: 0;
+  margin: 0;
   background: white;
-  display: inline-block;
+  min-height: 100%;
+  display: block;
   position: relative;
-  min-width: 100%;
+  /* Ensure SVG stays aligned at 0,0 */
+  width: fit-content;
 }
 
 #preview svg {
+  max-width: 100%;
+  height: auto;
   display: block;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  /* Don't constrain SVG size - use its natural dimensions */
 }
 
 .preview-empty {
@@ -594,6 +689,19 @@ body {
   padding: var(--spacing-05) 0;
   border-top: 1px solid var(--border-subtle-00);
   margin-top: var(--spacing-05);
+}
+
+.actions-bar-sticky {
+  position: sticky;
+  bottom: 0;
+  background: var(--ui-background);
+  z-index: 100;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 0;
+  margin-left: -1rem;
+  margin-right: -1rem;
+  padding: var(--spacing-05) 1rem;
+  border-top: 1px solid var(--border-subtle-01);
 }
 
 .actions-secondary {

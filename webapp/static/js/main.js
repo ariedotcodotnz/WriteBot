@@ -36,91 +36,88 @@ function parseSvgDimensions(svgElement) {
   };
 }
 
-// Ruler Functions
-function initializeRuler() {
-  const preview = document.getElementById('preview');
-  const container = document.getElementById('previewContainerRuler');
-
-  if (!preview || !container || !lastSvgText) {
-    console.log('Ruler init skipped: missing elements or SVG');
-    return;
-  }
-
-  // Clear existing ruler
-  clearRuler();
-
-  // FIX: This line is the required change.
-  container.style.position = 'relative';
-
-  // Get the SVG element
-  const svgElement = preview.querySelector('svg');
-  if (!svgElement) {
-    console.log('Ruler init skipped: no SVG element found');
-    return;
-  }
-
-  // Parse SVG dimensions
-  const dims = parseSvgDimensions(svgElement);
-  if (!dims) {
-    console.warn('Could not parse SVG dimensions');
-    return;
-  }
-
-  console.log('SVG Dimensions:', dims);
-  console.log('Container dimensions:', container.offsetWidth, 'x', container.offsetHeight);
-
-  // Only initialize ruler if there's SVG content and dimensions
-  if (window.Ruler) {
-    // Wait for next frame to ensure SVG is rendered and container has dimensions
-    requestAnimationFrame(() => {
-      // Double check container has dimensions
-      if (container.offsetWidth === 0 || container.offsetHeight === 0) {
-        console.warn('Container has no dimensions, retrying...');
-        setTimeout(() => initializeRuler(), 100);
-        return;
-      }
-
-      try {
-        console.log('Creating ruler...');
-
-        // Create ruler with mm units (matching SVG)
-        Ruler.create(container, {
-          unit: 'mm',
-          unitPrecision: 0,
-          showCrosshair: true,
-          showMousePos: true,
-          tickColor: '#161616',
-          crosshairColor: '#0f62fe',
-          crosshairStyle: 'solid',
-          mouseBoxBg: '#161616',
-          mouseBoxColor: '#fff',
-          vRuleSize: 30,
-          hRuleSize: 30
-        });
-
-        rulerActive = true;
-        console.log('Ruler initialized successfully');
-      } catch (e) {
-        console.error('Failed to initialize ruler:', e);
-      }
-    });
-  } else {
-    console.error('Ruler library not loaded!');
-  }
-}
-
-function clearRuler() {
-  const container = document.getElementById('previewContainerRuler');
-  if (window.Ruler && rulerActive && container) {
-    try {
-      Ruler.clear(container);
-      console.log('Ruler cleared');
-    } catch (e) {
-      console.error('Error clearing ruler:', e);
-    }
-    rulerActive = false;
-  }
-}
+// // Ruler Functions
+// function initializeRuler() {
+//   const preview = document.getElementById('preview');
+//   const container = document.getElementById('previewContainerRuler');
+//
+//   if (!preview || !container || !lastSvgText) {
+//     console.log('Ruler init skipped: missing elements or SVG');
+//     return;
+//   }
+//
+//   // Clear existing ruler
+//   clearRuler();
+//
+//   // Get the SVG element
+//   const svgElement = preview.querySelector('svg');
+//   if (!svgElement) {
+//     console.log('Ruler init skipped: no SVG element found');
+//     return;
+//   }
+//
+//   // Parse SVG dimensions
+//   const dims = parseSvgDimensions(svgElement);
+//   if (!dims) {
+//     console.warn('Could not parse SVG dimensions');
+//     return;
+//   }
+//
+//   console.log('SVG Dimensions:', dims);
+//   console.log('Container dimensions:', container.offsetWidth, 'x', container.offsetHeight);
+//
+//   // Only initialize ruler if there's SVG content and dimensions
+//   if (window.Ruler) {
+//     // Wait for next frame to ensure SVG is rendered and container has dimensions
+//     requestAnimationFrame(() => {
+//       // Double check container has dimensions
+//       if (container.offsetWidth === 0 || container.offsetHeight === 0) {
+//         console.warn('Container has no dimensions, retrying...');
+//         setTimeout(() => initializeRuler(), 100);
+//         return;
+//       }
+//
+//       try {
+//         console.log('Creating ruler...');
+//
+//         // Create ruler with mm units (matching SVG)
+//         Ruler.create(container, {
+//           unit: 'mm',
+//           unitPrecision: 1,
+//           showCrosshair: true,
+//           showMousePos: true,
+//           tickColor: '#161616',
+//           crosshairColor: '#0f62fe',
+//           crosshairStyle: 'solid',
+//           mouseBoxBg: '#161616',
+//           mouseBoxColor: '#fff',
+//           vRuleSize: 30,
+//           hRuleSize: 30
+//         });
+//
+//         rulerActive = true;
+//         console.log('Ruler initialized successfully');
+//       } catch (e) {
+//         console.error('Failed to initialize ruler:', e);
+//       }
+//     });
+//   } else {
+//     console.error('Ruler library not loaded!');
+//   }
+// }
+//
+// function clearRuler() {
+//   const container = document.getElementById('previewContainerRuler');
+//   if (window.Ruler && rulerActive && container) {
+//     try {
+//       Ruler.clear(container);
+//       console.log('Ruler cleared');
+//     } catch (e) {
+//       console.error('Error clearing ruler:', e);
+//     }
+//     rulerActive = false;
+//   }
+// }
 
 // UI Helper Functions
 function setLoading(visible) {
@@ -265,9 +262,9 @@ function closeStyleDropdown() {
 // Character Override Collections
 async function loadCharacterOverrideCollections() {
   try {
-    const res = await fetch('/api/character-override-collections');
+    const res = await fetch('/api/collections');
     const data = await res.json();
-    CHARACTER_OVERRIDE_COLLECTIONS = data.collections || [];
+    CHARACTER_OVERRIDE_COLLECTIONS = Array.isArray(data) ? data : [];
 
     const sel = document.getElementById('characterOverrideCollection');
     sel.innerHTML = '<option value="">None (use AI)</option>';
@@ -286,9 +283,9 @@ async function loadCharacterOverrideCollections() {
 // Page Size Presets
 async function loadPageSizePresets() {
   try {
-    const res = await fetch('/api/page-size-presets');
+    const res = await fetch('/api/page-sizes');
     const data = await res.json();
-    PAGE_SIZE_PRESETS = data.presets || [];
+    PAGE_SIZE_PRESETS = data.page_sizes || [];
 
     const sel = document.getElementById('pageSize');
     sel.innerHTML = '';
@@ -318,9 +315,9 @@ async function loadPageSizePresets() {
 // Template Presets
 async function loadTemplatePresets() {
   try {
-    const res = await fetch('/api/template-presets');
+    const res = await fetch('/api/templates');
     const data = await res.json();
-    TEMPLATE_PRESETS = data.presets || [];
+    TEMPLATE_PRESETS = data.templates || [];
 
     const sel = document.getElementById('templatePreset');
     sel.innerHTML = '<option value="">None (Manual Settings)</option>';
@@ -417,6 +414,15 @@ function copySvg() {
 }
 
 // Main Generation
+// Helper to resolve page size from preset ID to name
+function resolvePageSize(pageSizeValue) {
+  if (pageSizeValue === 'custom') {
+    return 'custom';
+  }
+  const preset = PAGE_SIZE_PRESETS.find(p => String(p.id) === String(pageSizeValue));
+  return preset ? preset.name : 'A4';
+}
+
 async function generate() {
   const text = document.getElementById('text').value;
   if (!text.trim()) {
@@ -461,7 +467,7 @@ async function generate() {
 
   const payload = {
     text,
-    page_size: pageSize,
+    page_size: resolvePageSize(pageSize),
     units,
     margins,
     line_height: lineHeight ? Number(lineHeight) : undefined,
@@ -530,9 +536,10 @@ async function generate() {
       `;
     }
 
-    // Initialize ruler with the preview
-    clearRuler();
-    initializeRuler();
+    // Update ruler with SVG dimensions
+    if (typeof updateRulerForSVG === 'function') {
+      updateRulerForSVG(lastSvgText, lastMetadata);
+    }
 
     toastSuccess('Handwriting generated successfully');
   } catch (error) {
@@ -587,26 +594,23 @@ async function batchGenerateStream() {
   setLoading(true);
 
   const formData = new FormData();
-  formData.append('csv', CSV_FILE);
+  formData.append('file', CSV_FILE);
 
-  // Add current configuration as defaults
-  const config = {
-    style: SELECTED_STYLE_ID,
-    legibility: document.getElementById('legibility').value,
-    page_size: document.getElementById('pageSize').value,
-    orientation: document.getElementById('orientation').value,
-    units: document.getElementById('units').value,
-    margins: buildMargins(),
-  };
-
-  formData.append('config', JSON.stringify(config));
+  // Add current configuration as defaults (as form fields, not JSON)
+  formData.append('styles', SELECTED_STYLE_ID || '');
+  formData.append('legibility', document.getElementById('legibility').value);
+  formData.append('page_size', resolvePageSize(document.getElementById('pageSize').value));
+  formData.append('orientation', document.getElementById('orientation').value);
+  formData.append('units', document.getElementById('units').value);
+  formData.append('margins', buildMargins());
+  formData.append('character_override_collection_id', document.getElementById('characterOverrideCollection').value || '');
 
   let ok = 0, err = 0, total = 0;
   const liveGrid = document.getElementById('batchLiveGrid');
   const liveLimit = () => parseInt(document.getElementById('liveLimit').value) || 12;
 
   try {
-    const response = await fetch('/api/batch-generate-stream', {
+    const response = await fetch('/api/batch/stream', {
       method: 'POST',
       body: formData
     });
@@ -780,6 +784,12 @@ function setupZoomControl() {
     const preview = document.getElementById('preview');
     preview.style.transform = `scale(${value / 100})`;
     preview.style.transformOrigin = 'top left';
+
+    // Update ruler zoom if available
+    if (typeof window.svgRulerInstance !== 'undefined' && window.svgRulerInstance) {
+      window.svgRulerInstance.zoom = value / 100;
+      window.svgRulerInstance.drawRulers();
+    }
   });
 }
 
