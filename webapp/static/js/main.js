@@ -698,16 +698,45 @@ function downloadSVG() {
 }
 
 // Batch Processing
+let BATCH_LOG_TEXT = ''; // Store the ASCII log
+
 function clearBatchUI() {
   document.getElementById('batchContainer').style.display = 'none';
   document.getElementById('batchLiveGrid').innerHTML = '';
-  document.getElementById('batchLog').innerHTML = '';
+  BATCH_LOG_TEXT = '';
+  document.getElementById('batchLog').textContent = 'Ready to process batch...';
   document.getElementById('batchProg').textContent = '0';
   document.getElementById('batchTotal').textContent = '0';
   document.getElementById('batchOk').textContent = '0';
   document.getElementById('batchErr').textContent = '0';
   document.getElementById('progressFill').style.width = '0%';
   document.getElementById('batchDownload').style.display = 'none';
+}
+
+function openBatchPreview(filename, svgContent) {
+  const modal = document.getElementById('batchPreviewModal');
+  const title = document.getElementById('batchPreviewTitle');
+  const content = document.getElementById('batchPreviewContent');
+
+  title.textContent = filename;
+  content.innerHTML = svgContent;
+  modal.style.display = 'flex';
+
+  // Re-initialize feather icons if needed
+  if (typeof feather !== 'undefined') feather.replace();
+}
+
+function closeBatchPreview() {
+  const modal = document.getElementById('batchPreviewModal');
+  modal.style.display = 'none';
+}
+
+function appendLog(message) {
+  BATCH_LOG_TEXT += message + '\n';
+  document.getElementById('batchLog').textContent = BATCH_LOG_TEXT;
+  // Auto-scroll to bottom
+  const logElement = document.getElementById('batchLog').parentElement;
+  logElement.scrollTop = logElement.scrollHeight;
 }
 
 async function batchGenerateStream() {
@@ -763,20 +792,25 @@ async function batchGenerateStream() {
           if (payload.type === 'start') {
             total = payload.total || 0;
             document.getElementById('batchTotal').textContent = String(total);
+            BATCH_LOG_TEXT = '';
+            appendLog('='.repeat(70));
+            appendLog('WriteBot Batch Processing Log');
+            appendLog('='.repeat(70));
+            appendLog(`Started at: ${new Date().toLocaleString()}`);
+            appendLog(`Total rows to process: ${total}`);
+            appendLog('='.repeat(70));
+            appendLog('');
           } else if (payload.type === 'row') {
-            const log = document.getElementById('batchLog');
-            const entry = document.createElement('div');
-
             if (payload.status === 'ok') {
               ok += 1;
-              entry.className = 'batch-log-entry success';
-              entry.innerHTML = `<i data-feather="check"></i> Row ${payload.row}: ${payload.file}`;
+              appendLog(`[✓] Row ${payload.row}: ${payload.file} - SUCCESS`);
               document.getElementById('batchOk').textContent = String(ok);
 
               if (payload.file && liveGrid.children.length < liveLimit()) {
                 const card = document.createElement('div');
                 card.className = 'live-preview-card';
                 card.setAttribute('data-filename', payload.file);
+                card.style.cursor = 'pointer';
                 card.innerHTML = `
                   <div class="live-preview-filename">${payload.file}</div>
                   <div class="live-preview-status">Generating...</div>
@@ -785,14 +819,9 @@ async function batchGenerateStream() {
               }
             } else {
               err += 1;
-              entry.className = 'batch-log-entry error';
-              entry.innerHTML = `<i data-feather="x"></i> Row ${payload.row}: ${payload.error}`;
+              appendLog(`[✗] Row ${payload.row}: ERROR - ${payload.error}`);
               document.getElementById('batchErr').textContent = String(err);
             }
-
-            log.appendChild(entry);
-            if (typeof feather !== 'undefined') feather.replace();
-            log.scrollTop = log.scrollHeight;
           } else if (payload.type === 'progress') {
             const completed = payload.completed || 0;
             document.getElementById('batchProg').textContent = String(completed);
@@ -804,6 +833,17 @@ async function batchGenerateStream() {
             const dl = document.getElementById('batchDownload');
             dl.href = payload.download;
             dl.style.display = 'inline-flex';
+
+            // Add completion summary to log
+            appendLog('');
+            appendLog('='.repeat(70));
+            appendLog('Processing Complete');
+            appendLog('='.repeat(70));
+            appendLog(`Completed at: ${new Date().toLocaleString()}`);
+            appendLog(`Total processed: ${payload.total}`);
+            appendLog(`Successful: ${payload.success} (${((payload.success/payload.total)*100).toFixed(1)}%)`);
+            appendLog(`Errors: ${payload.errors}`);
+            appendLog('='.repeat(70));
 
             if (typeof feather !== 'undefined') feather.replace();
 
@@ -826,6 +866,8 @@ async function batchGenerateStream() {
                       </div>
                       <div class="live-preview-status">Complete</div>
                     `;
+                    // Make card clickable to view larger preview
+                    card.onclick = () => openBatchPreview(fname, svg);
                   })
                   .catch(() => {});
               }
@@ -893,8 +935,12 @@ function setupCsvDragDrop() {
     CSV_FILE = file;
     showFileInfo(CSV_FILE);
 
+    // Only auto-start if checkbox is enabled
     if (file.name.toLowerCase().endsWith('.csv')) {
-      batchGenerateStream();
+      const autoStart = document.getElementById('autoStartBatch');
+      if (autoStart && autoStart.checked) {
+        batchGenerateStream();
+      }
     }
   });
 }
