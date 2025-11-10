@@ -396,6 +396,19 @@ Use \\ on its own line to insert blank space."></textarea>
                   </div>
                 </div>
               </details>
+
+              <!-- Save as Preset Button (Admin Only) -->
+              {% if current_user.is_authenticated and current_user.role == 'admin' %}
+              <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--ui-03);">
+                <button type="button" class="bx--btn bx--btn--tertiary bx--btn--sm" onclick="openSavePresetModal()">
+                  <i data-feather="save" style="margin-right: 0.5rem; width: 14px; height: 14px;"></i>
+                  Save as Preset
+                </button>
+                <small style="display: block; margin-top: 0.5rem; color: var(--text-02);">
+                  Save current settings as a template preset (Admin only)
+                </small>
+              </div>
+              {% endif %}
             </div>
           </div>
 
@@ -549,6 +562,27 @@ Use \\ on its own line to insert blank space."></textarea>
                 </a>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save Preset Modal -->
+    <div id="savePresetModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+      <div style="background: var(--ui-01, #fff); border-radius: 4px; max-width: 500px; width: 90%; padding: 2rem; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+        <h3 style="margin: 0 0 1rem 0; font-size: 1.25rem;">Save as Template Preset</h3>
+        <div class="bx--form">
+          <div class="bx--form-item" style="margin-bottom: 1rem;">
+            <label for="presetName" class="bx--label">Template Name *</label>
+            <input type="text" id="presetName" class="bx--text-input" placeholder="e.g., Standard Letter" required />
+          </div>
+          <div class="bx--form-item" style="margin-bottom: 1.5rem;">
+            <label for="presetDescription" class="bx--label">Description (Optional)</label>
+            <textarea id="presetDescription" class="bx--text-area" rows="3" placeholder="Describe this template's use case..."></textarea>
+          </div>
+          <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+            <button type="button" class="bx--btn bx--btn--secondary" onclick="closeSavePresetModal()">Cancel</button>
+            <button type="button" class="bx--btn bx--btn--primary" onclick="savePreset()">Save Preset</button>
           </div>
         </div>
       </div>

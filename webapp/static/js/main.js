@@ -337,8 +337,9 @@ async function applyTemplatePreset(templateId) {
   if (!templateId) return;
 
   try {
-    const res = await fetch(`/api/template-preset/${templateId}`);
-    const template = await res.json();
+    const res = await fetch(`/api/templates/${templateId}`);
+    const data = await res.json();
+    const template = data.template;
 
     // Apply all template fields
     if (template.text) document.getElementById('text').value = template.text;
@@ -365,6 +366,132 @@ async function applyTemplatePreset(templateId) {
   } catch (err) {
     console.error('Failed to apply template preset:', err);
     toastError('Failed to apply template preset');
+  }
+}
+
+// Save Preset Modal Functions
+function openSavePresetModal() {
+  const modal = document.getElementById('savePresetModal');
+  modal.style.display = 'flex';
+  document.getElementById('presetName').value = '';
+  document.getElementById('presetDescription').value = '';
+  document.getElementById('presetName').focus();
+}
+
+function closeSavePresetModal() {
+  const modal = document.getElementById('savePresetModal');
+  modal.style.display = 'none';
+}
+
+async function savePreset() {
+  const name = document.getElementById('presetName').value.trim();
+  const description = document.getElementById('presetDescription').value.trim();
+
+  if (!name) {
+    toastError('Please enter a template name');
+    return;
+  }
+
+  // Gather all form data
+  const pageSize = document.getElementById('pageSize').value;
+  const orientation = document.getElementById('orientation').value;
+  const units = document.getElementById('units').value;
+  const align = document.getElementById('align').value;
+
+  // Margins
+  const marginTop = parseFloat(document.getElementById('marginTop').value) || 10.0;
+  const marginRight = parseFloat(document.getElementById('marginRight').value) || 10.0;
+  const marginBottom = parseFloat(document.getElementById('marginBottom').value) || 10.0;
+  const marginLeft = parseFloat(document.getElementById('marginLeft').value) || 10.0;
+
+  // Line settings
+  const lineHeight = document.getElementById('lineHeight').value ? parseFloat(document.getElementById('lineHeight').value) : null;
+  const emptyLineSpacing = document.getElementById('emptyLineSpacing').value ? parseFloat(document.getElementById('emptyLineSpacing').value) : null;
+
+  // Scaling
+  const globalScale = parseFloat(document.getElementById('globalScale').value) || 1.0;
+  const autoSize = document.getElementById('autoSize').checked;
+  const manualSizeScale = document.getElementById('manualSizeScale').value ? parseFloat(document.getElementById('manualSizeScale').value) : null;
+
+  // Background
+  const background = document.getElementById('background').value || null;
+
+  // Advanced style options
+  const biases = document.getElementById('biases').value || null;
+  const styles = document.getElementById('styles').value || null;
+  const strokeColors = document.getElementById('strokeColors').value || null;
+  const strokeWidths = document.getElementById('strokeWidths').value || null;
+  const xStretch = parseFloat(document.getElementById('xStretch').value) || 1.0;
+  const denoise = document.getElementById('denoise').value === 'true';
+
+  // Text wrapping
+  const wrapCharPx = document.getElementById('wrapCharPx').value ? parseFloat(document.getElementById('wrapCharPx').value) : null;
+  const wrapRatio = document.getElementById('wrapRatio').value ? parseFloat(document.getElementById('wrapRatio').value) : null;
+  const wrapUtil = document.getElementById('wrapUtil').value ? parseFloat(document.getElementById('wrapUtil').value) : null;
+
+  // Chunked generation
+  const useChunked = document.getElementById('useChunked').checked;
+  const adaptiveChunking = document.getElementById('adaptiveChunking').checked;
+  const adaptiveStrategy = document.getElementById('adaptiveStrategy').value || null;
+  const wordsPerChunk = document.getElementById('wordsPerChunk').value ? parseInt(document.getElementById('wordsPerChunk').value) : null;
+  const chunkSpacing = document.getElementById('chunkSpacing').value ? parseFloat(document.getElementById('chunkSpacing').value) : null;
+  const maxLineWidth = document.getElementById('maxLineWidth').value ? parseFloat(document.getElementById('maxLineWidth').value) : null;
+
+  const templateData = {
+    name,
+    description,
+    page_size_preset_id: parseInt(pageSize),
+    orientation,
+    margin_top: marginTop,
+    margin_right: marginRight,
+    margin_bottom: marginBottom,
+    margin_left: marginLeft,
+    margin_unit: units,
+    line_height: lineHeight,
+    line_height_unit: units,
+    empty_line_spacing: emptyLineSpacing,
+    text_alignment: align,
+    global_scale: globalScale,
+    auto_size: autoSize,
+    manual_size_scale: manualSizeScale,
+    background_color: background,
+    biases,
+    per_line_styles: styles,
+    stroke_colors: strokeColors,
+    stroke_widths: strokeWidths,
+    horizontal_stretch: xStretch,
+    denoise,
+    character_width: wrapCharPx,
+    wrap_ratio: wrapRatio,
+    wrap_utilization: wrapUtil,
+    use_chunked_generation: useChunked,
+    adaptive_chunking: adaptiveChunking,
+    adaptive_strategy: adaptiveStrategy,
+    words_per_chunk: wordsPerChunk,
+    chunk_spacing: chunkSpacing,
+    max_line_width: maxLineWidth
+  };
+
+  try {
+    const res = await fetch('/api/templates', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(templateData)
+    });
+
+    const result = await res.json();
+
+    if (res.ok) {
+      toastSuccess(result.message || 'Template saved successfully');
+      closeSavePresetModal();
+      // Refresh the presets dropdown
+      await loadTemplatePresets();
+    } else {
+      toastError(result.error || 'Failed to save template');
+    }
+  } catch (err) {
+    console.error('Failed to save template preset:', err);
+    toastError('Failed to save template preset');
   }
 }
 
@@ -802,6 +929,18 @@ document.addEventListener('DOMContentLoaded', () => {
   syncCustomSizeVisibility();
   setupCsvDragDrop();
   setupZoomControl();
+
+  // Auto-load preset from URL parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const presetId = urlParams.get('preset');
+  if (presetId) {
+    // Wait a bit for presets to load, then apply
+    setTimeout(() => {
+      const presetSelect = document.getElementById('templatePreset');
+      presetSelect.value = presetId;
+      applyTemplatePreset(presetId);
+    }, 500);
+  }
 
   document.getElementById('pageSize').addEventListener('change', syncCustomSizeVisibility);
 

@@ -11,9 +11,9 @@
     <div class="admin-section__header">
         <div>
             <h2 class="admin-section__title">Template Management</h2>
-            <p class="admin-section__subtitle">Create and manage document template presets with page sizes and layouts</p>
+            <p class="admin-section__subtitle">Manage template presets. Use the "Save as Preset" button on the main form to create new templates.</p>
         </div>
-        <a href="{{ url_for('admin.create_template') }}" class="btn btn-primary">Create New Template</a>
+        <a href="{{ url_for('index') }}" class="btn btn-primary">Go to Main Form</a>
     </div>
 
     {% if templates %}
@@ -56,7 +56,11 @@
                 <td>{{ template.created_at.strftime('%Y-%m-%d') }}</td>
                 <td>
                     <div class="admin-table__actions">
-                        <a href="{{ url_for('admin.edit_template', template_id=template.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+                        <a href="{{ url_for('index') }}?preset={{ template.id }}" class="btn btn-secondary btn-sm" title="Load this template in the main form">Load</a>
+                        <button onclick="toggleTemplateStatus({{ template.id }}, {{ 'false' if template.is_active else 'true' }})"
+                                class="btn btn-secondary btn-sm">
+                            {{ 'Deactivate' if template.is_active else 'Activate' }}
+                        </button>
                         <form method="POST" action="{{ url_for('admin.delete_template', template_id=template.id) }}"
                               style="display: inline;"
                               data-confirm="Are you sure you want to delete this template?">
@@ -71,8 +75,32 @@
     {% else %}
     <div class="empty-state">
         <div class="empty-state__message">No template presets found.</div>
-        <a href="{{ url_for('admin.create_template') }}" class="btn btn-primary">Create First Template</a>
+        <a href="{{ url_for('index') }}" class="btn btn-primary">Go to Main Form to Create Templates</a>
     </div>
     {% endif %}
 </div>
+
+<script>
+async function toggleTemplateStatus(templateId, newStatus) {
+    try {
+        const res = await fetch(`/api/templates/${templateId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_active: newStatus })
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+            // Reload the page to show updated status
+            window.location.reload();
+        } else {
+            alert(result.error || 'Failed to update template status');
+        }
+    } catch (err) {
+        console.error('Failed to update template status:', err);
+        alert('Failed to update template status');
+    }
+}
+</script>
 {% endblock %}
