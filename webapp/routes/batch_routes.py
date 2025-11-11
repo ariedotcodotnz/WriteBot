@@ -135,8 +135,8 @@ def batch_generate():
 @batch_bp.route("/api/template-csv", methods=["GET"])
 @login_required
 def template_csv():
-    """Download a template CSV file for batch processing."""
-    # Comprehensive CSV template with all available parameters
+    """Download a blank template CSV file for batch processing."""
+    # Comprehensive CSV template with all available parameters (headers only)
     header = (
         "filename,text,"
         "page_size,page_width,page_height,orientation,units,"
@@ -146,32 +146,7 @@ def template_csv():
         "wrap_char_px,wrap_ratio,wrap_utilization,"
         "use_chunked,adaptive_chunking,adaptive_strategy,words_per_chunk,chunk_spacing,max_line_width\n"
     )
-    # Add example rows to show users the format
-    example1 = (
-        "example1,The quick brown fox jumps over the lazy dog.,"
-        "A4,,,portrait,mm,"
-        "20,20,20,20,,,"
-        "left,white,1.0,normal,1.0,true,true,,"
-        ",,,,,,,"
-        "true,true,balanced,3,8.0,800\n"
-    )
-    example2 = (
-        "example2,Hello World!\\nThis is a new line.,"
-        "Letter,,,portrait,mm,"
-        "15,15,15,15,,,"
-        "center,white,1.0,high,1.0,true,true,,"
-        ",,,,,,,"
-        "true,false,,,,\n"
-    )
-    example3 = (
-        "custom_size,Custom page dimensions example.,"
-        "Custom,200,300,portrait,mm,"
-        "10,15,10,15,,,"
-        "left,white,1.0,normal,1.0,true,true,,"
-        ",,,,,,,"
-        "true,true,balanced,3,8.0,800\n"
-    )
-    return Response(header + example1 + example2 + example3, mimetype="text/csv", headers={
+    return Response(header, mimetype="text/csv", headers={
         'Content-Disposition': 'attachment; filename=writebot_template.csv'
     })
 
@@ -376,29 +351,8 @@ def template_xlsx():
     ws_data.add_data_validation(strategy_dv)
     strategy_dv.add(f'AE2:AE1000')
 
-    # Add example rows with default values
-    # Columns: filename, text, page_size, page_width, page_height, orientation, units,
-    # margin_top, margin_right, margin_bottom, margin_left, line_height, empty_line_spacing,
-    # align, background, global_scale, legibility, x_stretch, denoise, auto_size, manual_size_scale,
-    # biases, styles, stroke_colors, stroke_widths, wrap_char_px, wrap_ratio, wrap_utilization,
-    # use_chunked, adaptive_chunking, adaptive_strategy, words_per_chunk, chunk_spacing, max_line_width
-    example_data = [
-        ["example1", "The quick brown fox jumps over the lazy dog.", "A4", "", "", "portrait", "mm",
-         "20", "20", "20", "20", "", "", "left", "white", "1.0", "normal", "1.0", "true", "true", "",
-         "", "", "", "", "", "", "", "true", "true", "balanced", "3", "8.0", "800"],
-        ["example2", "Hello World!\\nThis is a new line.", "Letter", "", "", "portrait", "mm",
-         "15", "15", "15", "15", "", "", "center", "white", "1.0", "high", "1.0", "true", "true", "",
-         "", "", "", "", "", "", "", "true", "false", "", "", "", ""],
-        ["custom_example", "Custom page size example.", "Custom", "200", "300", "portrait", "mm",
-         "10", "10", "10", "10", "", "", "left", "white", "1.0", "normal", "1.0", "true", "true", "",
-         "", "", "", "", "", "", "", "true", "true", "balanced", "3", "8.0", "800"],
-    ]
-
-    for row_num, row_data in enumerate(example_data, 2):
-        for col_num, value in enumerate(row_data, 1):
-            cell = ws_data.cell(row=row_num, column=col_num, value=value)
-            cell.border = border
-            cell.alignment = Alignment(wrap_text=True, vertical="top")
+    # Template is blank - users fill in their own data
+    # For examples, download the sample file instead
 
     # ===== INSTRUCTIONS SHEET =====
     ws_instructions = wb.create_sheet("Instructions")
@@ -450,8 +404,8 @@ def template_xlsx():
         ("   - Download your generated files when complete", instructions_text_font),
         ("", None),
         ("Tips:", instructions_heading_font),
+        ("   - Download the sample XLSX file to see example configurations", instructions_text_font),
         ("   - Copy rows to create similar configurations", instructions_text_font),
-        ("   - Use the example rows as templates", instructions_text_font),
         ("   - The processing log will be included in your download", instructions_text_font),
     ]
 
@@ -486,7 +440,7 @@ def template_xlsx():
         ("", None),
         ("Need Help?", Font(bold=True, size=12, color="2E5090")),
         ("   • Check the 'Instructions' sheet for detailed guidance", Font(size=11)),
-        ("   • See example rows in the 'Data' sheet", Font(size=11)),
+        ("   • Download the sample XLSX file to see example configurations", Font(size=11)),
         ("   • Visit the main WriteBot interface for single file generation", Font(size=11)),
         ("", None),
         ("Version: 1.0", Font(size=10, italic=True)),
@@ -509,6 +463,133 @@ def template_xlsx():
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         as_attachment=True,
         download_name='writebot_template.xlsx'
+    )
+
+
+@batch_bp.route("/api/sample-xlsx", methods=["GET"])
+@login_required
+def sample_xlsx():
+    """Download a sample XLSX file with example data for testing/learning."""
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+    from io import BytesIO
+
+    wb = Workbook()
+
+    # Set workbook metadata
+    wb.properties.creator = "WriteBot"
+    wb.properties.lastModifiedBy = "WriteBot"
+    wb.properties.title = "WriteBot Sample File"
+    wb.properties.subject = "Example configurations for WriteBot batch processing"
+    wb.properties.description = "Sample file with example data to demonstrate WriteBot capabilities"
+    wb.properties.company = "WriteBot"
+
+    # ===== DATA SHEET =====
+    ws_data = wb.active
+    ws_data.title = "Sample Data"
+
+    # Define styling
+    header_font = Font(bold=True, size=11, color="FFFFFF")
+    header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+    border = Border(
+        left=Side(style='thin', color='D0D0D0'),
+        right=Side(style='thin', color='D0D0D0'),
+        top=Side(style='thin', color='D0D0D0'),
+        bottom=Side(style='thin', color='D0D0D0')
+    )
+
+    # Headers (same as template)
+    headers = [
+        "filename", "text", "page_size", "page_width", "page_height", "orientation", "units",
+        "margin_top", "margin_right", "margin_bottom", "margin_left", "line_height", "empty_line_spacing",
+        "align", "background", "global_scale", "legibility", "x_stretch", "denoise", "auto_size", "manual_size_scale",
+        "biases", "styles", "stroke_colors", "stroke_widths", "wrap_char_px", "wrap_ratio", "wrap_utilization",
+        "use_chunked", "adaptive_chunking", "adaptive_strategy", "words_per_chunk", "chunk_spacing", "max_line_width"
+    ]
+
+    # Set header row
+    for col_num, header in enumerate(headers, 1):
+        cell = ws_data.cell(row=1, column=col_num, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.border = border
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+    # Example data rows
+    example_data = [
+        ["example1", "The quick brown fox jumps over the lazy dog.", "A4", "", "", "portrait", "mm",
+         "20", "20", "20", "20", "", "", "left", "white", "1.0", "normal", "1.0", "true", "true", "",
+         "", "", "", "", "", "", "", "true", "true", "balanced", "3", "8.0", "800"],
+        ["example2", "Hello World!\\nThis is a new line.", "Letter", "", "", "portrait", "mm",
+         "15", "15", "15", "15", "", "", "center", "white", "1.0", "high", "1.0", "true", "true", "",
+         "", "", "", "", "", "", "", "true", "false", "", "", "", ""],
+        ["custom_size", "Custom page dimensions example.", "Custom", "200", "300", "portrait", "mm",
+         "10", "10", "10", "10", "", "", "left", "white", "1.0", "normal", "1.0", "true", "true", "",
+         "", "", "", "", "", "", "", "true", "true", "balanced", "3", "8.0", "800"],
+    ]
+
+    # Add example rows
+    for row_num, row_data in enumerate(example_data, 2):
+        for col_num, value in enumerate(row_data, 1):
+            cell = ws_data.cell(row=row_num, column=col_num, value=value)
+            cell.border = border
+            cell.alignment = Alignment(wrap_text=True, vertical="top")
+
+    # Auto-size columns
+    for col in ws_data.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            if cell.value:
+                max_length = max(max_length, len(str(cell.value)))
+        adjusted_width = min(max_length + 2, 40)
+        ws_data.column_dimensions[column].width = adjusted_width
+
+    # ===== README SHEET =====
+    ws_readme = wb.create_sheet("README")
+    ws_readme.column_dimensions['A'].width = 100
+
+    readme_content = [
+        ("WriteBot Sample File", Font(bold=True, size=16, color="4472C4")),
+        ("", None),
+        ("This file contains example configurations to help you get started with WriteBot batch processing.", Font(size=11)),
+        ("", None),
+        ("What's in this file:", Font(bold=True, size=12, color="2E5090")),
+        ("   • 3 example rows with different configurations", Font(size=11)),
+        ("   • Basic example: Simple text with standard A4 page", Font(size=11)),
+        ("   • Multi-line example: Text with line breaks and center alignment", Font(size=11)),
+        ("   • Custom size example: Using custom page dimensions", Font(size=11)),
+        ("", None),
+        ("How to use this sample:", Font(bold=True, size=12, color="2E5090")),
+        ("   1. Upload this file to WriteBot batch processing", Font(size=11)),
+        ("   2. Click 'Start Batch Processing' to generate the examples", Font(size=11)),
+        ("   3. Download and review the generated files", Font(size=11)),
+        ("   4. Modify the examples or add your own rows", Font(size=11)),
+        ("", None),
+        ("Next steps:", Font(bold=True, size=12, color="2E5090")),
+        ("   • Download the blank template to create your own batch", Font(size=11)),
+        ("   • Check the 'Instructions' sheet in the template for full documentation", Font(size=11)),
+        ("   • Experiment with different settings to learn what they do", Font(size=11)),
+        ("", None),
+        ("Happy handwriting generation!", Font(size=11, italic=True)),
+    ]
+
+    for row_num, (text, font) in enumerate(readme_content, 1):
+        cell = ws_readme.cell(row=row_num, column=1, value=text)
+        if font:
+            cell.font = font
+        cell.alignment = Alignment(wrap_text=True, vertical="top")
+
+    # Save to BytesIO
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name='writebot_sample.xlsx'
     )
 
 

@@ -77,3 +77,4 @@ output/
 *.tar.gz
 *.zip
 *.rar
+/webapp/static/generator.js
