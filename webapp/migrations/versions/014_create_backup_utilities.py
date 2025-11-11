@@ -65,7 +65,7 @@ def upgrade(db):
     """))
 
     db.session.commit()
-    print("✓ Created backup and reporting views")
+    print("[OK] Created backup and reporting views")
 
 
 def downgrade(db):
@@ -74,4 +74,4 @@ def downgrade(db):
     db.session.execute(text("DROP VIEW IF EXISTS system_statistics"))
     db.session.execute(text("DROP VIEW IF EXISTS user_summary_stats"))
     db.session.commit()
-    print("✓ Dropped backup and reporting views")
+    print("[OK] Dropped backup and reporting views")

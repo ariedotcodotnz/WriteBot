@@ -697,6 +697,123 @@ function downloadSVG() {
   toastSuccess('SVG downloaded');
 }
 
+// Download PDF
+async function downloadPDF() {
+  if (!lastSvgText) {
+    toastError('Please generate handwriting first');
+    return;
+  }
+
+  // Check if jsPDF is loaded - try multiple ways it might be exposed
+  const jsPDF = window.jspdf?.jsPDF || window.jsPDF;
+
+  if (!jsPDF) {
+    console.error('jsPDF not found. window.jspdf:', window.jspdf, 'window.jsPDF:', window.jsPDF);
+    toastError('PDF library not loaded. Please refresh the page.');
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    // Parse the SVG string to get the element
+    const parser = new DOMParser();
+    const svgDoc = parser.parseFromString(lastSvgText, 'image/svg+xml');
+    const svgElement = svgDoc.documentElement;
+
+    // Check for parsing errors
+    const parserError = svgDoc.querySelector('parsererror');
+    if (parserError) {
+      throw new Error('Failed to parse SVG: ' + parserError.textContent);
+    }
+
+    // Clone the SVG element to avoid modifying the original
+    const svgClone = svgElement.cloneNode(true);
+
+    // Get SVG dimensions
+    const viewBox = svgClone.getAttribute('viewBox');
+    let width, height;
+
+    if (viewBox) {
+      const viewBoxValues = viewBox.split(/\s+|,/).map(v => parseFloat(v.trim()));
+      width = viewBoxValues[2] - (viewBoxValues[0] || 0);
+      height = viewBoxValues[3] - (viewBoxValues[1] || 0);
+    } else {
+      width = parseFloat(svgClone.getAttribute('width')) || 800;
+      height = parseFloat(svgClone.getAttribute('height')) || 600;
+    }
+
+    // Ensure dimensions are valid
+    if (!width || !height || width <= 0 || height <= 0 || !isFinite(width) || !isFinite(height)) {
+      throw new Error(`Invalid SVG dimensions: ${width}x${height}`);
+    }
+
+    // Convert to points (1px = 0.75pt is standard)
+    const widthPt = Math.max(width * 0.75, 100);
+    const heightPt = Math.max(height * 0.75, 100);
+
+    // Create PDF with appropriate orientation
+    const orientation = widthPt > heightPt ? 'l' : 'p';
+    const pdf = new jsPDF({
+      orientation: orientation,
+      unit: 'pt',
+      format: [widthPt, heightPt],
+      compress: true
+    });
+
+    // Set PDF metadata
+    pdf.setProperties({
+      title: 'Handwriting Document',
+      subject: 'AI-Generated Handwriting',
+      author: 'WriteBot',
+      creator: 'WriteBot - Handwriting Synthesis',
+      producer: 'WriteBot'
+    });
+
+    // Check if svg method exists
+    if (typeof pdf.svg !== 'function') {
+      throw new Error('svg2pdf.js not loaded properly. The pdf.svg() method is not available.');
+    }
+
+    console.log('Converting SVG to PDF...', {
+      width: widthPt,
+      height: heightPt,
+      orientation,
+      originalWidth: width,
+      originalHeight: height
+    });
+
+    // Convert SVG to PDF with proper options
+    await pdf.svg(svgClone, {
+      x: 0,
+      y: 0,
+      width: widthPt,
+      height: heightPt
+    });
+
+    // Save the PDF
+    pdf.save('handwriting.pdf');
+
+    setLoading(false);
+    toastSuccess('PDF downloaded successfully');
+  } catch (error) {
+    setLoading(false);
+    console.error('Error converting to PDF:', error);
+
+    // Provide more helpful error messages
+    let errorMsg = 'Failed to convert to PDF';
+    if (error.message.includes('rect')) {
+      errorMsg += ': SVG contains invalid shapes or dimensions';
+    } else if (error.message.includes('dimensions')) {
+      errorMsg += ': ' + error.message;
+    } else {
+      errorMsg += ': ' + error.message;
+    }
+
+    toastError(errorMsg);
+  }
+}
+
 // Batch Processing
 let BATCH_LOG_TEXT = ''; // Store the ASCII log
 

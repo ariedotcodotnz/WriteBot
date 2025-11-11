@@ -39,7 +39,7 @@ def upgrade(db):
     """))
 
     db.session.commit()
-    print("✓ Created usage_statistics table with indexes")
+    print("[OK] Created usage_statistics table with indexes")
 
 
 def downgrade(db):
@@ -48,4 +48,4 @@ def downgrade(db):
     db.session.execute(text("DROP INDEX IF EXISTS idx_usage_statistics_user_id"))
     db.session.execute(text("DROP TABLE IF EXISTS usage_statistics"))
     db.session.commit()
-    print("✓ Dropped usage_statistics table and indexes")
+    print("[OK] Dropped usage_statistics table and indexes")

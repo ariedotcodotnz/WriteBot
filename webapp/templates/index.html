@@ -423,6 +423,10 @@ Use \\ on its own line to insert blank space."></textarea>
                 <i data-feather="download" style="margin-right: 0.5rem; width: 16px; height: 16px;"></i>
                 Download SVG
               </button>
+              <button class="bx--btn bx--btn--secondary" onclick="downloadPDF()">
+                <i data-feather="file-text" style="margin-right: 0.5rem; width: 16px; height: 16px;"></i>
+                Download PDF
+              </button>
             </div>
           </div>
         </div>
@@ -614,7 +618,12 @@ Use \\ on its own line to insert blank space."></textarea>
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-<script src="{{ url_for('static', filename='js/svg-ruler.js') }}"></script>
+    {% assets "js_generator" %}
+        <script src="{{ ASSET_URL }}"></script>
+    {% endassets %}
+<!-- PDF Generation Libraries -->
+<script src="{{ url_for('static', filename='js/libraries/jspdf.umd.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/libraries/svg2pdf/svg2pdf.umd.min.js') }}"></script>
 <script>
   // Initialize Feather icons and SVG ruler after page load
   document.addEventListener('DOMContentLoaded', () => {

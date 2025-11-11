@@ -34,7 +34,7 @@ def upgrade(db):
     """))
 
     db.session.commit()
-    print("✓ Created page_size_presets table with indexes")
+    print("[OK] Created page_size_presets table with indexes")
 
 
 def downgrade(db):
@@ -42,4 +42,4 @@ def downgrade(db):
     db.session.execute(text("DROP INDEX IF EXISTS idx_page_size_presets_name"))
     db.session.execute(text("DROP TABLE IF EXISTS page_size_presets"))
     db.session.commit()
-    print("✓ Dropped page_size_presets table and indexes")
+    print("[OK] Dropped page_size_presets table and indexes")

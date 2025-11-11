@@ -16,7 +16,7 @@ def upgrade(db):
     count = result.scalar()
 
     if count > 0:
-        print("✓ Page size presets already exist, skipping seed")
+        print("[OK] Page size presets already exist, skipping seed")
         return
 
     # Insert default page sizes
@@ -41,7 +41,7 @@ def upgrade(db):
         })
 
     db.session.commit()
-    print(f"✓ Seeded {len(default_page_sizes)} default page sizes")
+    print(f"[OK] Seeded {len(default_page_sizes)} default page sizes")
 
 
 def downgrade(db):
@@ -53,4 +53,4 @@ def downgrade(db):
         AND created_by IS NULL
     """))
     db.session.commit()
-    print("✓ Removed default page sizes")
+    print("[OK] Removed default page sizes")

@@ -37,7 +37,7 @@ def upgrade(db):
         trigger_count += 1
 
     db.session.commit()
-    print(f"✓ Created {trigger_count} audit triggers for automatic timestamp updates")
+    print(f"[OK] Created {trigger_count} audit triggers for automatic timestamp updates")
 
 
 def downgrade(db):
@@ -56,4 +56,4 @@ def downgrade(db):
         db.session.execute(text(f"DROP TRIGGER IF EXISTS {trigger_name}"))
 
     db.session.commit()
-    print(f"✓ Dropped audit triggers")
+    print(f"[OK] Dropped audit triggers")

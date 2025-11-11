@@ -142,7 +142,7 @@ if Environment is not None and Bundle is not None:
         # Define JS bundle - will minify and combine JS files
         js_common = Bundle(
             'js/main.js',  # List your JS files explicitly
-            'js/carbon-components.min.js',
+            'js/libraries/carbon-components.min.js',
             # Add more JS files as needed
             filters='rjsmin',  # Use rjsmin filter
             output='common.js'
@@ -150,7 +150,8 @@ if Environment is not None and Bundle is not None:
 
         # Define JS bundle - will minify and combine JS files
         js_generator = Bundle(
-            'js/ruler-js/ruler-vanilla.js',
+            'js/svg-ruler.js',
+
             # Add more JS files as needed
             filters='rjsmin',  # Use rjsmin filter
             output='generator.js'

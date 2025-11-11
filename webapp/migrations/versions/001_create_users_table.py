@@ -29,11 +29,11 @@ def upgrade(db):
         )
     """))
     db.session.commit()
-    print("✓ Created users table")
+    print("[OK] Created users table")
 
 
 def downgrade(db):
     """Revert migration changes"""
     db.session.execute(text("DROP TABLE IF EXISTS users"))
     db.session.commit()
-    print("✓ Dropped users table")
+    print("[OK] Dropped users table")

@@ -194,6 +194,14 @@ def template_xlsx():
 
     wb = Workbook()
 
+    # Set workbook metadata
+    wb.properties.creator = "WriteBot"
+    wb.properties.lastModifiedBy = "WriteBot"
+    wb.properties.title = "WriteBot Batch Template"
+    wb.properties.subject = "Handwriting Synthesis Batch Processing Template"
+    wb.properties.description = "Template for batch processing handwriting generation with WriteBot"
+    wb.properties.company = "WriteBot"
+
     # ===== DATA SHEET =====
     ws_data = wb.active
     ws_data.title = "Data"

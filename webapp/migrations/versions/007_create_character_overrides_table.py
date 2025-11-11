@@ -42,7 +42,7 @@ def upgrade(db):
     """))
 
     db.session.commit()
-    print("✓ Created character_overrides table with indexes")
+    print("[OK] Created character_overrides table with indexes")
 
 
 def downgrade(db):
@@ -51,4 +51,4 @@ def downgrade(db):
     db.session.execute(text("DROP INDEX IF EXISTS idx_char_overrides_collection_char"))
     db.session.execute(text("DROP TABLE IF EXISTS character_overrides"))
     db.session.commit()
-    print("✓ Dropped character_overrides table and indexes")
+    print("[OK] Dropped character_overrides table and indexes")

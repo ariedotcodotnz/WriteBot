@@ -36,9 +36,9 @@ def upgrade(db):
     db.session.commit()
 
     if added_count > 0:
-        print(f"✓ Added {added_count} advanced feature columns to template_presets table")
+        print(f"[OK] Added {added_count} advanced feature columns to template_presets table")
     else:
-        print("✓ All advanced feature columns already exist")
+        print("[OK] All advanced feature columns already exist")
 
 
 def downgrade(db):

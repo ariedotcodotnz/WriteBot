@@ -16,7 +16,7 @@ def upgrade(db):
     count = result.scalar()
 
     if count > 0:
-        print("✓ Template presets already exist, skipping seed")
+        print("[OK] Template presets already exist, skipping seed")
         return
 
     # Get A4 page size ID
@@ -83,7 +83,7 @@ def upgrade(db):
         )
 
     db.session.commit()
-    print(f"✓ Seeded {len(default_templates)} default templates")
+    print(f"[OK] Seeded {len(default_templates)} default templates")
 
 
 def downgrade(db):
@@ -95,4 +95,4 @@ def downgrade(db):
         AND created_by IS NULL
     """))
     db.session.commit()
-    print("✓ Removed default templates")
+    print("[OK] Removed default templates")

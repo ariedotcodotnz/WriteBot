@@ -44,11 +44,11 @@ def upgrade(db):
     """))
 
     db.session.commit()
-    print("✓ Created data integrity validation views")
+    print("[OK] Created data integrity validation views")
 
 
 def downgrade(db):
     """Revert migration changes"""
     db.session.execute(text("DROP VIEW IF EXISTS data_integrity_checks"))
     db.session.commit()
-    print("✓ Dropped data integrity validation views")
+    print("[OK] Dropped data integrity validation views")

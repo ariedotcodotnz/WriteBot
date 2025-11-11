@@ -52,8 +52,9 @@ class MigrationManager:
         with app.app_context():
             inspector = inspect(db.engine)
             if 'migration_history' not in inspector.get_table_names():
-                db.create_all(tables=[MigrationHistory.__table__])
-                print("✓ Created migration_history table")
+                # Create only the migration_history table
+                MigrationHistory.__table__.create(db.engine, checkfirst=True)
+                print("[OK] Created migration_history table")
 
     def get_migration_files(self):
         """Get all migration files sorted by version"""
@@ -88,7 +89,7 @@ class MigrationManager:
 
     def run_migration(self, migration):
         """Run a single migration"""
-        print(f"\n→ Running migration {migration['version']}: {migration['name']}")
+        print(f"\n>> Running migration {migration['version']}: {migration['name']}")
 
         try:
             module = self.load_migration_module(migration['file'])
@@ -106,22 +107,22 @@ class MigrationManager:
                     db.session.add(history)
                     db.session.commit()
 
-                    print(f"✓ Successfully applied migration {migration['version']}")
+                    print(f"[OK] Successfully applied migration {migration['version']}")
                 else:
-                    print(f"✗ Migration {migration['version']} has no upgrade() function")
+                    print(f"[ERROR] Migration {migration['version']} has no upgrade() function")
                     return False
 
             return True
 
         except Exception as e:
-            print(f"✗ Error running migration {migration['version']}: {str(e)}")
+            print(f"[ERROR] Error running migration {migration['version']}: {str(e)}")
             import traceback
             traceback.print_exc()
             return False
 
     def rollback_migration(self, migration):
         """Rollback a single migration"""
-        print(f"\n→ Rolling back migration {migration['version']}: {migration['name']}")
+        print(f"\n>> Rolling back migration {migration['version']}: {migration['name']}")
 
         try:
             module = self.load_migration_module(migration['file'])
@@ -135,15 +136,15 @@ class MigrationManager:
                     MigrationHistory.query.filter_by(version=migration['version']).delete()
                     db.session.commit()
 
-                    print(f"✓ Successfully rolled back migration {migration['version']}")
+                    print(f"[OK] Successfully rolled back migration {migration['version']}")
                 else:
-                    print(f"✗ Migration {migration['version']} has no downgrade() function")
+                    print(f"[ERROR] Migration {migration['version']} has no downgrade() function")
                     return False
 
             return True
 
         except Exception as e:
-            print(f"✗ Error rolling back migration {migration['version']}: {str(e)}")
+            print(f"[ERROR] Error rolling back migration {migration['version']}: {str(e)}")
             import traceback
             traceback.print_exc()
             return False
@@ -169,8 +170,8 @@ class MigrationManager:
         print("-"*60)
 
         for migration in migrations:
-            status = "✓ Applied" if migration['version'] in applied else "○ Pending"
-            print(f"{migration['version']:<10} {status:<10} {migration['name']}")
+            status = "[X] Applied" if migration['version'] in applied else "[ ] Pending"
+            print(f"{migration['version']:<10} {status:<15} {migration['name']}")
 
         print("="*60 + "\n")
 
@@ -185,17 +186,17 @@ class MigrationManager:
             pending = [m for m in pending if m['version'] <= target_version]
 
         if not pending:
-            print("\n✓ No pending migrations to apply.")
+            print("\n[OK] No pending migrations to apply.")
             return
 
-        print(f"\n→ Found {len(pending)} pending migration(s)")
+        print(f"\n>> Found {len(pending)} pending migration(s)")
 
         for migration in pending:
             if not self.run_migration(migration):
-                print("\n✗ Migration failed. Stopping.")
+                print("\n[ERROR] Migration failed. Stopping.")
                 return
 
-        print("\n✓ All migrations applied successfully!")
+        print("\n[OK] All migrations applied successfully!")
 
     def migrate_down(self, target_version):
         """Rollback migrations down to target version"""
@@ -206,17 +207,17 @@ class MigrationManager:
         to_rollback = [m for m in reversed(migrations) if m['version'] in applied and m['version'] > target_version]
 
         if not to_rollback:
-            print(f"\n✓ Already at version {target_version} or lower.")
+            print(f"\n[OK] Already at version {target_version} or lower.")
             return
 
-        print(f"\n→ Found {len(to_rollback)} migration(s) to rollback")
+        print(f"\n>> Found {len(to_rollback)} migration(s) to rollback")
 
         for migration in to_rollback:
             if not self.rollback_migration(migration):
-                print("\n✗ Rollback failed. Stopping.")
+                print("\n[ERROR] Rollback failed. Stopping.")
                 return
 
-        print(f"\n✓ Successfully rolled back to version {target_version}!")
+        print(f"\n[OK] Successfully rolled back to version {target_version}!")
 
     def create_migration(self, name):
         """Create a new migration file"""
@@ -268,7 +269,7 @@ def downgrade(db):
 '''
 
         filepath.write_text(template)
-        print(f"\n✓ Created migration file: {filename}")
+        print(f"\n[OK] Created migration file: {filename}")
         print(f"  Path: {filepath}")
         print(f"\nEdit the file to add your migration logic.")
 
@@ -284,14 +285,14 @@ def downgrade(db):
             return
 
         with app.app_context():
-            print("\n→ Dropping all tables...")
+            print("\n>> Dropping all tables...")
             db.drop_all()
-            print("✓ All tables dropped")
+            print("[OK] All tables dropped")
 
-            print("→ Clearing migration history...")
+            print(">> Clearing migration history...")
             # Migration history is already dropped, just recreate it
             self.ensure_migration_table()
-            print("✓ Database reset complete")
+            print("[OK] Database reset complete")
 
 
 def main():

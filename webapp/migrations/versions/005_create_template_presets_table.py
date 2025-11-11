@@ -67,7 +67,7 @@ def upgrade(db):
     """))
 
     db.session.commit()
-    print("✓ Created template_presets table with indexes")
+    print("[OK] Created template_presets table with indexes")
 
 
 def downgrade(db):
@@ -75,4 +75,4 @@ def downgrade(db):
     db.session.execute(text("DROP INDEX IF EXISTS idx_template_presets_name"))
     db.session.execute(text("DROP TABLE IF EXISTS template_presets"))
     db.session.commit()
-    print("✓ Dropped template_presets table and indexes")
+    print("[OK] Dropped template_presets table and indexes")

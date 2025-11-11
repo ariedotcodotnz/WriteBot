@@ -42,7 +42,7 @@ def upgrade(db):
             print(f"⚠ Warning: Could not create index {index_name}: {str(e)}")
 
     db.session.commit()
-    print(f"✓ Added {added_count} performance indexes")
+    print(f"[OK] Added {added_count} performance indexes")
 
 
 def downgrade(db):
@@ -64,4 +64,4 @@ def downgrade(db):
         db.session.execute(text(f"DROP INDEX IF EXISTS {index_name}"))
 
     db.session.commit()
-    print(f"✓ Dropped {len(indexes_to_drop)} performance indexes")
+    print(f"[OK] Dropped {len(indexes_to_drop)} performance indexes")
