@@ -122,7 +122,8 @@ def get_style_preview(style_id: int):
         normalized_svg_path = os.path.normpath(os.path.abspath(svg_path))
         style_dir_abs = os.path.abspath(STYLE_DIR)
 
-        if (normalized_svg_path.startswith(style_dir_abs + os.sep) or normalized_svg_path == style_dir_abs) and os.path.isfile(normalized_svg_path):
+        # Use os.path.commonpath to ensure the file is within STYLE_DIR
+        if os.path.commonpath([style_dir_abs, normalized_svg_path]) == style_dir_abs and os.path.isfile(normalized_svg_path):
             return send_file(normalized_svg_path, mimetype='image/svg+xml')
 
         # If no preview exists, return a placeholder SVG
