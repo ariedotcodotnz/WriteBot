@@ -834,7 +834,10 @@ def batch_result(job_id: str):
     Returns:
         File download response.
     """
-    job_dir = os.path.join(JOBS_ROOT, job_id)
+    job_dir = os.path.normpath(os.path.join(JOBS_ROOT, job_id))
+    # Make sure job_dir is still under JOBS_ROOT
+    if not job_dir.startswith(os.path.abspath(JOBS_ROOT) + os.sep):
+        return jsonify({"error": "Invalid job_id"}), 400
     zip_path = os.path.join(job_dir, "results.zip")
     if not os.path.isfile(zip_path):
         return jsonify({"error": "Result not found or expired"}), 404
