@@ -15,11 +15,12 @@ def init_extensions(cache_instance=None, limiter_instance=None, assets_instance=
     Initialize extension instances.
 
     This function is called from app.py after extensions are initialized.
+    It populates the module-level variables for use elsewhere in the application.
 
     Args:
-        cache_instance: Flask-Caching instance
-        limiter_instance: Flask-Limiter instance
-        assets_instance: Flask-Assets instance
+        cache_instance: Flask-Caching instance.
+        limiter_instance: Flask-Limiter instance.
+        assets_instance: Flask-Assets instance.
     """
     global cache, limiter, assets
     cache = cache_instance

@@ -14,6 +14,7 @@ const CharacterDrawer = (function() {
 
     /**
      * Initialize the character drawer with vanilla SVG
+     * @param {number|string} collId - The ID of the character collection to add to.
      */
     function init(collId) {
         collectionId = collId;
@@ -66,6 +67,8 @@ const CharacterDrawer = (function() {
 
     /**
      * Get coordinates relative to SVG
+     * @param {Event} event - The mouse or touch event.
+     * @returns {Object} - Object containing x and y coordinates.
      */
     function getCoordinates(event) {
         const rect = svg.getBoundingClientRect();
@@ -89,6 +92,7 @@ const CharacterDrawer = (function() {
 
     /**
      * Start drawing a new path
+     * @param {Event} event - The triggering event.
      */
     function startDrawing(event) {
         event.preventDefault();
@@ -110,6 +114,7 @@ const CharacterDrawer = (function() {
 
     /**
      * Continue drawing the current path
+     * @param {Event} event - The triggering event.
      */
     function draw(event) {
         if (!isDrawing || !currentPath) return;
@@ -123,6 +128,7 @@ const CharacterDrawer = (function() {
 
     /**
      * Stop drawing and save the path
+     * @param {Event} event - The triggering event.
      */
     function stopDrawing(event) {
         if (!isDrawing) return;
@@ -142,6 +148,7 @@ const CharacterDrawer = (function() {
 
     /**
      * Handle touch start event
+     * @param {Event} event - The touch event.
      */
     function handleTouchStart(event) {
         event.preventDefault();
@@ -150,6 +157,7 @@ const CharacterDrawer = (function() {
 
     /**
      * Handle touch move event
+     * @param {Event} event - The touch event.
      */
     function handleTouchMove(event) {
         event.preventDefault();
@@ -170,14 +178,14 @@ const CharacterDrawer = (function() {
     }
 
     /**
-     * Update stroke width
+     * Update stroke width based on input value.
      */
     function updateStrokeWidth() {
         penWidth = parseFloat(document.getElementById('draw-stroke-width').value) || 3;
     }
 
     /**
-     * Clear the drawing
+     * Clear the drawing canvas.
      */
     function clearCanvas() {
         // Remove all paths from SVG
@@ -190,7 +198,7 @@ const CharacterDrawer = (function() {
     }
 
     /**
-     * Undo the last stroke
+     * Undo the last stroke.
      */
     function undoStroke() {
         if (paths.length > 0) {
@@ -210,6 +218,8 @@ const CharacterDrawer = (function() {
 
     /**
      * Calculate bounding box of path data
+     * @param {NodeList} paths - List of SVG path elements.
+     * @returns {Object} - Object with minX, minY, maxX, maxY properties.
      */
     function calculateBoundingBox(paths) {
         let minX = Infinity, minY = Infinity;
@@ -243,6 +253,7 @@ const CharacterDrawer = (function() {
 
     /**
      * Convert drawing to pen-plotter-compatible SVG with auto-crop
+     * @returns {string|null} - SVG XML string or null if empty.
      */
     function drawingToSVG() {
         if (!svg) {
@@ -288,6 +299,7 @@ ${svgPaths}</svg>`;
 
     /**
      * Save the drawing as a character override
+     * Sends the SVG data to the backend via fetch API.
      */
     async function saveDrawing() {
         const character = document.getElementById('draw-character').value;

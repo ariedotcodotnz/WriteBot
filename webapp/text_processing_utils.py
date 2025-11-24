@@ -35,17 +35,17 @@ def process_text_for_handwriting(
     that better handles paragraphs, line wrapping, and text normalization.
 
     Args:
-        text: Input text to process
-        max_line_length: Maximum characters per line
-        alphabet: Set of allowed characters (optional)
-        paragraph_style: One of "preserve_breaks", "single_space", "no_breaks", "indent_first"
-        preserve_empty_lines: Whether to preserve empty lines
-        hyphenate_long_words: Whether to hyphenate long words
+        text: Input text to process.
+        max_line_length: Maximum characters per line.
+        alphabet: Set of allowed characters (optional).
+        paragraph_style: One of "preserve_breaks", "single_space", "no_breaks", "indent_first".
+        preserve_empty_lines: Whether to preserve empty lines.
+        hyphenate_long_words: Whether to hyphenate long words.
 
     Returns:
         Tuple of (lines, src_index) where:
-        - lines is a list of processed text lines
-        - src_index is a list tracking which original line each wrapped line came from
+        - lines is a list of processed text lines.
+        - src_index is a list tracking which original line each wrapped line came from.
     """
     # Map paragraph style string to enum
     style_map = {
@@ -95,14 +95,14 @@ def improved_wrap_by_canvas(
     improved text processing internally.
 
     Args:
-        raw_lines: List of input text lines
-        content_width_px: Available width in pixels
-        max_chars_per_line: Maximum characters per line (hard limit)
-        approx_char_px: Approximate character width in pixels
-        utilization: Utilization factor (typically > 1.0 to pack more text)
+        raw_lines: List of input text lines.
+        content_width_px: Available width in pixels.
+        max_chars_per_line: Maximum characters per line (hard limit).
+        approx_char_px: Approximate character width in pixels.
+        utilization: Utilization factor (typically > 1.0 to pack more text).
 
     Returns:
-        Tuple of (wrapped_lines, src_index)
+        Tuple of (wrapped_lines, src_index).
     """
     # Calculate effective line length based on canvas width
     util = max(0.5, float(utilization))

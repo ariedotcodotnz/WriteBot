@@ -1,4 +1,9 @@
-"""Route modules for WriteBot Flask application."""
+"""
+Route modules for WriteBot Flask application.
+
+This package contains the Flask blueprints that define the application's
+routes and view functions, organized by functionality.
+"""
 
 from .generation_routes import generation_bp
 from .batch_routes import batch_bp

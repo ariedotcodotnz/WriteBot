@@ -1,3 +1,5 @@
+"""Script to test the batch generation API endpoint."""
+
 import io
 import os
 import zipfile
@@ -6,6 +8,15 @@ from webapp.app import app
 
 
 def run_batch_once():
+    """
+    Simulate a batch generation request to the Flask app.
+
+    Creates a mock CSV file, sends it to the /api/batch endpoint,
+    and verifies that the response contains a ZIP file with the generated SVGs.
+
+    Returns:
+        0 on success, 1 on failure.
+    """
     client = app.test_client()
     csv_content = (
         "filename,text,styles\n"
@@ -32,5 +43,3 @@ def run_batch_once():
 
 if __name__ == "__main__":
     raise SystemExit(run_batch_once())
-
-

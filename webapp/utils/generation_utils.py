@@ -24,11 +24,11 @@ def parse_generation_params(params: Dict[str, Any], defaults: Optional[Dict[str,
     ensuring consistent behavior across all generation endpoints.
 
     Args:
-        params: Dictionary containing generation parameters (from request payload or CSV row)
-        defaults: Optional defaults to fall back to for missing parameters
+        params: Dictionary containing generation parameters (from request payload or CSV row).
+        defaults: Optional defaults to fall back to for missing parameters.
 
     Returns:
-        Dictionary with normalized generation parameters
+        Dictionary with normalized generation parameters.
     """
     if defaults is None:
         defaults = {}
@@ -190,9 +190,9 @@ def generate_handwriting_to_file(
     generation modes. It's used by both individual and batch generation.
 
     Args:
-        hand: Hand instance to use for generation
-        filename: Output file path
-        params: Normalized parameters from parse_generation_params()
+        hand: Hand instance to use for generation.
+        filename: Output file path.
+        params: Normalized parameters from parse_generation_params().
     """
     # Parse lines from text or lines parameter
     if params["text"] is not None:
@@ -339,11 +339,11 @@ def generate_svg_from_params(hand: Hand, params: Dict[str, Any]) -> Tuple[str, D
     This is used by the individual generation API endpoints.
 
     Args:
-        hand: Hand instance to use for generation
-        params: Normalized parameters from parse_generation_params()
+        hand: Hand instance to use for generation.
+        params: Normalized parameters from parse_generation_params().
 
     Returns:
-        Tuple of (svg_text, metadata_dict)
+        Tuple of (svg_text, metadata_dict).
     """
     # Generate to temp file, then read
     tmp_dir = tempfile.mkdtemp(prefix="writebot_api_")

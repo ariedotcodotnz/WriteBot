@@ -1,9 +1,17 @@
+"""Training entry point for the handwriting synthesis model."""
+
 from handwriting_synthesis.config import processed_data_path, checkpoint_path, prediction_path
 from handwriting_synthesis.rnn import RNN
 from handwriting_synthesis.training import DataReader
 
 
 def train():
+    """
+    Initializes and trains the RNN model.
+
+    This function sets up the DataReader with the processed data path,
+    configures the RNN model with hyperparameters, and starts the training process.
+    """
     dr = DataReader(data_dir=processed_data_path)
 
     nn = RNN(

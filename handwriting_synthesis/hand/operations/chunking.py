@@ -29,16 +29,16 @@ def split_text_into_chunks(
     4. Ensuring reasonable min/max bounds
 
     Args:
-        text: Input text to split
-        words_per_chunk: Target number of words per chunk (used as baseline)
-        target_chars_per_chunk: Target character count per chunk (default: 25)
-        min_words: Minimum words per chunk
-        max_words: Maximum words per chunk
-        adaptive_chunking: Enable adaptive chunking
-        adaptive_strategy: Strategy to use ('word_length', 'sentence', 'punctuation', 'balanced', 'off')
+        text: Input text to split.
+        words_per_chunk: Target number of words per chunk (used as baseline).
+        target_chars_per_chunk: Target character count per chunk (default: 25).
+        min_words: Minimum words per chunk.
+        max_words: Maximum words per chunk.
+        adaptive_chunking: Enable adaptive chunking.
+        adaptive_strategy: Strategy to use ('word_length', 'sentence', 'punctuation', 'balanced', 'off').
 
     Returns:
-        List of text chunks
+        List of text chunks.
     """
     # Preserve leading/trailing whitespace
     leading_space = len(text) - len(text.lstrip())

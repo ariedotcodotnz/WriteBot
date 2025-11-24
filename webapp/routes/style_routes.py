@@ -25,10 +25,10 @@ def _iter_style_ids(style_dir: str) -> List[int]:
     Iterate through style directory and extract style IDs.
 
     Args:
-        style_dir: Path to style directory
+        style_dir: Path to style directory.
 
     Returns:
-        Sorted list of style IDs
+        Sorted list of integer style IDs found in the directory.
     """
     ids: List[int] = []
     if not os.path.isdir(style_dir):
@@ -52,8 +52,12 @@ def list_styles():
     """
     List available handwriting styles and their priming text.
 
+    Scans the style directory for available styles, extracts their IDs and
+    associated priming text (the text the model saw in that style), and
+    returns a list of metadata objects.
+
     Returns:
-        JSON object: { styles: [ { id, label, text } ] }
+        JSON object: { "styles": [ { "id": int, "label": str, "text": str }, ... ] }
     """
     styles: List[Dict[str, Any]] = []
 
@@ -106,10 +110,10 @@ def get_style_preview(style_id: int):
     Serve SVG preview image for a specific style.
 
     Args:
-        style_id: The style ID to get preview for
+        style_id: The style ID to get preview for.
 
     Returns:
-        SVG file or 404 if not found
+        SVG file content with 'image/svg+xml' mimetype, or a placeholder/error SVG if not found.
     """
     try:
         # Look for SVG preview file

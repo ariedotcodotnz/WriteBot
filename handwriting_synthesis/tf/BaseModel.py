@@ -23,40 +23,13 @@ tfcompat.disable_v2_behavior()
 
 
 class BaseModel(object):
-    """Interface containing some boilerplate code for training tensorflow models.
+    """
+    Interface containing boilerplate code for training TensorFlow models.
 
     Subclassing models must implement self.calculate_loss(), which returns a tensor for the batch loss.
     Code for the training loop, parameter updates, checkpointing, and inference are implemented here and
     subclasses are mainly responsible for building the computational graph beginning with the placeholders
     and ending with the loss tensor.
-
-    Args:
-        reader: Class with attributes train_batch_generator, val_batch_generator, and test_batch_generator
-            that yield dictionaries mapping tf.placeholder names (as strings) to batch data (numpy arrays).
-            (handwriting_synthesis.training.DataReader)
-        batch_sizes: Minibatch size.
-        learning_rates: Learning rate.
-        optimizer: 'rms' for RMSProp, 'adam' for Adam, 'sgd' for SGD
-        grad_clip: Clip gradients elementwise to have norm at most equal to grad_clip.
-        regularization_constant:  Regularization constant applied to all trainable parameters.
-        keep_prob: 1 - p, where p is the dropout probability
-        early_stopping_steps:  Number of steps to continue training after validation loss has
-            stopped decreasing.
-        warm_start_init_step:  If nonzero, model will resume training a restored model beginning
-            at warm_start_init_step.
-        num_restarts:  After validation loss plateaus, the best checkpoint will be restored and the
-            learning rate will be halved.  This process will repeat num_restarts times.
-        enable_parameter_averaging:  If true, model saves exponential weighted averages of parameters
-            to separate checkpoint file.
-        min_steps_to_checkpoint:  Model only saves after min_steps_to_checkpoint training steps
-            have passed.
-        log_interval:  Train and validation accuracies are logged every log_interval training steps.
-        loss_averaging_window:  Train/validation losses are averaged over the last loss_averaging_window
-            training steps.
-        num_validation_batches:  Number of batches to be used in validation evaluation at each step.
-        log_dir: Directory where logs are written.
-        checkpoint_dir: Directory where checkpoints are saved.
-        prediction_dir: Directory where predictions/outputs are saved.
     """
 
     def __init__(
@@ -82,6 +55,37 @@ class BaseModel(object):
             checkpoint_dir=checkpoint_path,
             prediction_dir=prediction_path
     ):
+        """
+        Initialize the BaseModel.
+
+        Args:
+            reader: Class with attributes train_batch_generator, val_batch_generator, and test_batch_generator
+                that yield dictionaries mapping tf.placeholder names (as strings) to batch data (numpy arrays).
+                (handwriting_synthesis.training.DataReader)
+            batch_sizes: List of minibatch sizes for different stages of training.
+            num_training_steps: Total number of training steps.
+            learning_rates: List of learning rates for different stages.
+            beta1_decays: List of beta1 decay rates for optimizers (e.g., Adam/RMSProp).
+            optimizer: 'rms' for RMSProp, 'adam' for Adam, 'sgd' for SGD.
+            grad_clip: Clip gradients elementwise to have norm at most equal to grad_clip.
+            regularization_constant: Regularization constant applied to all trainable parameters.
+            keep_prob: 1 - p, where p is the dropout probability.
+            patiences: List of patience values for early stopping (number of steps).
+            warm_start_init_step: If nonzero, model will resume training a restored model beginning
+                at warm_start_init_step.
+            enable_parameter_averaging: If true, model saves exponential weighted averages of parameters
+                to separate checkpoint file.
+            min_steps_to_checkpoint: Model only saves after min_steps_to_checkpoint training steps
+                have passed.
+            log_interval: Train and validation accuracies are logged every log_interval training steps.
+            logging_level: Logging level (e.g., logging.INFO).
+            loss_averaging_window: Train/validation losses are averaged over the last loss_averaging_window
+                training steps.
+            validation_batch_size: Batch size for validation evaluation.
+            log_dir: Directory where logs are written.
+            checkpoint_dir: Directory where checkpoints are saved.
+            prediction_dir: Directory where predictions/outputs are saved.
+        """
 
         if batch_sizes is None:
             batch_sizes = [128]
@@ -145,15 +149,29 @@ class BaseModel(object):
         logging.info('Built Graph')
 
     def update_train_params(self):
+        """Update training parameters for the next restart phase."""
         self.batch_size = self.batch_sizes[self.restart_idx]
         self.learning_rate = self.learning_rates[self.restart_idx]
         self.beta1_decay = self.beta1_decays[self.restart_idx]
         self.early_stopping_steps = self.patiences[self.restart_idx]
 
     def calculate_loss(self):
+        """
+        Calculate the loss tensor.
+
+        Must be implemented by subclasses.
+
+        Returns:
+            Tensor representing the loss.
+        """
         raise NotImplementedError('Subclass must implement this.')
 
     def fit(self):
+        """
+        Train the model.
+
+        Runs the training loop, including validation, logging, and checkpointing.
+        """
         with self.session.as_default():
 
             if self.warm_start_init_step:
@@ -312,6 +330,14 @@ class BaseModel(object):
             logging.info('num_training_steps reached - ending training')
 
     def predict(self, chunk_size=256):
+        """
+        Generate predictions using the model.
+
+        Saves prediction results to the prediction directory.
+
+        Args:
+            chunk_size: Batch size for prediction.
+        """
         if not os.path.isdir(self.prediction_dir):
             os.makedirs(self.prediction_dir)
 
@@ -355,6 +381,13 @@ class BaseModel(object):
                 np.save(save_file, np_tensor)
 
     def save(self, step, averaged=False):
+        """
+        Save the model checkpoint.
+
+        Args:
+            step: Current training step.
+            averaged: Whether to save the averaged model (if enabled).
+        """
         saver = self.saver_averaged if averaged else self.saver
         checkpoint_dir = self.checkpoint_dir_averaged if averaged else self.checkpoint_dir
         if not os.path.isdir(checkpoint_dir):
@@ -366,6 +399,13 @@ class BaseModel(object):
         saver.save(self.session, model_path, global_step=step)
 
     def restore(self, step=None, averaged=False):
+        """
+        Restore the model from a checkpoint.
+
+        Args:
+            step: The specific step to restore. If None, restores the latest checkpoint.
+            averaged: Whether to restore the averaged model.
+        """
         saver = self.saver_averaged if averaged else self.saver
         checkpoint_dir = self.checkpoint_dir_averaged if averaged else self.checkpoint_dir
         if not step:
@@ -386,6 +426,12 @@ class BaseModel(object):
             saver.restore(self.session, model_path)
 
     def init_logging(self, log_dir):
+        """
+        Initialize logging configuration.
+
+        Args:
+            log_dir: Directory to save log files.
+        """
         if not os.path.isdir(log_dir):
             os.makedirs(log_dir)
 
@@ -402,6 +448,12 @@ class BaseModel(object):
         logging.getLogger().addHandler(logging.StreamHandler())
 
     def update_parameters(self, loss):
+        """
+        Create ops to update parameters based on loss.
+
+        Args:
+            loss: The loss tensor.
+        """
         if self.regularization_constant != 0:
             l2_norm = tf.reduce_sum(
                 [tf.sqrt(tf.reduce_sum(tf.square(param))) for param in tfcompat.trainable_variables()])
@@ -432,6 +484,16 @@ class BaseModel(object):
         logging.info(str(np.sum(np.prod(shape(var)) for var in tfcompat.trainable_variables())))
 
     def get_optimizer(self, learning_rate, beta1_decay):
+        """
+        Get the optimizer instance.
+
+        Args:
+            learning_rate: Learning rate tensor.
+            beta1_decay: Beta1 decay tensor.
+
+        Returns:
+            Optimizer instance (Adam, GradientDescent, or RMSProp).
+        """
         if self.optimizer == 'adam':
             return tfcompat.train.AdamOptimizer(learning_rate, beta1=beta1_decay)
         elif self.optimizer == 'gd':
@@ -442,6 +504,14 @@ class BaseModel(object):
             assert False, 'Optimizer must be adam, gd, or rms'
 
     def build_graph(self):
+        """
+        Build the TensorFlow graph.
+
+        Sets up the EMA, global steps, loss, optimizer, and saver.
+
+        Returns:
+            The TensorFlow graph.
+        """
         with tf.Graph().as_default() as graph:
             self.ema = tf.train.ExponentialMovingAverage(decay=0.99)
             self.global_step = tf.Variable(0, trainable=False)

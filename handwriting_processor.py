@@ -1,8 +1,10 @@
 """
-Handwriting Processor - Integration layer between text processing and handwriting synthesis
+Handwriting Processor - Integration layer between text processing and handwriting synthesis.
 
 This module combines the enhanced text processor with the handwriting synthesis
 engine to provide a complete solution for converting text to handwritten pages.
+It handles text cleaning, formatting, pagination, and delegation to the handwriting
+synthesis model.
 """
 
 import os
@@ -27,7 +29,8 @@ class HandwritingProcessor:
         Initialize the handwriting processor.
 
         Args:
-            text_config: Configuration for text processing
+            text_config: Configuration for text processing. If None, default
+                         configuration is used.
         """
         self.text_processor = TextProcessor(text_config or TextProcessingConfig())
         self.hand = Hand()
@@ -47,19 +50,32 @@ class HandwritingProcessor:
         """
         Process text and generate handwriting SVG files.
 
+        This method takes raw input text, processes it into pages and lines using
+        the TextProcessor, and then generates handwriting SVG files for each page
+        using the Hand model.
+
         Args:
-            input_text: The text to convert to handwriting
-            output_dir: Directory to save SVG files
-            alphabet: List of allowed characters
-            biases: Handwriting consistency (0.0 to 1.0)
-            styles: Handwriting style ID (1-12)
-            stroke_colors: Color name or hex code
-            stroke_widths: Pen thickness
-            page_params: Page layout parameters [line_height, total_lines, height, width, margin_left, margin_top, ...]
-            file_prefix: Prefix for output files
+            input_text: The text to convert to handwriting.
+            output_dir: Directory to save generated SVG files.
+            alphabet: List of allowed characters.
+            biases: Handwriting consistency (0.0 to 1.0). Higher values usually
+                    mean more legible but less variable handwriting.
+            styles: Handwriting style ID (1-12).
+            stroke_colors: Color name (e.g., "Black", "Blue") or hex code.
+            stroke_widths: Pen thickness in pixels/units.
+            page_params: Page layout parameters list:
+                         [line_height, total_lines, height, width, margin_left,
+                          margin_top, page_color, margin_color, line_color].
+            file_prefix: Prefix for output filenames (e.g., "result_page").
 
         Returns:
-            Dictionary with processing metadata
+            Dictionary with processing metadata including:
+            - output_dir: Directory where files were saved.
+            - generated_files: List of paths to generated files.
+            - settings: Dictionary of settings used.
+            - num_pages: Number of pages generated.
+            - num_lines: Total lines processed.
+            - num_paragraphs: Total paragraphs processed.
         """
         # Create alphabet set
         alphabet_set = create_alphabet_set(alphabet) if alphabet else None
@@ -129,13 +145,18 @@ def batch_process_texts(
     """
     Process multiple texts in batch.
 
+    Iterates through a list of text strings and processes each one using
+    the handwriting synthesis engine. Each text is saved in its own subdirectory.
+
     Args:
-        texts: List of text strings to process
-        output_base_dir: Base directory for outputs (subdirs created per text)
-        **kwargs: Additional arguments passed to process_and_write()
+        texts: List of text strings to process.
+        output_base_dir: Base directory for outputs (subdirs 'text_1', 'text_2', etc.
+                         will be created here).
+        **kwargs: Additional arguments passed to process_and_write().
+                  (e.g., styles, biases, page_params).
 
     Returns:
-        List of metadata dictionaries for each processed text
+        List of metadata dictionaries for each processed text.
     """
     processor = HandwritingProcessor(kwargs.get('text_config'))
     results = []
@@ -163,13 +184,15 @@ def process_from_file(
     """
     Process text from a file.
 
+    Reads the content of the specified file and converts it to handwriting.
+
     Args:
-        input_file: Path to input text file
-        output_dir: Directory to save SVG files
-        **kwargs: Additional arguments passed to process_and_write()
+        input_file: Path to input text file.
+        output_dir: Directory to save SVG files.
+        **kwargs: Additional arguments passed to process_and_write().
 
     Returns:
-        Processing metadata dictionary
+        Processing metadata dictionary.
     """
     with open(input_file, 'r', encoding='utf-8') as f:
         text = f.read()

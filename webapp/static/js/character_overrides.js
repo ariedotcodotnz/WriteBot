@@ -11,7 +11,9 @@
   // ============================================
 
   /**
-   * Switch between upload tabs (draw/single/batch)
+   * Switch between upload tabs (draw/single/batch).
+   * Updates the active tab button and toggles the visibility of content sections.
+   * @param {string} tab - The ID of the tab to activate.
    */
   function switchTab(tab) {
     // Update tab buttons
@@ -34,7 +36,8 @@
   }
 
   /**
-   * Initialize tab switching functionality
+   * Initialize tab switching functionality.
+   * Attaches click event listeners to tab buttons.
    */
   function initTabs() {
     const tabs = document.querySelectorAll('.upload-tab');
@@ -58,7 +61,8 @@
   // ============================================
 
   /**
-   * Show file count for multi-file uploads
+   * Show file count for multi-file uploads.
+   * Updates the label text with the number of selected files.
    */
   function initFileUploadPreview() {
     const multiFileInputs = document.querySelectorAll('input[type="file"][multiple]');
@@ -108,8 +112,8 @@
   // ============================================
 
   /**
-   * Add click-to-zoom functionality for variant previews
-   * Improved with better contrast, animations, and professional styling
+   * Add click-to-zoom functionality for variant previews.
+   * Creates a modal overlay with the zoomed image when an image is clicked.
    */
   function initSVGZoom() {
     const variantPreviews = document.querySelectorAll('.variant-preview');
@@ -300,7 +304,8 @@
   // ============================================
 
   /**
-   * Validate character input (must be single character)
+   * Validate character input (must be single character).
+   * Limits the input length to 1 and provides visual feedback.
    */
   function initCharacterValidation() {
     const characterInputs = document.querySelectorAll('input[name="character"]');
@@ -337,7 +342,8 @@
   // ============================================
 
   /**
-   * Enhanced delete confirmation with character preview
+   * Enhanced delete confirmation with character preview.
+   * Shows a custom confirmation dialog with details about the variant being deleted.
    */
   function initEnhancedDeleteConfirmation() {
     const deleteForms = document.querySelectorAll('.variant-card form');
@@ -372,7 +378,10 @@
   // ============================================
 
   /**
-   * Add keyboard shortcuts for common actions
+   * Add keyboard shortcuts for common actions.
+   * Ctrl/Cmd + U: Focus file input.
+   * Escape: Close modals.
+   * 1/2: Switch tabs.
    */
   function initKeyboardShortcuts() {
     document.addEventListener('keydown', function (e) {
@@ -417,7 +426,8 @@
   // ============================================
 
   /**
-   * Display statistics about variants
+   * Display statistics about variants.
+   * Updates the section title with total character and variant counts.
    */
   function updateVariantStats() {
     const characterGroups = document.querySelectorAll('.character-group');
@@ -441,7 +451,8 @@
   // ============================================
 
   /**
-   * Add drag and drop functionality for file uploads
+   * Add drag and drop functionality for file uploads.
+   * Highlights the drop zone when dragging files over it.
    */
   function initDragAndDrop() {
     const fileInputs = document.querySelectorAll('input[type="file"]');
@@ -488,6 +499,9 @@
   // Initialize All Features
   // ============================================
 
+  /**
+   * Initialize all features on DOMContentLoaded.
+   */
   function init() {
     // Wait for DOM to be fully loaded
     if (document.readyState === 'loading') {

@@ -7,7 +7,12 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash
 
 def create_demo_users():
-    """Create demo users for testing."""
+    """
+    Create demo users for testing.
+
+    Connects to the SQLite database and creates admin and regular user accounts
+    if they don't already exist.
+    """
     print("=" * 50)
     print("CREATE DEMO USERS")
     print("=" * 50)

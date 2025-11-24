@@ -81,24 +81,39 @@ class Hand(object):
         """
         Generate handwriting for lines of text.
 
+        This method generates handwriting for a given list of lines and saves it as an SVG file.
+        It supports various customization options including styles, biases, colors, and layout.
+
         Args:
-            filename: Output SVG file path
-            lines: List of text lines to write
-            biases: Optional list of bias values (randomness)
-            styles: Optional list of style IDs
-            stroke_colors: Optional list of stroke colors
-            stroke_widths: Optional list of stroke widths
-            page_size: Paper size ('A4', 'Letter', etc.)
-            units: Unit system ('mm' or 'px')
-            margins: Margin size(s)
-            line_height: Height between lines
-            align: Text alignment ('left', 'center', 'right')
-            background: Background color
-            global_scale: Global scaling factor
-            orientation: Page orientation ('portrait' or 'landscape')
-            legibility: Legibility mode ('normal', 'high', etc.)
-            x_stretch: Horizontal stretch factor
-            denoise: Whether to apply denoising
+            filename: Output SVG file path.
+            lines: List of text lines to write.
+            biases: Optional list of bias values (randomness).
+                    Lower values increase randomness, higher values increase legibility.
+                    Can be a single value or a list corresponding to each line.
+            styles: Optional list of style IDs. Can be a single value or a list.
+            stroke_colors: Optional list of stroke colors (e.g., "black", "blue", "#FF0000").
+                           Can be a single value or a list.
+            stroke_widths: Optional list of stroke widths in pixels.
+                           Can be a single value or a list.
+            page_size: Paper size ('A4', 'Letter', etc.) or custom dimensions.
+            units: Unit system ('mm' or 'px') for dimensions and margins.
+            margins: Margin size(s). Can be a single value (all sides),
+                     a list [top, right, bottom, left], or a dict.
+            line_height: Height between lines. If None, calculated automatically.
+            align: Text alignment ('left', 'center', 'right').
+            background: Background color (e.g., "white", "transparent").
+            global_scale: Global scaling factor for the entire output.
+            orientation: Page orientation ('portrait' or 'landscape').
+            legibility: Legibility mode ('normal', 'high', 'natural').
+            x_stretch: Horizontal stretch factor to widen/narrow text.
+            denoise: Whether to apply denoising/smoothing to strokes.
+            empty_line_spacing: Specific spacing for empty lines.
+            auto_size: Whether to automatically scale text to fit page width.
+            manual_size_scale: Manual scaling factor if auto_size is False.
+            character_override_collection_id: ID of a character override collection to use.
+
+        Returns:
+            None
         """
         def _normalize_seq(value, desired_len, cast_fn=None, name='param'):
             """Normalize a parameter to match the number of lines."""
