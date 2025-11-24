@@ -7,7 +7,7 @@ from webapp.models import db, CharacterOverrideCollection, CharacterOverride
 from webapp.utils.auth_utils import admin_required, log_activity
 from datetime import datetime
 from sqlalchemy import func, desc
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 import re
 import random
 
