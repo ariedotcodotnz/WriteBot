@@ -15,7 +15,11 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 @login_required
 @admin_required
 def dashboard():
-    """Admin dashboard with overview statistics."""
+    """
+    Admin dashboard with overview statistics.
+
+    Displays overall user counts, recent activity, and system health metrics.
+    """
     # Get overall statistics
     total_users = User.query.count()
     active_users = User.query.filter_by(is_active=True).count()
@@ -52,7 +56,11 @@ def dashboard():
 @login_required
 @admin_required
 def users():
-    """List all users."""
+    """
+    List all users.
+
+    Returns the user management page populated with a list of all registered users.
+    """
     all_users = User.query.order_by(User.created_at.desc()).all()
     log_activity('admin_action', 'Viewed users list')
     return render_template('admin/users.html', users=all_users)
@@ -62,7 +70,11 @@ def users():
 @login_required
 @admin_required
 def create_user():
-    """Create a new user."""
+    """
+    Create a new user.
+
+    Handles both the form display (GET) and submission (POST) for creating users.
+    """
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '')
@@ -110,7 +122,11 @@ def create_user():
 @login_required
 @admin_required
 def edit_user(user_id):
-    """Edit an existing user."""
+    """
+    Edit an existing user.
+
+    Handles updating user details, roles, and status.
+    """
     user = User.query.get_or_404(user_id)
 
     if request.method == 'POST':
@@ -158,7 +174,11 @@ def edit_user(user_id):
 @login_required
 @admin_required
 def delete_user(user_id):
-    """Delete a user."""
+    """
+    Delete a user.
+
+    Permanently removes the user account from the database.
+    """
     user = User.query.get_or_404(user_id)
 
     # Prevent deleting yourself
@@ -179,7 +199,11 @@ def delete_user(user_id):
 @login_required
 @admin_required
 def view_user(user_id):
-    """View user details, activities, and statistics."""
+    """
+    View user details, activities, and statistics.
+
+    Shows comprehensive profile information and usage logs for a specific user.
+    """
     user = User.query.get_or_404(user_id)
 
     # Get user activities (last 100)
@@ -212,7 +236,11 @@ def view_user(user_id):
 @login_required
 @admin_required
 def activities():
-    """View all user activities."""
+    """
+    View all user activities.
+
+    Displays a paginated log of system-wide user actions.
+    """
     page = request.args.get('page', 1, type=int)
     per_page = 50
 
@@ -245,7 +273,11 @@ def activities():
 @login_required
 @admin_required
 def statistics():
-    """View overall statistics and charts."""
+    """
+    View overall statistics and charts.
+
+    Provides detailed analytics on system usage trends.
+    """
     # Get stats for different periods
     stats_7d = get_all_user_statistics(days=7)
     stats_30d = get_all_user_statistics(days=30)
@@ -276,7 +308,11 @@ def statistics():
 @login_required
 @admin_required
 def page_sizes():
-    """List all page size presets."""
+    """
+    List all page size presets.
+
+    Displays configured page sizes available for generation.
+    """
     all_page_sizes = PageSizePreset.query.order_by(PageSizePreset.is_default.desc(), PageSizePreset.name).all()
     log_activity('admin_action', 'Viewed page size presets')
     return render_template('admin/page_sizes.html', page_sizes=all_page_sizes)
@@ -286,7 +322,11 @@ def page_sizes():
 @login_required
 @admin_required
 def create_page_size():
-    """Create a new page size preset."""
+    """
+    Create a new page size preset.
+
+    Handles form submission for adding new page dimensions.
+    """
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
         width = request.form.get('width', type=float)
@@ -339,7 +379,11 @@ def create_page_size():
 @login_required
 @admin_required
 def edit_page_size(page_size_id):
-    """Edit an existing page size preset."""
+    """
+    Edit an existing page size preset.
+
+    Updates dimensions or status of a page size preset.
+    """
     page_size = PageSizePreset.query.get_or_404(page_size_id)
 
     # Prevent editing system defaults
@@ -397,7 +441,11 @@ def edit_page_size(page_size_id):
 @login_required
 @admin_required
 def delete_page_size(page_size_id):
-    """Delete a page size preset."""
+    """
+    Delete a page size preset.
+
+    Removes a custom page size. System defaults cannot be deleted.
+    """
     page_size = PageSizePreset.query.get_or_404(page_size_id)
 
     # Prevent deleting system defaults
@@ -425,7 +473,11 @@ def delete_page_size(page_size_id):
 @login_required
 @admin_required
 def templates():
-    """List all template presets."""
+    """
+    List all template presets.
+
+    Displays a list of configured generation templates.
+    """
     all_templates = TemplatePreset.query.order_by(TemplatePreset.name).all()
     log_activity('admin_action', 'Viewed template presets')
     return render_template('admin/templates.html', templates=all_templates)
@@ -435,7 +487,11 @@ def templates():
 @login_required
 @admin_required
 def create_template():
-    """Create a new template preset."""
+    """
+    Create a new template preset.
+
+    Handles creation of complex generation templates.
+    """
     page_sizes = PageSizePreset.query.filter_by(is_active=True).order_by(PageSizePreset.name).all()
 
     if request.method == 'POST':
@@ -550,7 +606,11 @@ def create_template():
 @login_required
 @admin_required
 def edit_template(template_id):
-    """Edit an existing template preset."""
+    """
+    Edit an existing template preset.
+
+    Updates configuration of a generation template.
+    """
     template = TemplatePreset.query.get_or_404(template_id)
     page_sizes = PageSizePreset.query.filter_by(is_active=True).order_by(PageSizePreset.name).all()
 
@@ -664,7 +724,11 @@ def edit_template(template_id):
 @login_required
 @admin_required
 def delete_template(template_id):
-    """Delete a template preset."""
+    """
+    Delete a template preset.
+
+    Removes the template from the system.
+    """
     template = TemplatePreset.query.get_or_404(template_id)
 
     name = template.name

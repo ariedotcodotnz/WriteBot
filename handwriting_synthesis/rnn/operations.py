@@ -15,16 +15,34 @@ from tensorflow.python.util import nest
 
 def raw_rnn(cell, loop_fn, parallel_iterations=None, swap_memory=False, scope=None):
     """
-    raw_rnn adapted from the original tensorflow implementation
+    Computes a recurrent neural network where inputs can be fed adaptively.
+
+    Adapted from the original tensorflow implementation
     (https://github.com/tensorflow/tensorflow/blob/r1.4/tensorflow/python/ops/rnn.py)
     to emit arbitrarily nested states for each time step (concatenated along the time axis)
-    in addition to the outputs at each timestep and the final state
+    in addition to the outputs at each timestep and the final state.
 
-    returns (
-        states for all timesteps,
-        outputs for all timesteps,
-        final cell state,
-    )
+    Args:
+        cell: An instance of RNNCell.
+        loop_fn: A callable that takes (time, cell_output, cell_state, loop_state)
+            and returns (elements_finished, next_input, next_cell_state, emit_output,
+            next_loop_state).
+        parallel_iterations: (Optional) The number of iterations to run in parallel.
+            Those operations which do not have any temporal dependency and can be
+            run in parallel, will be. This parameter trades data transfer for
+            computation. This may be the case for instance if you have a lot of
+            convolutions or other heavy operations in the loop body.
+        swap_memory: (Optional) Transparently swap the tensors produced in
+            forward inference but needed for back prop from GPU to CPU.
+            This allows training RNNs which would typically not fit on a single GPU,
+            with very minimal (or no) performance penalty.
+        scope: VariableScope for the created subgraph; defaults to "rnn".
+
+    Returns:
+        A tuple (states, outputs, final_state) where:
+            states: The accumulated states across all time steps.
+            outputs: The accumulated outputs across all time steps.
+            final_state: The final state of the RNN.
     """
     assert_like_rnncell("Raw rnn cell", cell)
 
@@ -186,7 +204,19 @@ def raw_rnn(cell, loop_fn, parallel_iterations=None, swap_memory=False, scope=No
 def rnn_teacher_force(inputs, cell, sequence_length, initial_state, scope='dynamic-rnn-teacher-force'):
     """
     Implementation of an rnn with teacher forcing inputs provided.
-    Used in the same way as tf.dynamic_rnn.
+
+    Used in the same way as tf.dynamic_rnn, but specifically designed for
+    teacher forcing scenarios where the ground truth is fed as input.
+
+    Args:
+        inputs: Input tensor of shape [batch_size, max_time, input_size].
+        cell: An instance of RNNCell.
+        sequence_length: Tensor of shape [batch_size] containing sequence lengths.
+        initial_state: Initial state of the RNN.
+        scope: VariableScope for the created subgraph.
+
+    Returns:
+        A tuple (states, outputs, final_state).
     """
     inputs = array_ops.transpose(inputs, (1, 0, 2))
     inputs_ta = tensor_array_ops.TensorArray(dtype=dtypes.float32, size=array_ops.shape(inputs)[0])
@@ -214,15 +244,27 @@ def rnn_teacher_force(inputs, cell, sequence_length, initial_state, scope='dynam
 
 def rnn_free_run(cell, initial_state, sequence_length, initial_input=None, scope='dynamic-rnn-free-run'):
     """
-    Implementation of an rnn which feeds its feeds its predictions back to itself at the next timestep.
+    Implementation of an rnn which feeds its predictions back to itself.
 
-    cell must implement two methods:
+    This is used for free-running generation where the output of one timestep
+    is used as the input for the next.
 
+    The cell must implement two methods:
         cell.output_function(state) which takes in the state at timestep t and returns
         the cell input at timestep t+1.
 
         cell.termination_condition(state) which returns a boolean tensor of shape
         [batch_size] denoting which sequences no longer need to be sampled.
+
+    Args:
+        cell: An instance of RNNCell (augmented with output_function and termination_condition).
+        initial_state: Initial state of the RNN.
+        sequence_length: Maximum sequence length to generate.
+        initial_input: Optional initial input. If None, it is computed from initial_state.
+        scope: VariableScope for the created subgraph.
+
+    Returns:
+        A tuple (states, outputs, final_state).
     """
     with vs.variable_scope(scope, reuse=True):
         if initial_input is None:

@@ -41,11 +41,14 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> tuple[str, Dict[
     """
     Core generation logic extracted for reuse.
 
+    Parses the payload, normalizes text and parameters, and invokes the Hand model
+    to generate the SVG.
+
     Args:
-        payload: Request payload with generation parameters
+        payload: Request payload with generation parameters.
 
     Returns:
-        Tuple of (svg_text, metadata)
+        Tuple of (svg_text, metadata).
     """
     # Parse lines from payload if using legacy format
     lines_in = _parse_lines(payload)
@@ -69,7 +72,16 @@ def _generate_svg_text_from_payload(payload: Dict[str, Any]) -> tuple[str, Dict[
 @login_required
 @apply_rate_limit("10 per minute")
 def api_v1_generate():
-    """Generate handwriting and return SVG with metadata."""
+    """
+    Generate handwriting and return SVG with metadata.
+
+    This is the primary API endpoint for generation, returning a JSON object
+    containing both the generated SVG string and comprehensive metadata about
+    the generation process.
+
+    Returns:
+        JSON response with 'svg' and 'meta' keys.
+    """
     from webapp.utils.auth_utils import log_activity, track_generation
 
     try:
@@ -100,7 +112,15 @@ def api_v1_generate():
 @login_required
 @apply_rate_limit("10 per minute")
 def api_v1_generate_svg():
-    """Generate handwriting and return raw SVG."""
+    """
+    Generate handwriting and return raw SVG.
+
+    This endpoint returns the raw SVG data directly with the appropriate MIME type,
+    suitable for embedding directly in `<img>` tags or downloading.
+
+    Returns:
+        Response object with SVG content and 'image/svg+xml' mimetype.
+    """
     from webapp.utils.auth_utils import log_activity, track_generation
 
     try:
@@ -131,7 +151,14 @@ def api_v1_generate_svg():
 @login_required
 @apply_rate_limit("10 per minute")
 def generate_svg():
-    """Legacy generation endpoint (for backwards compatibility)."""
+    """
+    Legacy generation endpoint (for backwards compatibility).
+
+    Maintained for compatibility with older clients. Behaves like `/api/v1/generate/svg`.
+
+    Returns:
+        Response object with SVG content.
+    """
     from webapp.utils.auth_utils import log_activity, track_generation
 
     try:

@@ -2,7 +2,8 @@
 Utility functions for processing character overrides in generated SVG.
 
 This module provides functionality to inject manually uploaded character SVGs
-into AI-generated handwriting for seamless integration.
+into AI-generated handwriting for seamless integration. It handles loading
+overrides, splitting text, and estimating dimensions for layout.
 """
 
 import random
@@ -15,7 +16,9 @@ def calculate_baseline_offset(svg_data, viewbox_height):
     Calculate baseline offset by analyzing SVG path data.
 
     For handwriting, the baseline is typically where letters like 'a', 'e', 'n' sit.
-    This is usually around 70-85% from the top of the bounding box.
+    This is usually around 70-85% from the top of the bounding box. This function
+    attempts to heuristically determine the baseline from the Y-coordinates of
+    the path data.
 
     Args:
         svg_data: SVG content as string
@@ -67,6 +70,9 @@ def calculate_baseline_offset(svg_data, viewbox_height):
 def get_character_overrides(collection_id):
     """
     Load character overrides from the database for a given collection.
+
+    Retrieves all active character overrides for the specified collection ID.
+    If no baseline offset is stored, it attempts to auto-calculate it.
 
     Args:
         collection_id: ID of the character override collection
@@ -122,6 +128,9 @@ def get_random_override(overrides_dict, character):
     """
     Get a random override for the given character.
 
+    If multiple overrides exist for a single character (e.g., variations of 'a'),
+    this function randomly selects one.
+
     Args:
         overrides_dict: Dictionary of character overrides
         character: The character to look up
@@ -143,11 +152,14 @@ def extract_svg_path(svg_data):
     """
     Extract the main path/content from an SVG string.
 
+    Also extracts the viewBox information.
+
     Args:
         svg_data: SVG file content as string
 
     Returns:
-        Tuple of (paths_string, viewbox_data) or (None, None) on error
+        Tuple of (paths_string, viewbox_data) or (None, None) on error.
+        viewbox_data is a dict with keys 'x', 'y', 'width', 'height'.
     """
     try:
         root = ET.fromstring(svg_data)
@@ -184,6 +196,10 @@ def extract_svg_path(svg_data):
 def split_text_with_overrides(text, overrides_dict):
     """
     Split text into chunks, separating override characters from regular text.
+
+    This function identifies characters that have overrides and splits the
+    input text so that overrides can be handled separately from standard
+    generated handwriting.
 
     Args:
         text: Input text string
@@ -229,6 +245,8 @@ def estimate_override_width(override_data, target_height, x_stretch=1.0):
     Estimate the width an override character will take when rendered.
 
     This MUST match the calculation in _draw.py for proper line wrapping.
+    It parses the SVG path data to determine the bounding box and scales
+    it to match the target line height.
 
     Args:
         override_data: Override data dict with SVG data
@@ -281,14 +299,15 @@ def expand_alphabet_with_overrides(overrides_dict, base_alphabet):
     Expand the base alphabet with characters from overrides.
 
     This allows the system to accept and render characters that aren't
-    in the original AI model's alphabet.
+    in the original AI model's alphabet (e.g., special symbols or foreign characters
+    provided via overrides).
 
     Args:
         overrides_dict: Dictionary of character overrides
         base_alphabet: Original alphabet list
 
     Returns:
-        Expanded alphabet list
+        Expanded alphabet list containing unique characters from base and overrides.
     """
     expanded = list(base_alphabet)
 
@@ -303,13 +322,15 @@ def analyze_svg_bounds(svg_data):
     """
     Analyze SVG to extract accurate bounding box information.
 
-    This is useful for understanding the actual space the character occupies.
+    Parses path, rect, circle, and ellipse elements to find the
+    min/max x and y coordinates.
 
     Args:
         svg_data: SVG content as string
 
     Returns:
-        Dictionary with min_x, max_x, min_y, max_y, width, height
+        Dictionary with min_x, max_x, min_y, max_y, width, height.
+        Returns None if analysis fails.
     """
     try:
         root = ET.fromstring(svg_data)
@@ -375,11 +396,16 @@ def validate_override_svg(svg_data):
     """
     Validate that an SVG is suitable for use as a character override.
 
+    Checks for:
+    1. Valid XML structure.
+    2. Presence of a valid viewBox.
+    3. Presence of at least one drawable element.
+
     Args:
         svg_data: SVG content as string
 
     Returns:
-        Tuple of (is_valid, error_message)
+        Tuple of (is_valid, error_message).
     """
     try:
         root = ET.fromstring(svg_data)

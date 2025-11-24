@@ -1,3 +1,5 @@
+"""TensorFlow utility functions for building neural network layers."""
+
 import warnings
 
 import tensorflow as tf
@@ -13,13 +15,20 @@ tfcompat.disable_v2_behavior()
 def dense_layer(inputs, output_units, bias=True, activation=None, batch_norm=None,
                 dropout=None, scope='dense-layer', reuse=False):
     """
-    Applies a dense layer to a 2D tensor of shape [batch_size, input_units]
-    to produce a tensor of shape [batch_size, output_units].
+    Applies a dense layer to a 2D tensor of shape [batch_size, input_units].
+
+    Produces a tensor of shape [batch_size, output_units].
+
     Args:
         inputs: Tensor of shape [batch size, input_units].
         output_units: Number of output units.
-        activation: activation function.
-        dropout: dropout keep prob.
+        bias: Whether to include a bias term.
+        activation: Activation function (e.g., tf.nn.relu).
+        batch_norm: Boolean tensor for batch normalization (training mode).
+        dropout: Dropout keep probability (scalar).
+        scope: Variable scope name.
+        reuse: Whether to reuse variables.
+
     Returns:
         Tensor of shape [batch size, output_units].
     """
@@ -50,15 +59,20 @@ def time_distributed_dense_layer(
         inputs, output_units, bias=True, activation=None, batch_norm=None,
         dropout=None, scope='time-distributed-dense-layer', reuse=False):
     """
-    Applies a shared dense layer to each timestep of a tensor of shape
-    [batch_size, max_seq_len, input_units] to produce a tensor of shape
-    [batch_size, max_seq_len, output_units].
+    Applies a shared dense layer to each timestep of a tensor.
+
+    Input tensor shape: [batch_size, max_seq_len, input_units]
+    Output tensor shape: [batch_size, max_seq_len, output_units]
 
     Args:
         inputs: Tensor of shape [batch size, max sequence length, ...].
         output_units: Number of output units.
-        activation: activation function.
-        dropout: dropout keep prob.
+        bias: Whether to include a bias term.
+        activation: Activation function.
+        batch_norm: Boolean tensor for batch normalization (training mode).
+        dropout: Dropout keep probability.
+        scope: Variable scope name.
+        reuse: Whether to reuse variables.
 
     Returns:
         Tensor of shape [batch size, max sequence length, output_units].
@@ -87,7 +101,16 @@ def time_distributed_dense_layer(
 
 
 def shape(tensor, dim=None):
-    """Get tensor shape/dimension as list/int"""
+    """
+    Get tensor shape/dimension as list/int.
+
+    Args:
+        tensor: The tensor to query.
+        dim: Optional dimension index.
+
+    Returns:
+        A list representing the shape or an integer if dim is specified.
+    """
     if dim is None:
         return tensor.shape.as_list()
     else:
@@ -95,5 +118,13 @@ def shape(tensor, dim=None):
 
 
 def rank(tensor):
-    """Get tensor rank as python list"""
+    """
+    Get tensor rank as python int.
+
+    Args:
+        tensor: The tensor to query.
+
+    Returns:
+        The rank of the tensor (number of dimensions).
+    """
     return len(tensor.shape.as_list())

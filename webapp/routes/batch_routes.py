@@ -33,7 +33,17 @@ os.makedirs(JOBS_ROOT, exist_ok=True)
 
 
 def _get_row_value(row: Dict[str, Any], key: str, default=None):
-    """Get value from row, handling NaN values."""
+    """
+    Get value from row dictionary, handling NaN values.
+
+    Args:
+        row: Dictionary of row data.
+        key: Key to retrieve.
+        default: Default value if key is missing or NaN.
+
+    Returns:
+        Value from row or default.
+    """
     v = row.get(key)
     return default if (v is None or (isinstance(v, float) and str(v) == "nan")) else v
 
@@ -41,7 +51,15 @@ def _get_row_value(row: Dict[str, Any], key: str, default=None):
 @batch_bp.route("/api/batch", methods=["POST"])
 @login_required
 def batch_generate():
-    """Process batch CSV/XLSX upload and generate multiple handwriting samples."""
+    """
+    Process batch CSV/XLSX upload and generate multiple handwriting samples.
+
+    Accepts a file upload ('file') containing batch generation parameters.
+    Returns a ZIP file containing the generated SVG files.
+
+    Returns:
+        Response object with ZIP content or JSON error.
+    """
     from webapp.utils.auth_utils import log_activity, track_generation
     if "file" not in request.files:
         return jsonify({"error": "CSV/XLSX file is required under 'file' field"}), 400
@@ -154,7 +172,11 @@ def template_csv():
 @batch_bp.route("/api/template-xlsx", methods=["GET"])
 @login_required
 def template_xlsx():
-    """Download a fancy formatted XLSX template with data validation, instructions, and about page."""
+    """
+    Download a formatted XLSX template.
+
+    Includes data validation, instructions, and an about page.
+    """
     from openpyxl import Workbook
     from openpyxl.styles import Font, Alignment, PatternFill, Border, Side, numbers
     from openpyxl.worksheet.datavalidation import DataValidation
@@ -594,14 +616,30 @@ def sample_xlsx():
 
 
 def _sse(obj: Dict[str, Any]) -> str:
-    """Format Server-Sent Event message."""
+    """
+    Format a dictionary as a Server-Sent Event (SSE) message.
+
+    Args:
+        obj: Dictionary to serialize.
+
+    Returns:
+        Formatted SSE string.
+    """
     return f"data: {json.dumps(obj)}\n\n"
 
 
 @batch_bp.route("/api/batch/stream", methods=["POST"])
 @login_required
 def batch_stream():
-    """Process batch CSV/XLSX with streaming progress updates."""
+    """
+    Process batch CSV/XLSX with streaming progress updates (Server-Sent Events).
+
+    Yields progress updates as JSON objects over an event stream.
+    Final event contains the download URL for the results.
+
+    Returns:
+        Streamed response.
+    """
     # Debug: Print what we received
     print(f"DEBUG: request.files keys: {list(request.files.keys())}")
     print(f"DEBUG: request.form keys: {list(request.form.keys())}")
@@ -787,7 +825,15 @@ def batch_stream():
 @batch_bp.route("/api/batch/result/<job_id>", methods=["GET"])
 @login_required
 def batch_result(job_id: str):
-    """Download batch processing results."""
+    """
+    Download batch processing results (ZIP file).
+
+    Args:
+        job_id: The ID of the batch job.
+
+    Returns:
+        File download response.
+    """
     job_dir = os.path.join(JOBS_ROOT, job_id)
     zip_path = os.path.join(job_dir, "results.zip")
     if not os.path.isfile(zip_path):
@@ -798,7 +844,16 @@ def batch_result(job_id: str):
 @batch_bp.route("/api/batch/result/<job_id>/file/<path:filename>", methods=["GET"])
 @login_required
 def batch_result_file(job_id: str, filename: str):
-    """Serve an individual generated file from a batch job for live preview."""
+    """
+    Serve an individual generated file from a batch job for live preview.
+
+    Args:
+        job_id: The ID of the batch job.
+        filename: The name of the file to retrieve.
+
+    Returns:
+        File content.
+    """
     job_dir = os.path.join(JOBS_ROOT, job_id)
     out_dir = os.path.join(job_dir, "out")
     if not os.path.isdir(out_dir):

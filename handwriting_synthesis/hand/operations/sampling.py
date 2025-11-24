@@ -17,15 +17,21 @@ def sample_strokes(
     """
     Sample stroke sequences from the RNN model.
 
+    This function feeds the text input and style configuration into the RNN
+    and retrieves the generated stroke sequences.
+
     Args:
-        rnn_session: TensorFlow session
-        rnn_model: RNN model with necessary placeholders
-        lines: List of text lines to generate
-        biases: Optional list of bias values (one per line)
-        styles: Optional list of style IDs (one per line)
+        rnn_session: TensorFlow session.
+        rnn_model: RNN model with necessary placeholders.
+        lines: List of text lines to generate.
+        biases: Optional list of bias values (one per line). Bias controls the
+                consistency of the handwriting. Higher bias -> more legible,
+                less random.
+        styles: Optional list of style IDs (one per line).
 
     Returns:
-        List of stroke sequences (numpy arrays)
+        List of stroke sequences (numpy arrays of shape [T, 3]).
+        Each stroke point is (x, y, eos).
     """
     num_samples = len(lines)
     max_tsteps = 40 * max([len(i) for i in lines])

@@ -4,6 +4,11 @@
  */
 
 class SVGRuler {
+  /**
+   * Initialize the SVG Ruler.
+   * @param {string} containerId - The ID of the container element for the ruler.
+   * @param {string} previewId - The ID of the preview element (SVG).
+   */
   constructor(containerId, previewId) {
     this.container = document.getElementById(containerId);
     this.preview = document.getElementById(previewId);
@@ -15,6 +20,9 @@ class SVGRuler {
     this.init();
   }
 
+  /**
+   * Initialize the ruler structure and event listeners.
+   */
   init() {
     // Create ruler elements
     this.createRulerStructure();
@@ -23,6 +31,9 @@ class SVGRuler {
     this.attachEventListeners();
   }
 
+  /**
+   * Create the DOM structure for the rulers and crosshairs.
+   */
   createRulerStructure() {
     // Clear any existing rulers
     const existing = this.container.querySelectorAll('.svg-ruler-wrapper, .ruler-crosshair-v, .ruler-crosshair-h, .ruler-coordinates');
@@ -88,6 +99,9 @@ class SVGRuler {
     this.previewContainer.appendChild(this.preview);
   }
 
+  /**
+   * Attach event listeners for mouse movement and scrolling.
+   */
   attachEventListeners() {
     // Mouse move on preview
     this.previewContainer.addEventListener('mousemove', (e) => {
@@ -110,6 +124,10 @@ class SVGRuler {
     });
   }
 
+  /**
+   * Update crosshair position and coordinate display based on mouse event.
+   * @param {MouseEvent} e - The mouse move event.
+   */
   updateCrosshair(e) {
     const rect = this.previewContainer.getBoundingClientRect();
 
@@ -132,6 +150,12 @@ class SVGRuler {
     this.updateCoordinateDisplay(e.clientX, e.clientY, svgCoords);
   }
 
+  /**
+   * Convert screen coordinates to SVG coordinates.
+   * @param {number} screenX - X coordinate on screen.
+   * @param {number} screenY - Y coordinate on screen.
+   * @returns {Object} - Object containing SVG coordinates (x, y) and pixel coordinates (px).
+   */
   screenToSVGCoordinates(screenX, screenY) {
     // No padding - SVG starts at 0,0 aligned with rulers
     const svgX = screenX / this.zoom;
@@ -155,6 +179,12 @@ class SVGRuler {
     };
   }
 
+  /**
+   * Update the coordinate display tooltip position and text.
+   * @param {number} clientX - Mouse X coordinate.
+   * @param {number} clientY - Mouse Y coordinate.
+   * @param {Object} svgCoords - Calculated SVG coordinates.
+   */
   updateCoordinateDisplay(clientX, clientY, svgCoords) {
     const unitLabel = this.unit;
     this.coordsDisplay.textContent = `${svgCoords.x} × ${svgCoords.y} ${unitLabel} (${svgCoords.px.x} × ${svgCoords.px.y} px)`;
@@ -178,17 +208,26 @@ class SVGRuler {
     this.coordsDisplay.style.display = 'block';
   }
 
+  /**
+   * Show the crosshairs.
+   */
   showCrosshair() {
     this.crosshairV.style.display = 'block';
     this.crosshairH.style.display = 'block';
   }
 
+  /**
+   * Hide the crosshairs.
+   */
   hideCrosshair() {
     this.crosshairV.style.display = 'none';
     this.crosshairH.style.display = 'none';
     this.coordsDisplay.style.display = 'none';
   }
 
+  /**
+   * Update the ruler canvas positions based on scroll offset.
+   */
   updateRulerOffsets() {
     // Update ruler positions based on scroll
     const scrollLeft = this.previewContainer.scrollLeft;
@@ -198,6 +237,10 @@ class SVGRuler {
     this.leftCanvas.style.transform = `translateY(${-scrollTop}px)`;
   }
 
+  /**
+   * Set the zoom level and redraw rulers.
+   * @param {number} zoomPercent - Zoom level in percentage (e.g., 100).
+   */
   setZoom(zoomPercent) {
     this.zoom = zoomPercent / 100;
     this.preview.style.transform = `scale(${this.zoom})`;
@@ -207,6 +250,12 @@ class SVGRuler {
     this.drawRulers();
   }
 
+  /**
+   * Update the SVG dimensions and redraw rulers.
+   * @param {number} width - SVG width.
+   * @param {number} height - SVG height.
+   * @param {string} [unit='mm'] - Unit of measurement.
+   */
   updateSVGDimensions(width, height, unit = 'mm') {
     this.svgWidth = width;
     this.svgHeight = height;
@@ -216,11 +265,17 @@ class SVGRuler {
     this.drawRulers();
   }
 
+  /**
+   * Redraw both horizontal and vertical rulers.
+   */
   drawRulers() {
     this.drawHorizontalRuler();
     this.drawVerticalRuler();
   }
 
+  /**
+   * Draw the horizontal ruler.
+   */
   drawHorizontalRuler() {
     const canvas = this.topCanvas;
     const ctx = canvas.getContext('2d');
@@ -243,6 +298,9 @@ class SVGRuler {
     this.drawRulerMarkings(ctx, 'horizontal', width, rulerHeight);
   }
 
+  /**
+   * Draw the vertical ruler.
+   */
   drawVerticalRuler() {
     const canvas = this.leftCanvas;
     const ctx = canvas.getContext('2d');
@@ -265,6 +323,13 @@ class SVGRuler {
     this.drawRulerMarkings(ctx, 'vertical', rulerWidth, height);
   }
 
+  /**
+   * Draw markings on the ruler canvas.
+   * @param {CanvasRenderingContext2D} ctx - Canvas context.
+   * @param {string} orientation - 'horizontal' or 'vertical'.
+   * @param {number} width - Canvas width.
+   * @param {number} height - Canvas height.
+   */
   drawRulerMarkings(ctx, orientation, width, height) {
     const PX_PER_MM = 96.0 / 25.4;
 
@@ -347,6 +412,9 @@ class SVGRuler {
     }
   }
 
+  /**
+   * Destroy the ruler instance and clean up event listeners.
+   */
   destroy() {
     // Clean up event listeners and elements
     this.previewContainer.removeEventListener('mousemove', this.updateCrosshair);
@@ -358,7 +426,9 @@ class SVGRuler {
 // Global instance
 let svgRulerInstance = null;
 
-// Initialize ruler when DOM is ready
+/**
+ * Initialize the SVGRuler instance when the DOM is ready.
+ */
 function initSVGRuler() {
   svgRulerInstance = new SVGRuler('previewContainerRuler', 'preview');
 
@@ -369,7 +439,11 @@ function initSVGRuler() {
   window.svgRulerInstance = svgRulerInstance;
 }
 
-// Update ruler dimensions when SVG is generated
+/**
+ * Update the ruler dimensions based on the generated SVG and metadata.
+ * @param {string} svgText - The raw SVG XML string.
+ * @param {Object} metadata - The metadata object returned by the generation API.
+ */
 function updateRulerForSVG(svgText, metadata) {
   if (!svgRulerInstance) return;
 

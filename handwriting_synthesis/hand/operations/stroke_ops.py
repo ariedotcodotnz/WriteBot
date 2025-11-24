@@ -11,10 +11,10 @@ def get_stroke_width(stroke: np.ndarray) -> float:
     Calculate the horizontal width of a stroke sequence.
 
     Args:
-        stroke: Stroke sequence (offsets)
+        stroke: Stroke sequence (offsets).
 
     Returns:
-        Horizontal width in coordinate units
+        Horizontal width in coordinate units.
     """
     if len(stroke) == 0:
         return 0.0
@@ -27,16 +27,16 @@ def calculate_baseline_angle(stroke: np.ndarray, use_last_portion: float = 1.0) 
     Calculate the baseline angle by comparing bottom Y coordinates at front and back ends.
 
     This simpler approach directly measures the slant by:
-    1. Finding the lowest Y point at the start
-    2. Finding the lowest Y point at the end
-    3. Calculating angle = arctan((y_end - y_start) / (x_end - x_start))
+    1. Finding the lowest Y point at the start.
+    2. Finding the lowest Y point at the end.
+    3. Calculating angle = arctan((y_end - y_start) / (x_end - x_start)).
 
     Args:
-        stroke: Input stroke sequence (offsets)
-        use_last_portion: Fraction of stroke to use (1.0 = all, 0.5 = last 50%)
+        stroke: Input stroke sequence (offsets).
+        use_last_portion: Fraction of stroke to use (1.0 = all, 0.5 = last 50%).
 
     Returns:
-        Baseline angle in radians
+        Baseline angle in radians.
     """
     if len(stroke) == 0:
         return 0.0
@@ -96,12 +96,12 @@ def rotate_stroke(
     Rotate a stroke by a given angle around a pivot point.
 
     Args:
-        stroke: Input stroke sequence (offsets)
-        angle: Rotation angle in radians (positive = counter-clockwise)
-        pivot_point: Point to rotate around (default: center of stroke)
+        stroke: Input stroke sequence (offsets).
+        angle: Rotation angle in radians (positive = counter-clockwise).
+        pivot_point: Point to rotate around (default: center of stroke).
 
     Returns:
-        Rotated stroke sequence (offsets)
+        Rotated stroke sequence (offsets).
     """
     if len(stroke) == 0 or abs(angle) < 1e-6:
         return stroke
@@ -140,10 +140,10 @@ def get_baseline_y(coords: np.ndarray) -> float:
     extreme points (descenders and ascenders).
 
     Args:
-        coords: Stroke coordinates
+        coords: Stroke coordinates.
 
     Returns:
-        Y position of the baseline
+        Y position of the baseline.
     """
     if len(coords) == 0:
         return 0.0
@@ -174,12 +174,12 @@ def smooth_chunk_boundary(
     Smooth the transition at a chunk boundary to reduce visible seams.
 
     Args:
-        stroke: Combined stroke sequence (offsets)
-        boundary_idx: Index where the boundary occurs
-        window_size: Number of points to smooth on each side
+        stroke: Combined stroke sequence (offsets).
+        boundary_idx: Index where the boundary occurs.
+        window_size: Number of points to smooth on each side.
 
     Returns:
-        Smoothed stroke sequence
+        Smoothed stroke sequence.
     """
     if len(stroke) == 0 or boundary_idx < window_size or boundary_idx >= len(stroke) - window_size:
         return stroke
@@ -223,12 +223,12 @@ def calculate_adaptive_spacing(
     Calculate adaptive spacing between chunks based on their characteristics.
 
     Args:
-        stroke1: First stroke sequence
-        stroke2: Second stroke sequence
-        base_spacing: Base spacing value
+        stroke1: First stroke sequence.
+        stroke2: Second stroke sequence.
+        base_spacing: Base spacing value.
 
     Returns:
-        Adjusted spacing value
+        Adjusted spacing value.
     """
     if len(stroke1) == 0 or len(stroke2) == 0:
         return base_spacing
@@ -272,20 +272,20 @@ def stitch_strokes(
     Stitch two stroke sequences together with comprehensive improvements.
 
     This method now includes:
-    1. Baseline angle correction (horizontal alignment)
-    2. Adaptive spacing (context-aware gaps)
-    3. Boundary smoothing (seamless transitions)
+    1. Baseline angle correction (horizontal alignment).
+    2. Adaptive spacing (context-aware gaps).
+    3. Boundary smoothing (seamless transitions).
 
     Args:
-        stroke1: First stroke sequence (offsets)
-        stroke2: Second stroke sequence (offsets)
-        spacing: Base horizontal spacing between strokes
-        rotate_to_match: If True, apply rotation correction
-        smooth_boundary: If True, smooth the transition at chunk boundary
-        adaptive_spacing: If True, use context-aware spacing
+        stroke1: First stroke sequence (offsets).
+        stroke2: Second stroke sequence (offsets).
+        spacing: Base horizontal spacing between strokes.
+        rotate_to_match: If True, apply rotation correction.
+        smooth_boundary: If True, smooth the transition at chunk boundary.
+        adaptive_spacing: If True, use context-aware spacing.
 
     Returns:
-        Combined stroke sequence with all improvements applied
+        Combined stroke sequence with all improvements applied.
     """
     if len(stroke1) == 0:
         return stroke2

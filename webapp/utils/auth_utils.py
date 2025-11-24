@@ -12,7 +12,15 @@ import json
 def admin_required(f):
     """
     Decorator to require admin role for a route.
-    Use this in addition to @login_required.
+
+    Checks if the current user is authenticated and has the 'admin' role.
+    Returns 401 Unauthorized if not logged in, 403 Forbidden if not an admin.
+
+    Args:
+        f: The view function to decorate.
+
+    Returns:
+        The decorated function.
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -28,10 +36,12 @@ def log_activity(activity_type, description=None, metadata=None):
     """
     Log user activity to the database.
 
+    Records actions performed by authenticated users for auditing purposes.
+
     Args:
-        activity_type: Type of activity ('login', 'logout', 'generate', 'batch', 'admin_action')
-        description: Optional description of the activity
-        metadata: Optional dictionary of additional metadata
+        activity_type: Type of activity (e.g., 'login', 'generate', 'admin_action').
+        description: Optional text description of the activity.
+        metadata: Optional dictionary of additional data to store as JSON.
     """
     if not current_user.is_authenticated:
         return
@@ -58,11 +68,14 @@ def track_generation(lines_count=0, chars_count=0, processing_time=0.0, is_batch
     """
     Track generation statistics for the current user.
 
+    Updates the daily usage statistics for the user, incrementing counters
+    and cumulative metrics. Creates a new record for the day if one doesn't exist.
+
     Args:
-        lines_count: Number of lines generated
-        chars_count: Number of characters generated
-        processing_time: Processing time in seconds
-        is_batch: Whether this is a batch generation
+        lines_count: Number of lines generated.
+        chars_count: Number of characters generated.
+        processing_time: Processing time in seconds.
+        is_batch: Boolean indicating if this was a batch generation job.
     """
     if not current_user.is_authenticated:
         return
@@ -123,11 +136,11 @@ def get_user_statistics(user_id, days=30):
     Get user statistics for the last N days.
 
     Args:
-        user_id: User ID to get statistics for
-        days: Number of days to retrieve (default 30)
+        user_id: User ID to get statistics for.
+        days: Number of days to retrieve (default 30).
 
     Returns:
-        List of UsageStatistics objects
+        List of UsageStatistics objects ordered by date (descending).
     """
     from datetime import timedelta
     end_date = date.today()
@@ -147,11 +160,11 @@ def get_user_activities(user_id, limit=100):
     Get recent activities for a user.
 
     Args:
-        user_id: User ID to get activities for
-        limit: Maximum number of activities to retrieve
+        user_id: User ID to get activities for.
+        limit: Maximum number of activities to retrieve (default 100).
 
     Returns:
-        List of UserActivity objects
+        List of UserActivity objects ordered by timestamp (descending).
     """
     activities = UserActivity.query.filter_by(
         user_id=user_id
@@ -164,11 +177,19 @@ def get_all_user_statistics(days=7):
     """
     Get aggregated statistics for all users over the last N days.
 
+    Calculates totals for generations, lines, characters, and processing time.
+
     Args:
-        days: Number of days to aggregate (default 7)
+        days: Number of days to aggregate (default 7).
 
     Returns:
-        Dictionary with aggregated statistics
+        Dictionary with aggregated statistics keys:
+        - svg_generations
+        - batch_generations
+        - total_lines
+        - total_characters
+        - total_processing_time
+        - period_days
     """
     from datetime import timedelta
     from sqlalchemy import func

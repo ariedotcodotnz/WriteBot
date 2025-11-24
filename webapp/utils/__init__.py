@@ -1,4 +1,9 @@
-"""Webapp utility modules for WriteBot."""
+"""
+Webapp utility modules for WriteBot.
+
+This package provides helper functions for page layout, text processing,
+and authentication within the web application.
+"""
 
 from .page_utils import (
     PX_PER_MM,

@@ -1,3 +1,5 @@
+"""Data preparation script for handwriting synthesis."""
+
 from __future__ import print_function
 
 import os
@@ -10,6 +12,13 @@ from handwriting_synthesis.training.preparation import get_stroke_sequence, coll
 
 
 def prepare():
+    """
+    Process raw handwriting data into numpy arrays for training.
+
+    Collects data from the raw data directory, processes stroke sequences,
+    encodes transcriptions, filters invalid samples, and saves the result
+    as .npy files in the processed data directory.
+    """
     print('traversing data directory...')
     stroke_fnames, transcriptions, writer_ids = collect_data()
 

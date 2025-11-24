@@ -26,7 +26,16 @@ MAX_CHAR_LEN = 120  # Increased from 75 to allow longer lines (less conservative
 
 def align(coords):
     """
-    corrects for global slant/offset in handwriting strokes
+    Corrects for global slant/offset in handwriting strokes.
+
+    Calculates the global slant of the strokes using linear regression and
+    rotates the coordinates to align them horizontally.
+
+    Args:
+        coords: Numpy array of shape (N, 3) containing stroke coordinates [x, y, eos].
+
+    Returns:
+        Aligned coordinates as a numpy array of shape (N, 3).
     """
     coords = np.copy(coords)
     x, y = coords[:, 0].reshape(-1, 1), coords[:, 1].reshape(-1, 1)
@@ -43,7 +52,16 @@ def align(coords):
 
 def skew(coords, degrees):
     """
-    skews strokes by given degrees
+    Skews strokes by a given number of degrees.
+
+    Applies a shear transformation to the stroke coordinates.
+
+    Args:
+        coords: Numpy array of shape (N, 3) containing stroke coordinates.
+        degrees: The angle in degrees to skew the strokes.
+
+    Returns:
+        Skewed coordinates as a numpy array of shape (N, 3).
     """
     coords = np.copy(coords)
     theta = degrees * np.pi / 180
@@ -54,7 +72,15 @@ def skew(coords, degrees):
 
 def stretch(coords, x_factor, y_factor):
     """
-    stretches strokes along x and y-axis
+    Stretches strokes along x and y-axis.
+
+    Args:
+        coords: Numpy array of shape (N, 3) containing stroke coordinates.
+        x_factor: Scaling factor for the x-axis.
+        y_factor: Scaling factor for the y-axis.
+
+    Returns:
+        Stretched coordinates as a numpy array of shape (N, 3).
     """
     coords = np.copy(coords)
     coords[:, :2] *= np.array([x_factor, y_factor])
@@ -63,7 +89,14 @@ def stretch(coords, x_factor, y_factor):
 
 def add_noise(coords, scale):
     """
-    adds gaussian noise to strokes
+    Adds Gaussian noise to strokes.
+
+    Args:
+        coords: Numpy array of shape (N, 3) containing stroke coordinates.
+        scale: Standard deviation of the Gaussian noise.
+
+    Returns:
+        Coordinates with added noise as a numpy array of shape (N, 3).
     """
     coords = np.copy(coords)
     coords[1:, :2] += np.random.normal(loc=0.0, scale=scale, size=coords[1:, :2].shape)
@@ -72,14 +105,31 @@ def add_noise(coords, scale):
 
 def encode_ascii(ascii_string):
     """
-    encodes ascii string to array of ints
+    Encodes an ASCII string to an array of integers.
+
+    Maps characters to their integer indices based on the defined `alphabet`.
+    Appends 0 at the end.
+
+    Args:
+        ascii_string: The string to encode.
+
+    Returns:
+        Numpy array of integer indices.
     """
     return np.array(list(map(lambda x: alpha_to_num[x], ascii_string)) + [0])
 
 
 def denoise(coords):
     """
-    smoothing filter to mitigate some artifacts of the data collection
+    Smoothing filter to mitigate artifacts from data collection.
+
+    Applies a Savitzky-Golay filter to smooth the x and y coordinates of each stroke.
+
+    Args:
+        coords: Numpy array of shape (N, 3) containing stroke coordinates.
+
+    Returns:
+        Smoothed coordinates as a numpy array of shape (N, 3).
     """
     coords_list = np.split(coords, np.where(coords[:, 2] == 1)[0] + 1, axis=0)
     new_coords = []
@@ -103,7 +153,16 @@ def denoise(coords):
 
 def interpolate(coords, factor=2):
     """
-    interpolates strokes using cubic spline
+    Interpolates strokes using cubic spline interpolation.
+
+    Increases the number of points in each stroke by the given factor.
+
+    Args:
+        coords: Numpy array of shape (N, 3) containing stroke coordinates.
+        factor: The factor by which to increase the number of points (default: 2).
+
+    Returns:
+        Interpolated coordinates as a numpy array.
     """
     coords_list = np.split(coords, np.where(coords[:, 2] == 1)[0] + 1, axis=0)
     new_coords = []
@@ -137,7 +196,13 @@ def interpolate(coords, factor=2):
 
 def normalize(offsets):
     """
-    normalizes strokes to median unit norm
+    Normalizes strokes to median unit norm.
+
+    Args:
+        offsets: Numpy array of shape (N, 3) containing stroke offsets.
+
+    Returns:
+        Normalized offsets as a numpy array.
     """
     offsets = np.copy(offsets)
     offsets[:, :2] /= np.median(np.linalg.norm(offsets[:, :2], axis=1))
@@ -146,7 +211,14 @@ def normalize(offsets):
 
 def coords_to_offsets(coords):
     """
-    convert from coordinates to offsets
+    Convert from absolute coordinates to relative offsets.
+
+    Args:
+        coords: Numpy array of shape (N, 3) containing [x, y, eos].
+
+    Returns:
+        Numpy array of shape (N, 3) containing [dx, dy, eos].
+        The first point is (0, 0, 1).
     """
     offsets = np.concatenate([coords[1:, :2] - coords[:-1, :2], coords[1:, 2:3]], axis=1)
     offsets = np.concatenate([np.array([[0, 0, 1]]), offsets], axis=0)
@@ -155,7 +227,13 @@ def coords_to_offsets(coords):
 
 def offsets_to_coords(offsets):
     """
-    convert from offsets to coordinates
+    Convert from relative offsets to absolute coordinates.
+
+    Args:
+        offsets: Numpy array of shape (N, 3) containing [dx, dy, eos].
+
+    Returns:
+        Numpy array of shape (N, 3) containing [x, y, eos].
     """
     return np.concatenate([np.cumsum(offsets[:, :2], axis=0), offsets[:, 2:3]], axis=1)
 
@@ -168,6 +246,20 @@ def draw(
         interpolation_factor=None,
         save_file=None
 ):
+    """
+    Draws the strokes using Matplotlib.
+
+    Args:
+        offsets: Stroke offsets to draw.
+        ascii_seq: Optional ASCII string to display as title.
+        align_strokes: Whether to align the strokes horizontally.
+        denoise_strokes: Whether to apply denoising.
+        interpolation_factor: Factor for cubic spline interpolation.
+        save_file: If provided, saves the plot to this file path instead of showing it.
+
+    Returns:
+        None
+    """
     strokes = offsets_to_coords(offsets)
 
     if denoise_strokes:

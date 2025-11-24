@@ -1,6 +1,8 @@
 import math
 import numpy as np
 import svgwrite
+import xml.etree.ElementTree as ET
+import re
 
 from handwriting_synthesis import drawing
 
@@ -16,12 +18,32 @@ PAPER_SIZES_MM = {
 
 
 def _to_px(value, units):
+    """
+    Converts a value to pixels based on the given unit.
+
+    Args:
+        value: The value to convert.
+        units: The unit of the value ('mm' or 'px').
+
+    Returns:
+        The value in pixels.
+    """
     if units == 'mm':
         return value * PX_PER_MM
     return float(value)
 
 
 def _normalize_margins(margins, units):
+    """
+    Normalizes margins to a tuple of (top, right, bottom, left) in pixels.
+
+    Args:
+        margins: Margins as a scalar, list/tuple of 4, or dict.
+        units: The unit of the margins.
+
+    Returns:
+        Tuple of (top, right, bottom, left) in pixels.
+    """
     if isinstance(margins, (int, float)):
         t = r = b = l = float(margins)
     elif isinstance(margins, (list, tuple)) and len(margins) == 4:
@@ -37,6 +59,18 @@ def _normalize_margins(margins, units):
 
 
 def _resolve_page_size(page_size, units, num_lines, default_line_height_px):
+    """
+    Resolves the page size to width and height in pixels.
+
+    Args:
+        page_size: Page size string (e.g., 'A4') or tuple (width, height).
+        units: The unit of the page size.
+        num_lines: Number of lines to estimate height if needed.
+        default_line_height_px: Default line height in pixels.
+
+    Returns:
+        Tuple (width_px, height_px, svg_size_str).
+    """
     if isinstance(page_size, str):
         if page_size not in PAPER_SIZES_MM:
             raise ValueError(f"Unknown page_size '{page_size}'. Known sizes: {sorted(PAPER_SIZES_MM.keys())}")
@@ -84,6 +118,40 @@ def _draw(
     character_override_collection_id=None,
     overrides_dict=None,  # New parameter
 ):
+    """
+    Draws generated handwriting strokes to an SVG file.
+
+    This function handles the layout, scaling, and rendering of handwriting
+    strokes onto a page, including support for character overrides and
+    various formatting options.
+
+    Args:
+        line_segments: List of segments for each line, where each segment
+                       contains stroke data or override info.
+        lines: Original text lines (used for reference/colors/widths).
+        filename: Output SVG file path.
+        stroke_colors: List of colors for each line.
+        stroke_widths: List of stroke widths for each line.
+        page_size: Page size identifier or dimensions.
+        units: Units for dimensions ('mm' or 'px').
+        margins: Page margins.
+        line_height: Vertical spacing between lines.
+        align: Horizontal alignment ('left', 'center', 'right').
+        background: Background color.
+        global_scale: Global scaling factor for strokes.
+        orientation: Page orientation ('portrait' or 'landscape').
+        legibility: Legibility mode ('normal', 'high', 'natural').
+        x_stretch: Horizontal stretch factor.
+        denoise: Whether to apply denoising to strokes.
+        empty_line_spacing: Spacing for empty lines.
+        auto_size: Whether to automatically scale strokes to fit line height.
+        manual_size_scale: Manual scaling factor if auto_size is False.
+        character_override_collection_id: ID of the character override collection.
+        overrides_dict: Dictionary containing character override data.
+
+    Returns:
+        None
+    """
     # Load character overrides if not provided
     if overrides_dict is None:
         overrides_dict = {}
@@ -313,9 +381,6 @@ def _draw(
 
             elif segment.get('type') == 'override':
                 override_data = segment['override_data']
-
-                import xml.etree.ElementTree as ET
-                import re
 
                 # Extract actual character bounds from path data
                 try:

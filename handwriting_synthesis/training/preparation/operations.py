@@ -1,3 +1,5 @@
+"""Data collection and processing operations."""
+
 from __future__ import print_function
 
 import os
@@ -10,6 +12,15 @@ from handwriting_synthesis.config import ascii_data_path, data_path
 
 
 def get_stroke_sequence(filename):
+    """
+    Load and preprocess a stroke sequence from an XML file.
+
+    Args:
+        filename: Path to the XML file containing stroke data.
+
+    Returns:
+        Numpy array of normalized stroke offsets.
+    """
     tree = ElementTree.parse(filename).getroot()
     strokes = [i for i in tree if i.tag == 'StrokeSet'][0]
 
@@ -32,6 +43,15 @@ def get_stroke_sequence(filename):
 
 
 def get_ascii_sequences(filename):
+    """
+    Load and encode ASCII sequences from a text file.
+
+    Args:
+        filename: Path to the text file.
+
+    Returns:
+        List of encoded ASCII sequences (numpy arrays of integers).
+    """
     sequences = open(filename, 'r').read()
     sequences = sequences.replace(r'%%%%%%%%%%%', '\n')
     sequences = [i.strip() for i in sequences.split('\n')]
@@ -42,6 +62,15 @@ def get_ascii_sequences(filename):
 
 
 def collect_data():
+    """
+    Traverse the data directories and collect all valid data samples.
+
+    Returns:
+        Tuple (stroke_fnames, transcriptions, writer_ids).
+        stroke_fnames: List of paths to stroke XML files.
+        transcriptions: List of encoded ASCII transcriptions.
+        writer_ids: List of writer IDs.
+    """
     fnames = []
     for dirpath, dirnames, filenames in os.walk(ascii_data_path):
         if dirnames:

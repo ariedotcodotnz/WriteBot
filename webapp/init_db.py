@@ -20,7 +20,15 @@ from models import User
 
 
 def get_password_input(prompt="Password: "):
-    """Safely get password input with fallback for non-TTY environments."""
+    """
+    Safely get password input with fallback for non-TTY environments.
+
+    Args:
+        prompt: Prompt to display to the user.
+
+    Returns:
+        The entered password as a string.
+    """
     # Check if we have a TTY
     if not sys.stdin.isatty():
         warnings.warn("No TTY detected - password input will be visible!")
@@ -34,7 +42,12 @@ def get_password_input(prompt="Password: "):
 
 
 def init_database():
-    """Initialize the database tables and run migrations."""
+    """
+    Initialize the database tables and run migrations.
+
+    Attempts to run Alembic migrations first. If that fails (e.g., first run),
+    falls back to SQLAlchemy's `db.create_all()`.
+    """
     with app.app_context():
         print("Running database migrations...")
         from alembic.config import Config
@@ -55,7 +68,12 @@ def init_database():
 
 
 def create_admin_user():
-    """Create a default admin user interactively."""
+    """
+    Create a default admin user interactively.
+
+    Prompts for username, full name, and password (with confirmation).
+    Ensures the username is unique.
+    """
     with app.app_context():
         print("\n" + "="*50)
         print("CREATE ADMIN USER")
@@ -111,7 +129,12 @@ def create_admin_user():
 
 
 def create_demo_users():
-    """Create demo users for testing."""
+    """
+    Create demo users for testing.
+
+    Interactively asks to create a standard demo user and an admin user
+    if they don't exist.
+    """
     with app.app_context():
         print("\n" + "="*50)
         print("CREATE DEMO USERS")
@@ -160,7 +183,11 @@ def create_demo_users():
 
 
 def main():
-    """Main initialization routine."""
+    """
+    Main initialization routine.
+
+    Parses command line arguments and orchestrates the initialization process.
+    """
     import argparse
 
     parser = argparse.ArgumentParser(description='Initialize WriteBot database')

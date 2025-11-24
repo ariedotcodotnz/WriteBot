@@ -60,10 +60,10 @@ def get_template(template_id):
     Get a specific template preset by ID.
 
     Args:
-        template_id: The template ID
+        template_id: The template ID.
 
     Returns:
-        JSON object with template details
+        JSON object with template details.
     """
     try:
         template = TemplatePreset.query.get_or_404(template_id)
@@ -81,13 +81,14 @@ def get_template(template_id):
 def update_template_status(template_id):
     """
     Update template preset properties (Admin only).
-    Currently supports toggling is_active status.
+
+    Currently supports toggling is_active status, name, and description.
 
     Args:
-        template_id: The template ID
+        template_id: The template ID.
 
     Returns:
-        JSON object with updated template details
+        JSON object with updated template details.
     """
     try:
         template = TemplatePreset.query.get_or_404(template_id)
@@ -135,7 +136,7 @@ def create_template_from_form():
     Accepts JSON with all template fields from the main generation form.
 
     Returns:
-        JSON object with created template details
+        JSON object with created template details.
     """
     try:
         data = request.get_json()

@@ -20,6 +20,14 @@ tfcompat.disable_v2_behavior()
 
 
 class RNN(BaseModel):
+    """
+    Recurrent Neural Network model for handwriting synthesis.
+
+    This model uses an LSTM with attention mechanism to generate handwriting
+    sequences conditioned on text input. It predicts stroke parameters
+    (mixture of Gaussians for coordinates, Bernoulli for pen lift) at each time step.
+    """
+
     def __init__(
             self,
             lstm_size,
@@ -27,6 +35,15 @@ class RNN(BaseModel):
             attention_mixture_components,
             **kwargs
     ):
+        """
+        Initialize the RNN model.
+
+        Args:
+            lstm_size: The number of units in the LSTM cells.
+            output_mixture_components: Number of Gaussian mixture components for the output.
+            attention_mixture_components: Number of mixture components for the attention mechanism.
+            **kwargs: Additional arguments passed to the BaseModel constructor.
+        """
         self.x = None
         self.y = None
         self.x_len = None
@@ -48,6 +65,19 @@ class RNN(BaseModel):
         super(RNN, self).__init__(**kwargs)
 
     def parse_parameters(self, z, eps=1e-8, sigma_eps=1e-4):
+        """
+        Parses the output of the RNN into mixture distribution parameters.
+
+        Args:
+            z: Tensor of shape [batch, time, output_units].
+            eps: Epsilon value for stability.
+            sigma_eps: Minimum value for sigma (std dev).
+
+        Returns:
+            Tuple of tensors (pis, mus, sigmas, rhos, es) representing the
+            mixture weights, means, standard deviations, correlations, and
+            end-of-stroke probabilities.
+        """
         pis, sigmas, rhos, mus, es = tf.split(
             z,
             [
@@ -67,6 +97,22 @@ class RNN(BaseModel):
 
     @staticmethod
     def nll(y, lengths, pis, mus, sigmas, rho, es, eps=1e-8):
+        """
+        Calculates the Negative Log Likelihood loss.
+
+        Args:
+            y: Ground truth stroke data.
+            lengths: Lengths of the sequences.
+            pis: Mixture weights.
+            mus: Mixture means.
+            sigmas: Mixture standard deviations.
+            rho: Mixture correlations.
+            es: End-of-stroke probabilities.
+            eps: Epsilon for stability.
+
+        Returns:
+            Tuple (sequence_loss, element_loss).
+        """
         sigma_1, sigma_2 = tf.split(sigmas, 2, axis=2)
         y_1, y_2, y_3 = tf.split(y, 3, axis=2)
         mu_1, mu_2 = tf.split(mus, 2, axis=2)
@@ -96,6 +142,15 @@ class RNN(BaseModel):
         return sequence_loss, element_loss
 
     def sample(self, cell):
+        """
+        Generates a sample from the model.
+
+        Args:
+            cell: The RNN cell to use for sampling.
+
+        Returns:
+            Sampled sequence tensor.
+        """
         initial_state = cell.zero_state(self.num_samples, dtype=tf.float32)
         initial_input = tf.concat([
             tf.zeros([self.num_samples, 2]),
@@ -110,6 +165,15 @@ class RNN(BaseModel):
         )[1]
 
     def primed_sample(self, cell):
+        """
+        Generates a sample from the model, primed with an initial sequence.
+
+        Args:
+            cell: The RNN cell to use for sampling.
+
+        Returns:
+            Sampled sequence tensor.
+        """
         initial_state = cell.zero_state(self.num_samples, dtype=tf.float32)
         primed_state = tfcompat.nn.dynamic_rnn(
             inputs=self.x_prime,
@@ -127,6 +191,16 @@ class RNN(BaseModel):
         )[1]
 
     def calculate_loss(self):
+        """
+        Constructs the TensorFlow graph for the model and calculates the loss.
+
+        Sets up placeholders, builds the RNN, computes the mixture density output,
+        and calculates the negative log likelihood loss. Also defines the
+        sampling operations.
+
+        Returns:
+            The calculated loss tensor.
+        """
         self.x = tfcompat.placeholder(tf.float32, [None, None, 3])
         self.y = tfcompat.placeholder(tf.float32, [None, None, 3])
         self.x_len = tfcompat.placeholder(tf.int32, [None])

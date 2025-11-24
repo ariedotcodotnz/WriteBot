@@ -35,12 +35,15 @@ def normalize_text_for_model(s: str, override_chars: Optional[set] = None) -> st
     """
     Normalize text to fit the model's allowed alphabet.
 
+    Converts text to ASCII, applies common typographic replacements,
+    and handles casing to ensure compatibility with the handwriting model.
+
     Args:
-        s: Input string
-        override_chars: Optional set of additional characters to preserve (for character overrides)
+        s: Input string.
+        override_chars: Optional set of additional characters to preserve (for character overrides).
 
     Returns:
-        Normalized string with only allowed characters
+        Normalized string with only allowed characters.
     """
     if s is None:
         return ''
@@ -91,14 +94,14 @@ def wrap_by_canvas(
     handling, better word wrapping, and empty line preservation.
 
     Args:
-        raw_lines: List of input lines
-        content_width_px: Available content width in pixels
-        max_chars_per_line: Maximum characters per line
-        approx_char_px: Approximate character width in pixels
-        utilization: Line utilization factor (> 1.0 packs more characters)
+        raw_lines: List of input lines.
+        content_width_px: Available content width in pixels.
+        max_chars_per_line: Maximum characters per line.
+        approx_char_px: Approximate character width in pixels.
+        utilization: Line utilization factor (> 1.0 packs more characters).
 
     Returns:
-        Tuple of (wrapped_lines, source_indices)
+        Tuple of (wrapped_lines, source_indices).
     """
     try:
         # Try to use improved text processing
@@ -201,10 +204,10 @@ def parse_margins(value: Union[None, float, int, List[float], Dict[str, float]])
     Parse margin value into a standard format.
 
     Args:
-        value: Margin specification
+        value: Margin specification (number, list, dict, or comma-separated string).
 
     Returns:
-        Parsed margin value (number, list, or dict)
+        Parsed margin value (number, list, or dict).
     """
     if value is None:
         return 20
@@ -244,21 +247,17 @@ def map_sequence_to_wrapped(
     """
     Map a per-original-line sequence to per-wrapped-line using src_index.
 
+    This ensures that style parameters (biases, colors, etc.) are correctly
+    propagated when lines are wrapped.
+
     Args:
-        seq: Original sequence (or None)
-        src_index: Source indices mapping wrapped lines to original lines
-        original_len: Number of original lines
-        wrapped_len: Number of wrapped lines
+        seq: Original sequence (or None).
+        src_index: Source indices mapping wrapped lines to original lines.
+        original_len: Number of original lines.
+        wrapped_len: Number of wrapped lines.
 
     Returns:
-        Mapped sequence or None
-
-    Logic:
-    - If seq is None → None
-    - If len == 1 → broadcast to wrapped_len
-    - If len == original_len → map by src_index
-    - If len == wrapped_len → return as-is
-    - Else → broadcast first value to wrapped_len
+        Mapped sequence or None.
     """
     if seq is None:
         return None
@@ -286,11 +285,11 @@ def parse_optional_list(value, cast_fn):
     Parse optional list parameter.
 
     Args:
-        value: Value to parse (can be None, single value, or list)
-        cast_fn: Function to cast values
+        value: Value to parse (can be None, single value, or list).
+        cast_fn: Function to cast values.
 
     Returns:
-        List of cast values or None
+        List of cast values or None.
     """
     if value is None:
         return None
@@ -304,10 +303,10 @@ def parse_lines(data: Dict[str, Any]) -> List[str]:
     Parse lines from request data.
 
     Args:
-        data: Request data dictionary
+        data: Request data dictionary containing 'lines' or 'text'.
 
     Returns:
-        List of text lines
+        List of text lines.
     """
     if isinstance(data.get("lines"), list):
         return [str(x) for x in data["lines"]]
@@ -325,11 +324,11 @@ def wrap_text_lines(lines: List[str], max_chars: int = 75) -> List[str]:
     Simple text wrapping by character count.
 
     Args:
-        lines: Input lines
-        max_chars: Maximum characters per line
+        lines: Input lines.
+        max_chars: Maximum characters per line.
 
     Returns:
-        Wrapped lines
+        Wrapped lines.
     """
     wrapped: List[str] = []
     for line in lines:

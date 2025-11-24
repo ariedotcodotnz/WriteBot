@@ -26,7 +26,12 @@ ALEMBIC_INI = os.path.join(SCRIPT_DIR, 'alembic.ini')
 
 
 def get_alembic_config():
-    """Get Alembic configuration."""
+    """
+    Get Alembic configuration.
+
+    Returns:
+        alembic.config.Config object initialized with the alembic.ini file.
+    """
     if not os.path.exists(ALEMBIC_INI):
         print(f"Error: alembic.ini not found at {ALEMBIC_INI}")
         sys.exit(1)
@@ -34,7 +39,12 @@ def get_alembic_config():
 
 
 def migrate(message=None):
-    """Create a new migration with autogenerate."""
+    """
+    Create a new migration with autogenerate.
+
+    Args:
+        message: Description of the migration.
+    """
     if not message:
         print("Error: Please provide a migration message")
         print("Usage: python manage_migrations.py migrate 'your message here'")
@@ -47,7 +57,12 @@ def migrate(message=None):
 
 
 def upgrade(revision="head"):
-    """Upgrade to a later version."""
+    """
+    Upgrade to a later version.
+
+    Args:
+        revision: Revision identifier to upgrade to. Defaults to "head".
+    """
     config = get_alembic_config()
     print(f"Upgrading database to: {revision}")
     command.upgrade(config, revision)
@@ -55,7 +70,13 @@ def upgrade(revision="head"):
 
 
 def downgrade(revision="-1"):
-    """Revert to a previous version."""
+    """
+    Revert to a previous version.
+
+    Args:
+        revision: Revision identifier to downgrade to (relative or absolute).
+                  Defaults to "-1" (one step back).
+    """
     config = get_alembic_config()
     print(f"Downgrading database to: {revision}")
     command.downgrade(config, revision)
@@ -89,7 +110,7 @@ def show_help():
 
 
 def main():
-    """Main entry point."""
+    """Main entry point for the migration CLI."""
     if len(sys.argv) < 2:
         show_help()
         sys.exit(1)

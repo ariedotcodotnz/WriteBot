@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 One-time script to generate SVG samples for each available handwriting style.
+
 This creates preview images for the style dropdown in the web UI.
 """
 
@@ -15,7 +16,17 @@ if PROJECT_ROOT not in sys.path:
 from handwriting_synthesis.hand.Hand import Hand
 
 def generate_style_samples():
-    """Generate SVG sample files for each available style."""
+    """
+    Generate SVG sample files for each available style.
+
+    This function initializes the Hand model and iterates through available styles (1-12).
+    For each style, it generates an SVG sample file using the `Hand.write_chunked` method
+    with specific settings optimized for compact previews. The generated SVG files are
+    saved in the `model/style` directory.
+
+    Returns:
+        None
+    """
 
     # Initialize the Hand model
     print("Initializing Hand model...")
