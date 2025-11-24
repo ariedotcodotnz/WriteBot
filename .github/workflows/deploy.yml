@@ -1,0 +1,83 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # Allow manual deployment
+
+env:
+  DEPLOY_PATH: /opt/writebot
+
+jobs:
+  deploy:
+    name: Deploy to VM Server
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add server to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+        run: |
+          ssh $SERVER_USER@$SERVER_HOST << 'ENDSSH'
+            set -e
+
+            echo "======================================"
+            echo "Starting deployment on server..."
+            echo "======================================"
+
+            # Navigate to application directory
+            cd ${{ env.DEPLOY_PATH }}
+
+            # Pull latest changes
+            echo "Pulling latest code..."
+            git pull origin main
+
+            # Run deployment script
+            echo "Running deployment script..."
+            sudo bash deploy/deploy.sh
+
+            echo "======================================"
+            echo "Deployment completed!"
+            echo "======================================"
+          ENDSSH
+
+      - name: Health check
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        run: |
+          echo "Waiting for application to start..."
+          sleep 30
+
+          echo "Performing health check..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://$SERVER_HOST/api/health || echo "000")
+
+          if [ "$response" = "200" ]; then
+            echo "✓ Health check passed!"
+          else
+            echo "✗ Health check failed with status: $response"
+            exit 1
+          fi
+
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✓ Deployment successful!"
+          else
+            echo "✗ Deployment failed!"
+          fi

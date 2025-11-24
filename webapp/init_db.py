@@ -161,12 +161,26 @@ def create_demo_users():
 
 def main():
     """Main initialization routine."""
-    print("WriteBot Database Initialization")
-    print("="*50)
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Initialize WriteBot database')
+    parser.add_argument('--auto', action='store_true',
+                       help='Run in automatic mode (non-interactive, for production)')
+    args = parser.parse_args()
+
+    if not args.auto:
+        print("WriteBot Database Initialization")
+        print("="*50)
 
     # Initialize database
     init_database()
 
+    if args.auto:
+        # Automatic mode - just run migrations and exit
+        print("Database initialization completed (auto mode)")
+        return
+
+    # Interactive mode - create admin user and demo users
     # Create admin user
     create_admin = input("\nDo you want to create an admin user? (y/n): ").strip().lower()
     if create_admin == 'y':

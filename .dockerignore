@@ -1,0 +1,94 @@
+# Git
+.git
+.gitignore
+.github
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.venv
+venv/
+env/
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Tests
+tests/
+test_*.py
+*_test.py
+
+# CI/CD
+.github/
+
+# Logs and databases (will be mounted as volumes)
+logs/
+*.log
+*.db
+*.sqlite
+*.sqlite3
+instance/
+
+# Temporary files
+*.tmp
+.DS_Store
+Thumbs.db
+img/
+
+# Node modules
+node_modules/
+webapp/node_modules/
+
+# Build artifacts
+webapp/static/.webassets-cache/
+webapp/static/admin.css
+webapp/static/admin.js
+webapp/static/common.css
+webapp/static/common.js
+webapp/static/generator.js
+
+# Model data (will be mounted as volumes)
+model/data/raw/
+model/data/processed/
+
+# Outputs
+predictions/
+output/
+test_output/
+*.svg
+
+# Backup files
+*.bak
+*~
+
+# Deployment files (except Dockerfile)
+deploy/
+docker-compose*.yml
+.dockerignore
+.env
+.env.*
+
+# Jupyter notebooks
+.ipynb_checkpoints
+*.ipynb
+
+# Coverage reports
+.coverage
+htmlcov/
