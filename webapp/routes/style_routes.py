@@ -118,9 +118,12 @@ def get_style_preview(style_id: int):
     try:
         # Look for SVG preview file
         svg_path = os.path.join(STYLE_DIR, f"style-{style_id}.svg")
+        # Normalize path and check it remains within STYLE_DIR
+        normalized_svg_path = os.path.normpath(os.path.abspath(svg_path))
+        style_dir_abs = os.path.abspath(STYLE_DIR)
 
-        if os.path.isfile(svg_path):
-            return send_file(svg_path, mimetype='image/svg+xml')
+        if (normalized_svg_path.startswith(style_dir_abs + os.sep) or normalized_svg_path == style_dir_abs) and os.path.isfile(normalized_svg_path):
+            return send_file(normalized_svg_path, mimetype='image/svg+xml')
 
         # If no preview exists, return a placeholder SVG
         placeholder_svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40">
