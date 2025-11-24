@@ -66,6 +66,9 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Setup Docker Compose
+        uses: docker/compose-action@v2
+
       - name: Test Docker image
         run: |
           docker-compose -f docker-compose.yml config
