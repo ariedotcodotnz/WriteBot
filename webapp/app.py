@@ -59,7 +59,16 @@ app = Flask(__name__, static_folder="static", static_url_path="/static")
 
 # Configuration
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', '0ea55211309ed371c3d266185fb4123f')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///writebot.db')
+
+# Set database path - use instance folder for consistency
+if not os.environ.get('DATABASE_URL'):
+    instance_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance')
+    os.makedirs(instance_path, exist_ok=True)
+    db_path = os.path.join(instance_path, 'writebot.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Flask-Caching configuration

@@ -14,8 +14,9 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from app import app
-from models import db, User
+# Import app first to ensure proper initialization
+from app import app, db
+from models import User
 
 
 def get_password_input(prompt="Password: "):
@@ -61,7 +62,7 @@ def create_admin_user():
         print("="*50)
 
         # Check if admin already exists
-        existing_admin = User.query.filter_by(role='admin').first()
+        existing_admin = db.session.query(User).filter_by(role='admin').first()
         if existing_admin:
             print(f"\nWarning: An admin user already exists: {existing_admin.username}")
             confirm = input("Do you want to create another admin user? (y/n): ").strip().lower()
@@ -73,7 +74,7 @@ def create_admin_user():
         username = input("\nEnter admin username: ").strip()
 
         # Check if username exists
-        if User.query.filter_by(username=username).first():
+        if db.session.query(User).filter_by(username=username).first():
             print(f"Error: User '{username}' already exists!")
             return
 
@@ -106,7 +107,7 @@ def create_admin_user():
         db.session.add(admin)
         db.session.commit()
 
-        print(f"\n✓ Admin user '{username}' created successfully!")
+        print(f"\n[OK] Admin user '{username}' created successfully!")
 
 
 def create_demo_users():
@@ -140,8 +141,8 @@ def create_demo_users():
             username = user_data['username']
 
             # Check if user already exists
-            if User.query.filter_by(username=username).first():
-                print(f"⊘ User '{username}' already exists, skipping...")
+            if db.session.query(User).filter_by(username=username).first():
+                print(f"[SKIP] User '{username}' already exists, skipping...")
                 continue
 
             user = User(
@@ -155,7 +156,7 @@ def create_demo_users():
             db.session.add(user)
             db.session.commit()
 
-            print(f"✓ Created {user_data['role']} user: {username} (password: {user_data['password']})")
+            print(f"[OK] Created {user_data['role']} user: {username} (password: {user_data['password']})")
 
 
 def main():
