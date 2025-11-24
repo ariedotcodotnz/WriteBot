@@ -18,11 +18,11 @@ def to_px(v: float, units: str) -> float:
     Convert a value to pixels based on units.
 
     Args:
-        v: Value to convert
-        units: Unit type ('mm' or 'px')
+        v: Value to convert.
+        units: Unit type ('mm' or 'px').
 
     Returns:
-        Value in pixels
+        Value in pixels.
     """
     try:
         f = float(v)
@@ -39,11 +39,11 @@ def margins_to_px(
     Convert margins to pixels.
 
     Args:
-        margins: Margin specification (single value, list, or dict)
-        units: Unit type ('mm' or 'px')
+        margins: Margin specification (single value, list, or dict).
+        units: Unit type ('mm' or 'px').
 
     Returns:
-        Tuple of (top, right, bottom, left) in pixels
+        Tuple of (top, right, bottom, left) in pixels.
     """
     def to_tuple(m) -> Tuple[float, float, float, float]:
         if isinstance(m, (int, float)):
@@ -73,15 +73,18 @@ def resolve_page_px(
     """
     Resolve page dimensions in pixels.
 
+    Calculates the final width and height in pixels, taking into account
+    explicit dimensions, standard paper sizes, units, and orientation.
+
     Args:
-        page_size: Standard paper size name or custom dimensions
-        units: Unit type ('mm' or 'px')
-        page_width: Optional explicit width
-        page_height: Optional explicit height
-        orientation: 'portrait' or 'landscape'
+        page_size: Standard paper size name (e.g., 'A4') or custom dimensions tuple.
+        units: Unit type ('mm' or 'px').
+        page_width: Optional explicit width.
+        page_height: Optional explicit height.
+        orientation: 'portrait' or 'landscape'.
 
     Returns:
-        Tuple of (width_px, height_px)
+        Tuple of (width_px, height_px).
     """
     # Explicit dimensions take precedence
     if page_width and page_height:
@@ -107,11 +110,11 @@ def line_height_px(units: str, line_height_value: Optional[Union[float, int]]) -
     Convert line height to pixels.
 
     Args:
-        units: Unit type ('mm' or 'px')
-        line_height_value: Line height value
+        units: Unit type ('mm' or 'px').
+        line_height_value: Line height value.
 
     Returns:
-        Line height in pixels
+        Line height in pixels (defaults to 60.0 if invalid).
     """
     if line_height_value is None or str(line_height_value).strip() == "":
         return 60.0

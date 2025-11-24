@@ -91,7 +91,15 @@ login_manager.login_message = 'Please log in to access this page.'
 
 @login_manager.user_loader
 def load_user(user_id):
-    """Load user by ID for Flask-Login."""
+    """
+    Load user by ID for Flask-Login.
+
+    Args:
+        user_id: The user ID to load.
+
+    Returns:
+        User object or None.
+    """
     return db.session.get(User, int(user_id))
 
 # Initialize Flask-Caching
@@ -220,7 +228,12 @@ app.register_blueprint(character_override_bp)
 @app.route('/api/collections')
 @login_required
 def get_character_override_collections():
-    """API endpoint to get all active character override collections for generation form."""
+    """
+    API endpoint to get all active character override collections for generation form.
+
+    Returns:
+        JSON response containing a list of override collections.
+    """
     from webapp.models import CharacterOverrideCollection
     collections = CharacterOverrideCollection.query.filter_by(is_active=True).order_by(CharacterOverrideCollection.name).all()
 
@@ -235,7 +248,11 @@ def get_character_override_collections():
 
 @app.route("/")
 def index():
-    """Serve the main application page using Flask templates."""
+    """
+    Serve the main application page using Flask templates.
+
+    Requires login. Logs the page view activity.
+    """
     from flask_login import login_required
     from webapp.utils.auth_utils import log_activity
 
@@ -249,7 +266,12 @@ def index():
 
 @app.route("/api/health", methods=["GET"])
 def health():
-    """Health check endpoint (cached for 60 seconds)."""
+    """
+    Health check endpoint (cached for 60 seconds).
+
+    Returns:
+        JSON status response.
+    """
     # Example of using cache decorator - cache this endpoint for 60 seconds
     if cache:
         @cache.cached(timeout=60, key_prefix='health_check')
@@ -269,13 +291,23 @@ def health():
 
 @app.route('/robots.txt')
 def robots():
-    """robots.txt endpoint."""
+    """
+    robots.txt endpoint.
+
+    Returns:
+        Static robots.txt file.
+    """
     return send_from_directory(app.static_folder, 'robots.txt')
 
 @app.route('/.well-known/security.txt')
 @app.route('/security.txt')
 def security():
-    """security.txt endpoint."""
+    """
+    security.txt endpoint.
+
+    Returns:
+        Static security.txt file.
+    """
     return send_from_directory(app.static_folder, 'security.txt')
 
 
@@ -283,7 +315,15 @@ def security():
 @app.route('/docs/<path:filename>')
 @login_required
 def serve_docs(filename='index.html'):
-    """Serve Sphinx documentation."""
+    """
+    Serve Sphinx documentation.
+
+    Args:
+        filename: The documentation file to serve.
+
+    Returns:
+        The requested file or a 404 error if documentation is not built.
+    """
     docs_dir = os.path.join(PROJECT_ROOT, 'docs', 'build', 'html')
 
     # Check if documentation exists

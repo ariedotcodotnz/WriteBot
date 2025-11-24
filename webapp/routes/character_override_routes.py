@@ -17,7 +17,12 @@ character_override_bp = Blueprint('character_overrides', __name__, url_prefix='/
 def parse_svg_viewbox(svg_content):
     """
     Parse SVG content and extract viewBox dimensions.
-    Returns tuple: (viewbox_x, viewbox_y, viewbox_width, viewbox_height)
+
+    Args:
+        svg_content: The SVG XML string.
+
+    Returns:
+        Tuple: (viewbox_x, viewbox_y, viewbox_width, viewbox_height) or None on failure.
     """
     try:
         # Parse SVG
@@ -48,7 +53,12 @@ def parse_svg_viewbox(svg_content):
 def validate_svg(svg_content):
     """
     Validate SVG content and check if it meets requirements.
-    Returns (is_valid, error_message, viewbox_data)
+
+    Args:
+        svg_content: The SVG XML string.
+
+    Returns:
+        Tuple: (is_valid, error_message, viewbox_data).
     """
     try:
         # Try to parse as XML
@@ -74,7 +84,11 @@ def validate_svg(svg_content):
 @login_required
 @admin_required
 def list_collections():
-    """List all character override collections."""
+    """
+    List all character override collections.
+
+    Displays a summary of all collections and their statistics.
+    """
     collections = CharacterOverrideCollection.query.order_by(desc(CharacterOverrideCollection.created_at)).all()
 
     # Get character counts for each collection
@@ -96,7 +110,11 @@ def list_collections():
 @login_required
 @admin_required
 def create_collection():
-    """Create a new character override collection."""
+    """
+    Create a new character override collection.
+
+    Handles creation form display and submission.
+    """
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
         description = request.form.get('description', '').strip()
@@ -133,7 +151,11 @@ def create_collection():
 @login_required
 @admin_required
 def view_collection(collection_id):
-    """View collection details and manage character overrides."""
+    """
+    View collection details and manage character overrides.
+
+    Displays the contents of a specific collection.
+    """
     collection = CharacterOverrideCollection.query.get_or_404(collection_id)
 
     # Get all character overrides grouped by character
@@ -157,7 +179,11 @@ def view_collection(collection_id):
 @login_required
 @admin_required
 def edit_collection(collection_id):
-    """Edit an existing collection."""
+    """
+    Edit an existing collection.
+
+    Updates collection name, description, or status.
+    """
     collection = CharacterOverrideCollection.query.get_or_404(collection_id)
 
     if request.method == 'POST':
@@ -195,7 +221,11 @@ def edit_collection(collection_id):
 @login_required
 @admin_required
 def delete_collection(collection_id):
-    """Delete a collection and all its character overrides."""
+    """
+    Delete a collection and all its character overrides.
+
+    Permanently removes the collection.
+    """
     collection = CharacterOverrideCollection.query.get_or_404(collection_id)
 
     name = collection.name
@@ -211,7 +241,11 @@ def delete_collection(collection_id):
 @login_required
 @admin_required
 def upload_character(collection_id):
-    """Upload a character SVG to the collection."""
+    """
+    Upload a character SVG to the collection.
+
+    Processes a single file upload.
+    """
     collection = CharacterOverrideCollection.query.get_or_404(collection_id)
 
     character = request.form.get('character', '').strip()
@@ -267,7 +301,11 @@ def upload_character(collection_id):
 @login_required
 @admin_required
 def upload_batch(collection_id):
-    """Upload multiple character SVGs at once."""
+    """
+    Upload multiple character SVGs at once.
+
+    Processes multiple files. Filenames should start with the character (e.g., 'a.svg').
+    """
     collection = CharacterOverrideCollection.query.get_or_404(collection_id)
 
     # Check if files were uploaded
@@ -347,6 +385,7 @@ def upload_batch(collection_id):
 def save_drawn_character(collection_id):
     """
     Save a character drawn in the browser's canvas interface.
+
     This endpoint receives SVG data generated from canvas strokes.
     """
     collection = CharacterOverrideCollection.query.get_or_404(collection_id)
@@ -423,7 +462,11 @@ def save_drawn_character(collection_id):
 @login_required
 @admin_required
 def delete_character(override_id):
-    """Delete a character override variant."""
+    """
+    Delete a character override variant.
+
+    Removes a specific character variation from the collection.
+    """
     override = CharacterOverride.query.get_or_404(override_id)
     collection_id = override.collection_id
     character = override.character
@@ -440,7 +483,11 @@ def delete_character(override_id):
 @login_required
 @admin_required
 def preview_character(override_id):
-    """Preview a character override SVG."""
+    """
+    Preview a character override SVG.
+
+    Returns the raw SVG content for the override.
+    """
     override = CharacterOverride.query.get_or_404(override_id)
     return override.svg_data, 200, {'Content-Type': 'image/svg+xml'}
 
@@ -452,7 +499,9 @@ def preview_character(override_id):
 def get_character_override(collection_id, character):
     """
     Get a random character override from the collection for the given character.
-    Returns CharacterOverride object or None if not found.
+
+    Returns:
+        CharacterOverride object or None if not found.
     """
     overrides = CharacterOverride.query.filter_by(
         collection_id=collection_id,

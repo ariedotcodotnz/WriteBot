@@ -1,3 +1,5 @@
+"""Data reader for loading and splitting handwriting datasets."""
+
 from __future__ import print_function
 
 import os
@@ -17,7 +19,21 @@ tfcompat.disable_v2_behavior()
 
 
 class DataReader(object):
+    """
+    Handles loading, splitting, and serving of handwriting data.
+
+    Loads data from numpy files, splits it into train/val/test sets,
+    and provides generators for batching.
+    """
+
     def __init__(self, data_dir):
+        """
+        Initialize the DataReader.
+
+        Args:
+            data_dir: Directory containing the preprocessed .npy data files
+                      ('x.npy', 'x_len.npy', 'c.npy', 'c_len.npy').
+        """
         data_cols = ['x', 'x_len', 'c', 'c_len']
         data = [np.load(os.path.join(data_dir, '{}.npy'.format(i))) for i in data_cols]
 
@@ -29,6 +45,15 @@ class DataReader(object):
         print('test size', len(self.test_df))
 
     def train_batch_generator(self, batch_size):
+        """
+        Get a generator for training batches.
+
+        Args:
+            batch_size: Batch size.
+
+        Returns:
+            Generator yielding batches.
+        """
         return batch_generator(
             batch_size=batch_size,
             df=self.train_df,
@@ -38,6 +63,15 @@ class DataReader(object):
         )
 
     def val_batch_generator(self, batch_size):
+        """
+        Get a generator for validation batches.
+
+        Args:
+            batch_size: Batch size.
+
+        Returns:
+            Generator yielding batches.
+        """
         return batch_generator(
             batch_size=batch_size,
             df=self.val_df,
@@ -47,6 +81,15 @@ class DataReader(object):
         )
 
     def test_batch_generator(self, batch_size):
+        """
+        Get a generator for test batches.
+
+        Args:
+            batch_size: Batch size.
+
+        Returns:
+            Generator yielding batches.
+        """
         return batch_generator(
             batch_size=batch_size,
             df=self.test_df,

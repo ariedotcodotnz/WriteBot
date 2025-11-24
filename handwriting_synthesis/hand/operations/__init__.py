@@ -1,4 +1,9 @@
-"""Handwriting stroke operation modules."""
+"""
+Handwriting stroke operation modules.
+
+This package exposes various operations for manipulating handwriting strokes,
+chunking text, and sampling from the model.
+"""
 
 from .stroke_ops import (
     get_stroke_width,

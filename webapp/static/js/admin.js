@@ -11,7 +11,9 @@
   // ============================================
 
   /**
-   * Add confirmation dialog to delete forms
+   * Add confirmation dialog to delete forms.
+   * Intercepts form submission and prompts the user for confirmation.
+   * Uses the 'data-confirm' attribute for the custom message.
    */
   function initDeleteConfirmations() {
     const deleteForms = document.querySelectorAll('form[data-confirm]');
@@ -27,7 +29,9 @@
   }
 
   /**
-   * Add confirmation dialog to delete buttons
+   * Add confirmation dialog to delete buttons.
+   * Intercepts button click and prompts the user for confirmation.
+   * Uses the 'data-confirm-action' attribute for the custom message.
    */
   function initDeleteButtons() {
     const deleteButtons = document.querySelectorAll('[data-confirm-action]');
@@ -47,7 +51,8 @@
   // ============================================
 
   /**
-   * Add hover effect highlighting to table rows
+   * Add hover effect highlighting to table rows.
+   * Adds a pointer cursor to indicate interactivity.
    */
   function initTableHighlighting() {
     const tables = document.querySelectorAll('.admin-table');
@@ -62,7 +67,9 @@
   }
 
   /**
-   * Enable table sorting (basic implementation)
+   * Enable table sorting (basic implementation).
+   * Adds sorting functionality to table headers with the 'data-sortable' attribute.
+   * Supports numeric and string sorting in ascending and descending order.
    */
   function initTableSorting() {
     const sortableHeaders = document.querySelectorAll('[data-sortable]');
@@ -106,7 +113,8 @@
   // ============================================
 
   /**
-   * Auto-dismiss success alerts after a delay
+   * Auto-dismiss success alerts after a delay.
+   * Success alerts will fade out and be removed from the DOM after 5 seconds.
    */
   function initAutoDismissAlerts() {
     const successAlerts = document.querySelectorAll('.alert-success');
@@ -126,7 +134,9 @@
   // ============================================
 
   /**
-   * Add real-time validation feedback to forms
+   * Add real-time validation feedback to forms.
+   * Validates required fields on blur and on form submission.
+   * Displays error messages below invalid inputs.
    */
   function initFormValidation() {
     const forms = document.querySelectorAll('form[data-validate]');
@@ -164,6 +174,11 @@
     });
   }
 
+  /**
+   * Validate a single input field.
+   * @param {HTMLElement} input - The input element to validate.
+   * @returns {boolean} - True if valid, False otherwise.
+   */
   function validateInput(input) {
     const value = input.value.trim();
     const isValid = value !== '';
@@ -181,6 +196,11 @@
     return isValid;
   }
 
+  /**
+   * Show an error message for an input.
+   * @param {HTMLElement} input - The input element.
+   * @param {string} message - The error message to display.
+   */
   function showErrorMessage(input, message) {
     removeErrorMessage(input);
     const errorDiv = document.createElement('div');
@@ -189,6 +209,10 @@
     input.parentNode.appendChild(errorDiv);
   }
 
+  /**
+   * Remove the error message for an input.
+   * @param {HTMLElement} input - The input element.
+   */
   function removeErrorMessage(input) {
     const existingError = input.parentNode.querySelector('.form-error');
     if (existingError) {
@@ -201,7 +225,8 @@
   // ============================================
 
   /**
-   * Initialize tooltips for elements with data-tooltip attribute
+   * Initialize tooltips for elements with data-tooltip attribute.
+   * Creates a tooltip element on mouseenter and removes it on mouseleave.
    */
   function initTooltips() {
     const tooltipElements = document.querySelectorAll('[data-tooltip]');
@@ -244,7 +269,9 @@
   // ============================================
 
   /**
-   * Add search functionality to tables
+   * Add search functionality to tables.
+   * Links a search input (with 'data-table-search' attribute) to a table.
+   * Filters rows in real-time based on text content.
    */
   function initTableSearch() {
     const searchInputs = document.querySelectorAll('[data-table-search]');
@@ -272,7 +299,8 @@
   // ============================================
 
   /**
-   * Animate stat card numbers on page load
+   * Animate stat card numbers on page load.
+   * Counts up from 0 to the final value for elements with class 'stat-card__value'.
    */
   function initStatAnimations() {
     const statValues = document.querySelectorAll('.stat-card__value');
@@ -301,7 +329,8 @@
   // ============================================
 
   /**
-   * Copy text to clipboard when clicking elements with data-copy attribute
+   * Copy text to clipboard when clicking elements with data-copy attribute.
+   * Provides visual feedback upon successful copy.
    */
   function initClipboardCopy() {
     const copyElements = document.querySelectorAll('[data-copy]');
@@ -325,6 +354,10 @@
   // Initialize All Features
   // ============================================
 
+  /**
+   * Main initialization function.
+   * Checks DOM readiness and calls feature initializers.
+   */
   function init() {
     // Wait for DOM to be fully loaded
     if (document.readyState === 'loading') {
@@ -349,4 +382,5 @@
 
   // Run initialization
   init();
+
 })();

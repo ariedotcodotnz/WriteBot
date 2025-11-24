@@ -11,7 +11,13 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    """Handle user login."""
+    """
+    Handle user login.
+
+    GET: Renders the login page.
+    POST: Processes the login form submission, validates credentials,
+          logs the user in, and redirects to the requested page or home.
+    """
     # Redirect if already logged in
     if current_user.is_authenticated:
         return redirect(url_for('index'))
@@ -57,7 +63,11 @@ def login():
 @auth_bp.route('/logout')
 @login_required
 def logout():
-    """Handle user logout."""
+    """
+    Handle user logout.
+
+    Logs the current user out, records the activity, and redirects to login.
+    """
     username = current_user.username
     log_activity('logout', f'User {username} logged out')
     logout_user()

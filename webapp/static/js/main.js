@@ -9,7 +9,11 @@ let PAGE_SIZE_PRESETS = [];
 let TEMPLATE_PRESETS = [];
 let rulerActive = false;
 
-// Parse SVG dimensions
+/**
+ * Parse SVG dimensions from an SVG element.
+ * @param {SVGElement} svgElement - The SVG element to parse.
+ * @returns {Object|null} - Object containing width, height, and units, or null if failed.
+ */
 function parseSvgDimensions(svgElement) {
   if (!svgElement) return null;
 
@@ -36,95 +40,24 @@ function parseSvgDimensions(svgElement) {
   };
 }
 
-// // Ruler Functions
-// function initializeRuler() {
-//   const preview = document.getElementById('preview');
-//   const container = document.getElementById('previewContainerRuler');
-//
-//   if (!preview || !container || !lastSvgText) {
-//     console.log('Ruler init skipped: missing elements or SVG');
-//     return;
-//   }
-//
-//   // Clear existing ruler
-//   clearRuler();
-//
-//   // Get the SVG element
-//   const svgElement = preview.querySelector('svg');
-//   if (!svgElement) {
-//     console.log('Ruler init skipped: no SVG element found');
-//     return;
-//   }
-//
-//   // Parse SVG dimensions
-//   const dims = parseSvgDimensions(svgElement);
-//   if (!dims) {
-//     console.warn('Could not parse SVG dimensions');
-//     return;
-//   }
-//
-//   console.log('SVG Dimensions:', dims);
-//   console.log('Container dimensions:', container.offsetWidth, 'x', container.offsetHeight);
-//
-//   // Only initialize ruler if there's SVG content and dimensions
-//   if (window.Ruler) {
-//     // Wait for next frame to ensure SVG is rendered and container has dimensions
-//     requestAnimationFrame(() => {
-//       // Double check container has dimensions
-//       if (container.offsetWidth === 0 || container.offsetHeight === 0) {
-//         console.warn('Container has no dimensions, retrying...');
-//         setTimeout(() => initializeRuler(), 100);
-//         return;
-//       }
-//
-//       try {
-//         console.log('Creating ruler...');
-//
-//         // Create ruler with mm units (matching SVG)
-//         Ruler.create(container, {
-//           unit: 'mm',
-//           unitPrecision: 1,
-//           showCrosshair: true,
-//           showMousePos: true,
-//           tickColor: '#161616',
-//           crosshairColor: '#0f62fe',
-//           crosshairStyle: 'solid',
-//           mouseBoxBg: '#161616',
-//           mouseBoxColor: '#fff',
-//           vRuleSize: 30,
-//           hRuleSize: 30
-//         });
-//
-//         rulerActive = true;
-//         console.log('Ruler initialized successfully');
-//       } catch (e) {
-//         console.error('Failed to initialize ruler:', e);
-//       }
-//     });
-//   } else {
-//     console.error('Ruler library not loaded!');
-//   }
-// }
-//
-// function clearRuler() {
-//   const container = document.getElementById('previewContainerRuler');
-//   if (window.Ruler && rulerActive && container) {
-//     try {
-//       Ruler.clear(container);
-//       console.log('Ruler cleared');
-//     } catch (e) {
-//       console.error('Error clearing ruler:', e);
-//     }
-//     rulerActive = false;
-//   }
-// }
-
 // UI Helper Functions
+
+/**
+ * Toggle the loading overlay.
+ * @param {boolean} visible - Whether to show or hide the overlay.
+ */
 function setLoading(visible) {
   const overlay = document.getElementById('overlay');
   overlay.classList.toggle('visible', !!visible);
 }
 
+/**
+ * Show a notification toast.
+ * @param {string} type - Notification type ('success' or 'error').
+ * @param {string} title - Notification title.
+ * @param {string} message - Notification message content.
+ * @param {number} [duration=5000] - Duration in milliseconds before auto-dismiss.
+ */
 function showNotification(type, title, message, duration = 5000) {
   const container = document.getElementById('notif');
   const id = 'notif-' + Date.now();
@@ -160,15 +93,26 @@ function showNotification(type, title, message, duration = 5000) {
   }
 }
 
+/**
+ * Show an error toast.
+ * @param {string} msg - The error message.
+ */
 function toastError(msg) {
   showNotification('error', 'Error', msg);
 }
 
+/**
+ * Show a success toast.
+ * @param {string} msg - The success message.
+ */
 function toastSuccess(msg) {
   showNotification('success', 'Success', msg);
 }
 
-// Style Loading with Custom Dropdown
+/**
+ * Load available handwriting styles from the API.
+ * Populates both the standard select and custom dropdown.
+ */
 async function loadStyles() {
   const sel = document.getElementById('styleSelect');
   const customDropdown = document.getElementById('styleDropdown');
@@ -235,6 +179,10 @@ async function loadStyles() {
   }
 }
 
+/**
+ * Select a handwriting style.
+ * @param {number|string} styleId - The ID of the style to select.
+ */
 function selectStyle(styleId) {
   SELECTED_STYLE_ID = styleId;
   const sel = document.getElementById('styleSelect');
@@ -249,17 +197,25 @@ function selectStyle(styleId) {
   });
 }
 
+/**
+ * Toggle visibility of the custom style dropdown.
+ */
 function toggleStyleDropdown() {
   const dropdown = document.getElementById('styleDropdown');
   dropdown.classList.toggle('active');
 }
 
+/**
+ * Close the custom style dropdown.
+ */
 function closeStyleDropdown() {
   const dropdown = document.getElementById('styleDropdown');
   dropdown.classList.remove('active');
 }
 
-// Character Override Collections
+/**
+ * Load character override collections from the API.
+ */
 async function loadCharacterOverrideCollections() {
   try {
     const res = await fetch('/api/collections');
@@ -280,7 +236,9 @@ async function loadCharacterOverrideCollections() {
   }
 }
 
-// Page Size Presets
+/**
+ * Load page size presets from the API.
+ */
 async function loadPageSizePresets() {
   try {
     const res = await fetch('/api/page-sizes');
@@ -312,7 +270,9 @@ async function loadPageSizePresets() {
   }
 }
 
-// Template Presets
+/**
+ * Load template presets from the API.
+ */
 async function loadTemplatePresets() {
   try {
     const res = await fetch('/api/templates');
@@ -333,6 +293,10 @@ async function loadTemplatePresets() {
   }
 }
 
+/**
+ * Apply a selected template preset to the form fields.
+ * @param {string} templateId - The ID of the template to apply.
+ */
 async function applyTemplatePreset(templateId) {
   if (!templateId) return;
 
@@ -370,6 +334,10 @@ async function applyTemplatePreset(templateId) {
 }
 
 // Save Preset Modal Functions
+
+/**
+ * Open the modal to save current settings as a preset.
+ */
 function openSavePresetModal() {
   const modal = document.getElementById('savePresetModal');
   modal.style.display = 'flex';
@@ -378,11 +346,17 @@ function openSavePresetModal() {
   document.getElementById('presetName').focus();
 }
 
+/**
+ * Close the save preset modal.
+ */
 function closeSavePresetModal() {
   const modal = document.getElementById('savePresetModal');
   modal.style.display = 'none';
 }
 
+/**
+ * Save current form settings as a new template preset via API.
+ */
 async function savePreset() {
   const name = document.getElementById('presetName').value.trim();
   const description = document.getElementById('presetDescription').value.trim();
@@ -495,14 +469,19 @@ async function savePreset() {
   }
 }
 
-// Custom Size Visibility
+/**
+ * Show/hide custom page dimension fields based on page size selection.
+ */
 function syncCustomSizeVisibility() {
   const pageSize = document.getElementById('pageSize').value;
   const customFields = document.getElementById('customSizeFields');
   customFields.style.display = pageSize === 'custom' ? 'block' : 'none';
 }
 
-// Build Margins Object
+/**
+ * Build the margins object from input fields.
+ * @returns {Object|undefined} - Margins object or undefined if all fields empty.
+ */
 function buildMargins() {
   const mt = document.getElementById('marginTop').value;
   const mr = document.getElementById('marginRight').value;
@@ -516,7 +495,12 @@ function buildMargins() {
   return { top: t ?? 20, right: r ?? 20, bottom: b ?? 20, left: l ?? 20 };
 }
 
-// Apply Presets
+/**
+ * Apply generic preset values to the form.
+ * @param {string} size - Page size ID.
+ * @param {string} orient - Orientation ('portrait'/'landscape').
+ * @param {number} margin - Margin size.
+ */
 function applyPreset(size, orient, margin) {
   document.getElementById('pageSize').value = size;
   document.getElementById('orientation').value = orient;
@@ -528,7 +512,9 @@ function applyPreset(size, orient, margin) {
   toastSuccess(`Applied preset: ${size} ${orient}`);
 }
 
-// Copy SVG
+/**
+ * Copy the generated SVG code to clipboard.
+ */
 function copySvg() {
   if (!lastSvgText) {
     toastError('No SVG to copy. Generate handwriting first.');
@@ -540,8 +526,11 @@ function copySvg() {
     .catch(() => toastError('Failed to copy to clipboard'));
 }
 
-// Main Generation
-// Helper to resolve page size from preset ID to name
+/**
+ * Helper to resolve page size from preset ID to name.
+ * @param {string} pageSizeValue - The selected page size value (ID or 'custom').
+ * @returns {string} - The page size name.
+ */
 function resolvePageSize(pageSizeValue) {
   if (pageSizeValue === 'custom') {
     return 'custom';
@@ -550,6 +539,10 @@ function resolvePageSize(pageSizeValue) {
   return preset ? preset.name : 'A4';
 }
 
+/**
+ * Trigger handwriting generation.
+ * Collects all form parameters and sends them to the generation API.
+ */
 async function generate() {
   const text = document.getElementById('text').value;
   if (!text.trim()) {
@@ -676,7 +669,9 @@ async function generate() {
   }
 }
 
-// Download SVG
+/**
+ * Download the generated handwriting as an SVG file.
+ */
 function downloadSVG() {
   if (!lastSvgText) {
     toastError('Please generate handwriting first');
@@ -697,7 +692,10 @@ function downloadSVG() {
   toastSuccess('SVG downloaded');
 }
 
-// Download PDF
+/**
+ * Download the generated handwriting as a PDF file.
+ * Uses jsPDF and svg2pdf libraries.
+ */
 async function downloadPDF() {
   if (!lastSvgText) {
     toastError('Please generate handwriting first');
@@ -817,6 +815,9 @@ async function downloadPDF() {
 // Batch Processing
 let BATCH_LOG_TEXT = ''; // Store the ASCII log
 
+/**
+ * Clear the batch processing UI.
+ */
 function clearBatchUI() {
   document.getElementById('batchContainer').style.display = 'none';
   document.getElementById('batchLiveGrid').innerHTML = '';
@@ -830,6 +831,11 @@ function clearBatchUI() {
   document.getElementById('batchDownload').style.display = 'none';
 }
 
+/**
+ * Open the batch preview modal for a generated file.
+ * @param {string} filename - Name of the file.
+ * @param {string} svgContent - SVG content.
+ */
 function openBatchPreview(filename, svgContent) {
   const modal = document.getElementById('batchPreviewModal');
   const title = document.getElementById('batchPreviewTitle');
@@ -843,11 +849,18 @@ function openBatchPreview(filename, svgContent) {
   if (typeof feather !== 'undefined') feather.replace();
 }
 
+/**
+ * Close the batch preview modal.
+ */
 function closeBatchPreview() {
   const modal = document.getElementById('batchPreviewModal');
   modal.style.display = 'none';
 }
 
+/**
+ * Append a message to the batch processing log.
+ * @param {string} message - Message to append.
+ */
 function appendLog(message) {
   BATCH_LOG_TEXT += message + '\n';
   document.getElementById('batchLog').textContent = BATCH_LOG_TEXT;
@@ -856,6 +869,10 @@ function appendLog(message) {
   logElement.scrollTop = logElement.scrollHeight;
 }
 
+/**
+ * Process batch generation via streaming response.
+ * Sends CSV file and configuration to the backend and handles SSE updates.
+ */
 async function batchGenerateStream() {
   if (!CSV_FILE) {
     toastError('Please select a CSV file first');
@@ -1003,6 +1020,10 @@ async function batchGenerateStream() {
 }
 
 // CSV Drag and Drop
+
+/**
+ * Setup drag and drop functionality for CSV files.
+ */
 function setupCsvDragDrop() {
   const dropzone = document.getElementById('csvDrop');
   const input = document.getElementById('csv');
@@ -1067,6 +1088,10 @@ function setupCsvDragDrop() {
 }
 
 // Zoom Control
+
+/**
+ * Setup zoom controls for the preview area.
+ */
 function setupZoomControl() {
   const zoom = document.getElementById('zoom');
   const zoomVal = document.getElementById('zoomVal');

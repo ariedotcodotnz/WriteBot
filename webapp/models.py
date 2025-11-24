@@ -1,6 +1,10 @@
 """
-Database models for user authentication and activity tracking.
+Database models for user authentication, activity tracking, and generation presets.
+
+This module defines the SQLAlchemy models used throughout the application for
+managing users, roles, activities, statistics, and configuration templates.
 """
+
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
@@ -10,7 +14,11 @@ db = SQLAlchemy()
 
 
 class User(UserMixin, db.Model):
-    """User model for authentication and authorization."""
+    """
+    User model for authentication and authorization.
+
+    Stores user credentials, profile information, and default settings.
+    """
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -54,7 +62,11 @@ class User(UserMixin, db.Model):
 
 
 class UserActivity(db.Model):
-    """Log of user activities for auditing."""
+    """
+    Log of user activities for auditing.
+
+    Tracks actions like logins, generation requests, and administrative changes.
+    """
     __tablename__ = 'user_activities'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -73,7 +85,11 @@ class UserActivity(db.Model):
 
 
 class UsageStatistics(db.Model):
-    """Usage statistics per user for generation tracking."""
+    """
+    Usage statistics per user for generation tracking.
+
+    Aggregates daily usage metrics for reporting and quotas.
+    """
     __tablename__ = 'usage_statistics'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -100,7 +116,11 @@ class UsageStatistics(db.Model):
 
 
 class CharacterOverrideCollection(db.Model):
-    """Collection of manual character overrides for handwriting generation."""
+    """
+    Collection of manual character overrides for handwriting generation.
+
+    Groups related character overrides (e.g., "My Handwriting", "Calligraphy Set").
+    """
     __tablename__ = 'character_override_collections'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -128,7 +148,11 @@ class CharacterOverrideCollection(db.Model):
 
 
 class CharacterOverride(db.Model):
-    """Individual character override with SVG data."""
+    """
+    Individual character override with SVG data.
+
+    Stores the SVG path data for a specific character variant.
+    """
     __tablename__ = 'character_overrides'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -154,7 +178,11 @@ class CharacterOverride(db.Model):
 
 
 class PageSizePreset(db.Model):
-    """Custom page size presets for document generation."""
+    """
+    Custom page size presets for document generation.
+
+    Defines standard (A4, Letter) or custom page dimensions.
+    """
     __tablename__ = 'page_size_presets'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -190,7 +218,12 @@ class PageSizePreset(db.Model):
 
 
 class TemplatePreset(db.Model):
-    """Template presets combining page size and layout settings."""
+    """
+    Template presets combining page size and layout settings.
+
+    Stores complete configuration sets for generating handwriting, including
+    page size, margins, line spacing, and style preferences.
+    """
     __tablename__ = 'template_presets'
 
     id = db.Column(db.Integer, primary_key=True)

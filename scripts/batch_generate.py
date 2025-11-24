@@ -1,3 +1,5 @@
+"""Batch generation script for handwriting synthesis."""
+
 import argparse
 import os
 import sys
@@ -7,6 +9,16 @@ from handwriting_synthesis.hand.Hand import Hand
 
 
 def parse_list(s, cast):
+    """
+    Parse a string representation of a list into a Python list.
+
+    Args:
+        s: Input string or list.
+        cast: Type to cast elements to.
+
+    Returns:
+        List of elements or None.
+    """
     if s is None or s == "":
         return None
     if isinstance(s, list):
@@ -54,6 +66,12 @@ def parse_str_or_none(s):
 
 
 def main():
+    """
+    Main entry point for batch generation.
+
+    Reads a CSV file containing parameters for multiple handwriting generation tasks
+    and executes them, saving the output SVGs to the specified directory.
+    """
     parser = argparse.ArgumentParser(description='Batch generate SVG handwriting from CSV')
     parser.add_argument('csv', help='CSV file with rows to generate. Required column: text. Optional: filename, biases, styles, stroke_colors, stroke_widths, page_size, units, page_width, page_height, margins, line_height, align, background, global_scale, orientation, legibility, x_stretch, denoise, empty_line_spacing, auto_size, manual_size_scale, character_override_collection_id, use_chunked, words_per_chunk, chunk_spacing, rotate_chunks, min_words_per_chunk, max_words_per_chunk, target_chars_per_chunk, adaptive_chunking, adaptive_strategy')
     parser.add_argument('--out-dir', default='out', help='Output directory for SVGs')
@@ -187,5 +205,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
