@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl:*)",
+      "Bash(python -c:*)",
+      "Bash(python test_chunking_improvements.py:*)",
+      "Bash(python:*)",
+      "Bash(pip install:*)",
+      "Bash(dir /s /b jspdf.* 2)",
+      "Bash(nul)",
+      "Bash(findstr:*)",
+      "Bash(alembic init:*)",
+      "Bash(alembic revision:*)",
+      "Bash(dir /b writebot.db 2)",
+      "Bash(copy:*)",
+      "Bash(del writebot.db)",
+      "Bash(dir:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

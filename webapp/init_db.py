@@ -14,8 +14,8 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from webapp.app import app
-from webapp.models import db, User
+from app import app
+from models import db, User
 
 
 def get_password_input(prompt="Password: "):
@@ -33,11 +33,24 @@ def get_password_input(prompt="Password: "):
 
 
 def init_database():
-    """Initialize the database tables."""
+    """Initialize the database tables and run migrations."""
     with app.app_context():
-        print("Creating database tables...")
-        db.create_all()
-        print("Database tables created successfully!")
+        print("Running database migrations...")
+        from alembic.config import Config
+        from alembic import command
+
+        # Get the alembic config
+        alembic_cfg = Config(os.path.join(PROJECT_ROOT, "alembic.ini"))
+
+        try:
+            # Run all pending migrations
+            command.upgrade(alembic_cfg, "head")
+            print("Database migrations completed successfully!")
+        except Exception as e:
+            print(f"Error running migrations: {e}")
+            print("\nFalling back to db.create_all()...")
+            db.create_all()
+            print("Database tables created successfully!")
 
 
 def create_admin_user():

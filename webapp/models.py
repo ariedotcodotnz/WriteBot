@@ -242,7 +242,7 @@ class TemplatePreset(db.Model):
     max_line_width = db.Column(db.Float, nullable=True)  # Maximum line width
 
     is_active = db.Column(db.Boolean, default=True, nullable=False)
-    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Null for system defaults
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

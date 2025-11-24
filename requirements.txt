@@ -22,5 +22,6 @@ Flask-Minify>=0.42
 flask-assets>=2.0
 rjsmin
 rcssmin
+alembic>=1.13.0
 
 # Note: For documentation dependencies, see docs/requirements.txt
