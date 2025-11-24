@@ -338,4 +338,4 @@ def serve_docs(filename='index.html'):
 
 if __name__ == "__main__":
     # Single-threaded to avoid TF session concurrency issues
-    app.run(host="0.0.0.0", port=5000, debug=True, threaded=False)
+    app.run(host="0.0.0.0", port=5000, threaded=False)
