@@ -857,7 +857,10 @@ def batch_result_file(job_id: str, filename: str):
     Returns:
         File content.
     """
-    job_dir = os.path.join(JOBS_ROOT, job_id)
+    job_dir = os.path.normpath(os.path.join(JOBS_ROOT, job_id))
+    # Make sure job_dir is still under JOBS_ROOT
+    if not job_dir.startswith(os.path.abspath(JOBS_ROOT) + os.sep):
+        return jsonify({"error": "Invalid job_id"}), 400
     out_dir = os.path.join(job_dir, "out")
     if not os.path.isdir(out_dir):
         return jsonify({"error": "Job not found or expired"}), 404
