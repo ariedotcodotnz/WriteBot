@@ -249,7 +249,6 @@ class TemplatePreset(db.Model):
     global_scale = db.Column(db.Float, default=1.0)  # Overall scaling factor
     auto_size = db.Column(db.Boolean, default=False)  # Auto-size mode
     manual_size_scale = db.Column(db.Float, nullable=True)  # Manual size scale override
-    handwriting_size = db.Column(db.String(50), nullable=True)  # Preset name or numeric multiplier
 
     # Styling
     background_color = db.Column(db.String(20), nullable=True)  # Optional, e.g., 'white', '#FFFFFF'
@@ -306,7 +305,6 @@ class TemplatePreset(db.Model):
             'global_scale': self.global_scale,
             'auto_size': self.auto_size,
             'manual_size_scale': self.manual_size_scale,
-            'handwriting_size': self.handwriting_size,
             'background_color': self.background_color,
             'biases': self.biases,
             'per_line_styles': self.per_line_styles,

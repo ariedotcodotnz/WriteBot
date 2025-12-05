@@ -488,7 +488,7 @@ def templates():
 @admin_required
 def create_template():
     """
-    Create a new template preset (with handwriting_size support).
+    Create a new template preset.
 
     Handles creation of complex generation templates.
     """
@@ -511,7 +511,6 @@ def create_template():
         global_scale = request.form.get('global_scale', type=float) or 1.0
         auto_size = request.form.get('auto_size') == 'on'
         manual_size_scale = request.form.get('manual_size_scale', type=float)
-        handwriting_size = request.form.get('handwriting_size', '').strip() or None
         background_color = request.form.get('background_color', '').strip()
         biases = request.form.get('biases', '').strip()
         per_line_styles = request.form.get('per_line_styles', '').strip()
@@ -589,7 +588,6 @@ def create_template():
             words_per_chunk=words_per_chunk,
             chunk_spacing=chunk_spacing,
             max_line_width=max_line_width,
-            handwriting_size=handwriting_size,
             is_active=is_active,
             created_by=current_user.id
         )
@@ -633,7 +631,6 @@ def edit_template(template_id):
         global_scale = request.form.get('global_scale', type=float) or 1.0
         auto_size = request.form.get('auto_size') == 'on'
         manual_size_scale = request.form.get('manual_size_scale', type=float)
-        handwriting_size = request.form.get('handwriting_size', '').strip() or None
         background_color = request.form.get('background_color', '').strip()
         biases = request.form.get('biases', '').strip()
         per_line_styles = request.form.get('per_line_styles', '').strip()
@@ -712,7 +709,6 @@ def edit_template(template_id):
         template.words_per_chunk = words_per_chunk
         template.chunk_spacing = chunk_spacing
         template.max_line_width = max_line_width
-        template.handwriting_size = handwriting_size
         template.is_active = is_active
 
         db.session.commit()
