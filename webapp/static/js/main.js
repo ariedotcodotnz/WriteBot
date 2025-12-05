@@ -368,6 +368,12 @@ async function savePreset() {
 
   // Gather all form data
   const pageSize = document.getElementById('pageSize').value;
+
+  // Validate that a preset page size is selected (not custom)
+  if (pageSize === 'custom') {
+    toastError('Cannot save template with custom page size. Please select a predefined page size.');
+    return;
+  }
   const orientation = document.getElementById('orientation').value;
   const units = document.getElementById('units').value;
   const align = document.getElementById('align').value;
@@ -597,8 +603,9 @@ async function generate() {
     legibility,
     character_override_collection_id: characterOverrideCollectionId ? Number(characterOverrideCollectionId) : undefined,
     global_scale: globalScale ? Number(globalScale) : undefined,
-    page_width: pageWidth ? Number(pageWidth) : undefined,
-    page_height: pageHeight ? Number(pageHeight) : undefined,
+    // Only send custom dimensions when custom page size is selected
+    page_width: (pageSize === 'custom' && pageWidth) ? Number(pageWidth) : undefined,
+    page_height: (pageSize === 'custom' && pageHeight) ? Number(pageHeight) : undefined,
     biases: parseList(biases, Number),
     styles: stylesList,
     stroke_colors: parseList(strokeColors, String),
@@ -610,7 +617,8 @@ async function generate() {
     denoise: denoise || undefined,
     empty_line_spacing: emptyLineSpacing ? Number(emptyLineSpacing) : undefined,
     auto_size: autoSize,
-    manual_size_scale: manualSizeScale ? Number(manualSizeScale) : undefined,
+    // Only send manual size scale when auto size is disabled
+    manual_size_scale: (!autoSize && manualSizeScale) ? Number(manualSizeScale) : undefined,
     use_chunked: useChunked,
     adaptive_chunking: adaptiveChunking,
     adaptive_strategy: adaptiveStrategy || undefined,

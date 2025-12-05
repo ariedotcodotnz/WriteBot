@@ -34,7 +34,7 @@ class User(UserMixin, db.Model):
     default_style = db.Column(db.Integer, default=9)
     default_bias = db.Column(db.Float, default=0.75)
     default_stroke_color = db.Column(db.String(20), default='black')
-    default_stroke_width = db.Column(db.Integer, default=2)
+    default_stroke_width = db.Column(db.Integer, default=1)
 
     # Relationships
     activities = db.relationship('UserActivity', backref='user', lazy='dynamic', cascade='all, delete-orphan')
