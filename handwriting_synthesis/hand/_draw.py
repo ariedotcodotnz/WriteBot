@@ -95,8 +95,75 @@ def _resolve_page_size(page_size, units, num_lines, default_line_height_px):
     return width_px, height_px, svg_size
 
 
+# Predefined handwriting size presets (multipliers for target height)
+HANDWRITING_SIZE_PRESETS = {
+    'tiny': 0.5,
+    'small': 0.75,
+    'medium': 1.0,
+    'normal': 1.0,
+    'large': 1.35,
+    'extra-large': 1.7,
+    'xl': 1.7,
+    'huge': 2.0,
+    'christmas': 1.5,      # Festive larger text
+    'formal': 0.9,         # Slightly smaller, more refined
+    'casual': 1.15,        # Slightly larger, more relaxed
+    'headline': 1.8,       # For titles/headers
+    'fine': 0.65,          # Fine print style
+    'compact': 0.7,        # Space-efficient
+    'comfortable': 1.2,    # Easy to read
+    'bold': 1.4,           # Statement text
+}
+
+
+def resolve_handwriting_size(size_value) -> float:
+    """
+    Resolve a handwriting size value to a numeric multiplier.
+
+    Args:
+        size_value: Can be:
+            - None: Returns 1.0 (default/medium)
+            - A string preset name: 'small', 'medium', 'large', 'christmas', etc.
+            - A numeric value (int/float): Used directly as multiplier
+
+    Returns:
+        Float multiplier for handwriting size (1.0 = normal size)
+    """
+    if size_value is None:
+        return 1.0
+
+    # Handle string presets
+    if isinstance(size_value, str):
+        size_key = size_value.lower().strip()
+        if size_key in HANDWRITING_SIZE_PRESETS:
+            return HANDWRITING_SIZE_PRESETS[size_key]
+        # Try to parse as number
+        try:
+            return float(size_key)
+        except ValueError:
+            # Unknown preset, return default
+            print(f"Warning: Unknown handwriting size preset '{size_value}', using 'medium'")
+            return 1.0
+
+    # Handle numeric values
+    try:
+        return float(size_value)
+    except (TypeError, ValueError):
+        return 1.0
+
+
+def get_handwriting_size_presets() -> dict:
+    """
+    Get all available handwriting size presets.
+
+    Returns:
+        Dictionary of preset names to their multiplier values.
+    """
+    return HANDWRITING_SIZE_PRESETS.copy()
+
+
 def _draw(
-    line_segments,  # Changed from 'strokes' to 'line_segments'
+    line_segments,
     lines,
     filename,
     stroke_colors=None,
@@ -115,8 +182,9 @@ def _draw(
     empty_line_spacing=None,
     auto_size=True,
     manual_size_scale=1.0,
+    handwriting_size=None,
     character_override_collection_id=None,
-    overrides_dict=None,  # New parameter
+    overrides_dict=None,
 ):
     """
     Draws generated handwriting strokes to an SVG file.
@@ -146,6 +214,11 @@ def _draw(
         empty_line_spacing: Spacing for empty lines.
         auto_size: Whether to automatically scale strokes to fit line height.
         manual_size_scale: Manual scaling factor if auto_size is False.
+        handwriting_size: Controls the overall handwriting size. Can be:
+            - A preset name: 'tiny', 'small', 'medium', 'large', 'xl', 'huge',
+              'christmas', 'formal', 'casual', 'headline', 'fine', etc.
+            - A numeric multiplier: 0.5 = half size, 1.0 = normal, 2.0 = double
+            - None: Uses default (1.0, equivalent to 'medium')
         character_override_collection_id: ID of the character override collection.
         overrides_dict: Dictionary containing character override data.
 
@@ -211,7 +284,10 @@ def _draw(
     # First pass: preprocess each line and compute per-line max allowed scale
     preprocessed_lines = []
     scale_limits = []
-    target_h = 0.95 * line_height_px
+
+    # Apply handwriting_size multiplier to target height
+    size_multiplier = resolve_handwriting_size(handwriting_size)
+    target_h = 0.95 * line_height_px * size_multiplier
 
     for line_idx, segment_list in enumerate(line_segments):
         if not segment_list:

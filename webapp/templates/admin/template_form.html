@@ -135,6 +135,32 @@
                        value="{{ template.manual_size_scale if template and template.manual_size_scale else '' }}">
                 <div class="help-text">Manual size scale override (optional).</div>
             </div>
+
+            <div class="form-group">
+                <label for="handwriting_size">Handwriting Size</label>
+                <select id="handwriting_size" name="handwriting_size">
+                    <option value="" {{ 'selected' if not template or not template.handwriting_size else '' }}>Default (Normal)</option>
+                    <optgroup label="Common Sizes">
+                        <option value="tiny" {{ 'selected' if template and template.handwriting_size == 'tiny' else '' }}>Tiny (0.5x)</option>
+                        <option value="small" {{ 'selected' if template and template.handwriting_size == 'small' else '' }}>Small (0.75x)</option>
+                        <option value="medium" {{ 'selected' if template and template.handwriting_size == 'medium' else '' }}>Medium (1.0x)</option>
+                        <option value="large" {{ 'selected' if template and template.handwriting_size == 'large' else '' }}>Large (1.35x)</option>
+                        <option value="xl" {{ 'selected' if template and template.handwriting_size == 'xl' else '' }}>Extra Large (1.7x)</option>
+                        <option value="huge" {{ 'selected' if template and template.handwriting_size == 'huge' else '' }}>Huge (2.0x)</option>
+                    </optgroup>
+                    <optgroup label="Special Styles">
+                        <option value="christmas" {{ 'selected' if template and template.handwriting_size == 'christmas' else '' }}>Christmas (1.5x)</option>
+                        <option value="headline" {{ 'selected' if template and template.handwriting_size == 'headline' else '' }}>Headline (1.8x)</option>
+                        <option value="formal" {{ 'selected' if template and template.handwriting_size == 'formal' else '' }}>Formal (0.9x)</option>
+                        <option value="casual" {{ 'selected' if template and template.handwriting_size == 'casual' else '' }}>Casual (1.15x)</option>
+                        <option value="fine" {{ 'selected' if template and template.handwriting_size == 'fine' else '' }}>Fine Print (0.65x)</option>
+                        <option value="compact" {{ 'selected' if template and template.handwriting_size == 'compact' else '' }}>Compact (0.7x)</option>
+                        <option value="comfortable" {{ 'selected' if template and template.handwriting_size == 'comfortable' else '' }}>Comfortable (1.2x)</option>
+                        <option value="bold" {{ 'selected' if template and template.handwriting_size == 'bold' else '' }}>Bold (1.4x)</option>
+                    </optgroup>
+                </select>
+                <div class="help-text">Preset size for handwriting. Use for quick adjustments like Christmas cards or headlines.</div>
+            </div>
         </div>
 
         <div class="form-check">

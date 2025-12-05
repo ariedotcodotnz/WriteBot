@@ -118,6 +118,15 @@ def parse_generation_params(params: Dict[str, Any], defaults: Optional[Dict[str,
     auto_size = _parse_bool(_get("auto_size", "true"), True)
     manual_size_scale = _parse_float(_get("manual_size_scale"), 1.0)
 
+    # Handwriting size - can be preset name ('small', 'large', 'christmas') or numeric multiplier
+    handwriting_size = _get("handwriting_size")
+    # Try to parse as float if it looks like a number, otherwise keep as string preset
+    if handwriting_size is not None:
+        try:
+            handwriting_size = float(handwriting_size)
+        except (ValueError, TypeError):
+            pass  # Keep as string preset name
+
     # Character overrides
     character_override_collection_id = _parse_int(_get("character_override_collection_id"))
 
@@ -161,6 +170,7 @@ def parse_generation_params(params: Dict[str, Any], defaults: Optional[Dict[str,
         "empty_line_spacing": empty_line_spacing,
         "auto_size": auto_size,
         "manual_size_scale": manual_size_scale,
+        "handwriting_size": handwriting_size,
         "character_override_collection_id": character_override_collection_id,
         "wrap_char_px": wrap_char_px,
         "wrap_ratio": wrap_ratio,
@@ -276,6 +286,7 @@ def generate_handwriting_to_file(
             empty_line_spacing=params["empty_line_spacing"],
             auto_size=params["auto_size"],
             manual_size_scale=params["manual_size_scale"],
+            handwriting_size=params["handwriting_size"],
             character_override_collection_id=params["character_override_collection_id"],
         )
     else:
@@ -328,6 +339,7 @@ def generate_handwriting_to_file(
             empty_line_spacing=params["empty_line_spacing"],
             auto_size=params["auto_size"],
             manual_size_scale=params["manual_size_scale"],
+            handwriting_size=params["handwriting_size"],
             character_override_collection_id=params["character_override_collection_id"],
         )
 

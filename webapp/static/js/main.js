@@ -325,6 +325,38 @@ async function applyTemplatePreset(templateId) {
     if (template.line_height) document.getElementById('lineHeight').value = template.line_height;
     if (template.background) document.getElementById('background').value = template.background;
 
+    // Apply handwriting size
+    if (template.handwriting_size) {
+      const handwritingSizeEl = document.getElementById('handwritingSize');
+      const customHandwritingSizeEl = document.getElementById('customHandwritingSize');
+      const customGroup = document.getElementById('customHandwritingSizeGroup');
+
+      // Check if it's a preset value or custom numeric
+      const presetValues = ['tiny', 'small', 'medium', 'normal', 'large', 'extra-large', 'xl', 'huge',
+                           'christmas', 'formal', 'casual', 'headline', 'fine', 'compact', 'comfortable', 'bold'];
+      if (presetValues.includes(template.handwriting_size)) {
+        handwritingSizeEl.value = template.handwriting_size;
+        customGroup.style.display = 'none';
+      } else {
+        // Numeric value - use custom
+        handwritingSizeEl.value = 'custom';
+        customHandwritingSizeEl.value = template.handwriting_size;
+        customGroup.style.display = 'block';
+      }
+    } else {
+      document.getElementById('handwritingSize').value = '';
+      document.getElementById('customHandwritingSizeGroup').style.display = 'none';
+    }
+
+    // Apply auto_size and manual_size_scale
+    if (template.auto_size !== undefined) {
+      document.getElementById('autoSize').checked = template.auto_size;
+      document.getElementById('manualSizeScale').disabled = template.auto_size;
+    }
+    if (template.manual_size_scale) {
+      document.getElementById('manualSizeScale').value = template.manual_size_scale;
+    }
+
     syncCustomSizeVisibility();
     toastSuccess(`Applied template: ${template.name || 'Template'}`);
   } catch (err) {
@@ -393,6 +425,11 @@ async function savePreset() {
   const autoSize = document.getElementById('autoSize').checked;
   const manualSizeScale = document.getElementById('manualSizeScale').value ? parseFloat(document.getElementById('manualSizeScale').value) : null;
 
+  // Handwriting size
+  const handwritingSizeSelect = document.getElementById('handwritingSize').value;
+  const customHandwritingSize = document.getElementById('customHandwritingSize').value;
+  const handwritingSize = handwritingSizeSelect === 'custom' ? customHandwritingSize : (handwritingSizeSelect || null);
+
   // Background
   const background = document.getElementById('background').value || null;
 
@@ -434,6 +471,7 @@ async function savePreset() {
     global_scale: globalScale,
     auto_size: autoSize,
     manual_size_scale: manualSizeScale,
+    handwriting_size: handwritingSize,
     background_color: background,
     biases,
     per_line_styles: styles,
@@ -581,6 +619,9 @@ async function generate() {
   const emptyLineSpacing = document.getElementById('emptyLineSpacing').value;
   const autoSize = document.getElementById('autoSize').checked;
   const manualSizeScale = document.getElementById('manualSizeScale').value;
+  const handwritingSizeSelect = document.getElementById('handwritingSize').value;
+  const customHandwritingSize = document.getElementById('customHandwritingSize').value;
+  const handwritingSize = handwritingSizeSelect === 'custom' ? customHandwritingSize : handwritingSizeSelect;
   const useChunked = document.getElementById('useChunked').checked;
   const adaptiveChunking = document.getElementById('adaptiveChunking').checked;
   const adaptiveStrategy = document.getElementById('adaptiveStrategy').value;
@@ -619,6 +660,8 @@ async function generate() {
     auto_size: autoSize,
     // Only send manual size scale when auto size is disabled
     manual_size_scale: (!autoSize && manualSizeScale) ? Number(manualSizeScale) : undefined,
+    // Handwriting size preset or custom value
+    handwriting_size: handwritingSize || undefined,
     use_chunked: useChunked,
     adaptive_chunking: adaptiveChunking,
     adaptive_strategy: adaptiveStrategy || undefined,
@@ -1175,6 +1218,15 @@ document.addEventListener('DOMContentLoaded', () => {
   autoSizeCheckbox.addEventListener('change', () => {
     manualSizeScaleInput.disabled = autoSizeCheckbox.checked;
   });
+
+  // Toggle custom handwriting size input based on dropdown selection
+  const handwritingSizeSelect = document.getElementById('handwritingSize');
+  const customHandwritingSizeGroup = document.getElementById('customHandwritingSizeGroup');
+  if (handwritingSizeSelect && customHandwritingSizeGroup) {
+    handwritingSizeSelect.addEventListener('change', () => {
+      customHandwritingSizeGroup.style.display = handwritingSizeSelect.value === 'custom' ? 'block' : 'none';
+    });
+  }
 
   // Add keyboard shortcuts
   document.addEventListener('keydown', (e) => {

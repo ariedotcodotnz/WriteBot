@@ -181,6 +181,7 @@ def create_template_from_form():
             global_scale=float(data.get('global_scale', 1.0)),
             auto_size=data.get('auto_size', False),
             manual_size_scale=float(data['manual_size_scale']) if data.get('manual_size_scale') else None,
+            handwriting_size=data.get('handwriting_size'),  # Preset name or numeric value
 
             # Styling
             background_color=data.get('background_color'),

@@ -159,7 +159,7 @@ def template_csv():
         "filename,text,"
         "page_size,page_width,page_height,orientation,units,"
         "margin_top,margin_right,margin_bottom,margin_left,line_height,empty_line_spacing,"
-        "align,background,global_scale,legibility,x_stretch,denoise,auto_size,manual_size_scale,"
+        "align,background,global_scale,legibility,x_stretch,denoise,auto_size,manual_size_scale,handwriting_size,"
         "biases,styles,stroke_colors,stroke_widths,"
         "wrap_char_px,wrap_ratio,wrap_utilization,"
         "use_chunked,adaptive_chunking,adaptive_strategy,words_per_chunk,chunk_spacing,max_line_width\n"
@@ -226,6 +226,7 @@ def template_xlsx():
         ("denoise", "Smooths out handwriting strokes for cleaner lines. Recommended to keep enabled (true)."),
         ("auto_size", "Automatically adjust text size to fit the page. Set to true to enable."),
         ("manual_size_scale", "Manual size scale override when auto_size is false. 1.0 = normal."),
+        ("handwriting_size", "Controls handwriting size. Use preset names (tiny, small, medium, large, xl, huge, christmas, formal, casual, headline, fine) or numeric multipliers (0.5=half, 1.0=normal, 2.0=double)."),
         ("biases", "Controls writing style variance. Lower (0.5-0.7) = more random/natural, higher (0.8-1.0) = more consistent. Separate with | for per-line (e.g., 0.75|0.8|0.6)."),
         ("styles", "Use different handwriting styles for each line. Separate style numbers with | (e.g., 9|9|12)."),
         ("stroke_colors", "Set ink color for each line. Use color names (black, blue) or hex codes (#333). Separate with | (e.g., black|blue|red)."),
@@ -525,7 +526,7 @@ def sample_xlsx():
         "filename", "text", "page_size", "page_width", "page_height", "orientation", "units",
         "margin_top", "margin_right", "margin_bottom", "margin_left", "line_height", "empty_line_spacing",
         "align", "background", "global_scale", "legibility", "x_stretch", "denoise", "auto_size", "manual_size_scale",
-        "biases", "styles", "stroke_colors", "stroke_widths", "wrap_char_px", "wrap_ratio", "wrap_utilization",
+        "handwriting_size", "biases", "styles", "stroke_colors", "stroke_widths", "wrap_char_px", "wrap_ratio", "wrap_utilization",
         "use_chunked", "adaptive_chunking", "adaptive_strategy", "words_per_chunk", "chunk_spacing", "max_line_width"
     ]
 

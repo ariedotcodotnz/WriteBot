@@ -76,6 +76,7 @@ class Hand(object):
         empty_line_spacing=None,
         auto_size=True,
         manual_size_scale=1.0,
+        handwriting_size=None,
         character_override_collection_id=None,
     ):
         """
@@ -110,6 +111,9 @@ class Hand(object):
             empty_line_spacing: Specific spacing for empty lines.
             auto_size: Whether to automatically scale text to fit page width.
             manual_size_scale: Manual scaling factor if auto_size is False.
+            handwriting_size: Controls overall handwriting size. Can be a preset name
+                ('tiny', 'small', 'medium', 'large', 'xl', 'huge', 'christmas', etc.)
+                or a numeric multiplier (0.5 = half, 1.0 = normal, 2.0 = double).
             character_override_collection_id: ID of a character override collection to use.
 
         Returns:
@@ -277,6 +281,7 @@ class Hand(object):
             empty_line_spacing=empty_line_spacing,
             auto_size=auto_size,
             manual_size_scale=manual_size_scale,
+            handwriting_size=handwriting_size,
             character_override_collection_id=character_override_collection_id,
             overrides_dict=overrides_dict,
         )
@@ -326,6 +331,7 @@ class Hand(object):
         empty_line_spacing=None,
         auto_size=True,
         manual_size_scale=1.0,
+        handwriting_size=None,
         character_override_collection_id=None,
     ):
         """
@@ -719,6 +725,7 @@ class Hand(object):
             empty_line_spacing=empty_line_spacing,
             auto_size=auto_size,
             manual_size_scale=manual_size_scale,
+            handwriting_size=handwriting_size,
             character_override_collection_id=character_override_collection_id,
             overrides_dict=overrides_dict,
         )
