@@ -1037,6 +1037,22 @@ function setupCsvDragDrop() {
   const input = document.getElementById('csv');
   const info = document.getElementById('csvInfo');
 
+  // Escape HTML meta-characters in text
+  function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/[&<>"'\/]/g, function(s) {
+      const entityMap = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+        '/': '&#x2F;'
+      };
+      return entityMap[s];
+    });
+  }
+
   function showFileInfo(file) {
     if (!file) {
       info.style.display = 'none';
@@ -1045,7 +1061,7 @@ function setupCsvDragDrop() {
 
     info.innerHTML = `
       <div class="file-info">
-        <span class="file-info-name">${file.name}</span>
+        <span class="file-info-name">${escapeHtml(file.name)}</span>
         <span class="file-info-size">${(file.size / 1024).toFixed(1)} KB</span>
       </div>
     `;
