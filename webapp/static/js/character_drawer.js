@@ -10,7 +10,7 @@ const CharacterDrawer = (function() {
     let isDrawing = false;
     let paths = [];
     let collectionId;
-    let penWidth = 3;
+    let penWidth = 1;
 
     /**
      * Initialize the character drawer with vanilla SVG
@@ -181,7 +181,7 @@ const CharacterDrawer = (function() {
      * Update stroke width based on input value.
      */
     function updateStrokeWidth() {
-        penWidth = parseFloat(document.getElementById('draw-stroke-width').value) || 3;
+        penWidth = parseFloat(document.getElementById('draw-stroke-width').value) || 1;
     }
 
     /**
@@ -267,7 +267,7 @@ const CharacterDrawer = (function() {
             return null;
         }
 
-        const strokeWidth = parseFloat(document.getElementById('draw-stroke-width').value) || 3;
+        const strokeWidth = parseFloat(document.getElementById('draw-stroke-width').value) || 1;
 
         // Calculate bounding box of all paths
         const bbox = calculateBoundingBox(pathElements);
