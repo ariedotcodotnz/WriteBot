@@ -287,6 +287,40 @@ def _draw(
     else:
         s_global = float(manual_size_scale)
 
+    # BUGFIX: For small pages where auto_size significantly reduces text scale,
+    # adjust line height to be proportional to the actual rendered text size.
+    # This prevents huge line spacing when text is scaled down to fit narrow pages.
+    if auto_size and scale_limits:
+        # Calculate what the text height would have been without width constraint
+        # scale_limits contains min(s_w, s_h) for each line, where s_h = target_h / raw_h
+        # If s_global is much smaller than what s_h alone would give, text is width-constrained
+        # In that case, effective line height should scale down proportionally
+
+        # Recalculate scale limits considering only height (not width)
+        height_only_scales = []
+        for preprocessed_segments in preprocessed_lines:
+            for segment in preprocessed_segments:
+                if segment.get('type') == 'generated' and 'strokes' in segment:
+                    ls = segment['strokes']
+                    raw_h = max(1e-6, ls[:, 1].max())
+                    s_h = target_h / raw_h
+                    height_only_scales.append(s_h)
+                    break
+
+        if height_only_scales:
+            # The ideal scale based on height alone
+            ideal_height_scale = min(height_only_scales)
+            # If actual scale is significantly smaller (width-constrained), reduce line height
+            if s_global < ideal_height_scale * 0.95:  # Allow 5% tolerance
+                scale_ratio = s_global / ideal_height_scale
+                # Adjust line height proportionally, but keep some minimum spacing
+                adjusted_line_height = line_height_px * scale_ratio
+                # Ensure minimum spacing of at least 20% of original to prevent overlapping
+                line_height_px = max(adjusted_line_height, line_height_px * 0.2)
+                # Also adjust empty line spacing if it was based on line_height_px
+                if empty_line_spacing is None:
+                    empty_line_spacing_px = line_height_px
+
     # Second pass: render with uniform scale across lines for consistent letter size
     cursor_y = m_top + (3.0 * line_height_px / 4.0)
     rng = np.random.RandomState(42)
