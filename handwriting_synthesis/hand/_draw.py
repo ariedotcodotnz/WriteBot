@@ -368,6 +368,15 @@ def _draw(
                 spacing_after = space_width if has_space_after else override_width * 0.15
                 total_line_width += spacing_before + override_width + spacing_after
 
+        # BUGFIX: Check if line would overflow page boundary and scale down if needed
+        # This prevents text from being cut off on the right edge
+        line_scale_x = 1.0
+        if total_line_width > content_width_px:
+            # Scale down the line to fit within content width
+            # Use 0.98 to leave a small margin for safety
+            line_scale_x = (content_width_px * 0.98) / total_line_width
+            total_line_width = content_width_px * 0.98
+
         # Horizontal alignment
         if align == 'center':
             line_offset_x = m_left + (content_width_px - total_line_width) / 2.0
@@ -393,6 +402,10 @@ def _draw(
                 ls[:, :2] *= s_global
                 if x_stretch != 1.0:
                     ls[:, 0] *= x_stretch
+
+                # Apply line-specific horizontal scaling to prevent overflow
+                if line_scale_x != 1.0:
+                    ls[:, 0] *= line_scale_x
 
                 # Track segment width before translating
                 segment_width = ls[:, 0].max()
@@ -455,6 +468,10 @@ def _draw(
 
                     scale_x = scale * x_stretch
                     scale_y = scale
+
+                    # Apply line-specific horizontal scaling to prevent overflow
+                    if line_scale_x != 1.0:
+                        scale_x *= line_scale_x
 
                     # Rendered dimensions
                     rendered_width = char_width * scale_x
