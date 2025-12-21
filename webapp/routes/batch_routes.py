@@ -160,7 +160,7 @@ def template_csv():
         "page_size,page_width,page_height,orientation,units,"
         "margin_top,margin_right,margin_bottom,margin_left,line_height,empty_line_spacing,"
         "align,background,global_scale,legibility,x_stretch,denoise,auto_size,manual_size_scale,"
-        "biases,styles,stroke_colors,stroke_widths,"
+        "biases,styles,stroke_colors,stroke_widths,character_override_collection_id,"
         "wrap_char_px,wrap_ratio,wrap_utilization,"
         "use_chunked,adaptive_chunking,adaptive_strategy,words_per_chunk,chunk_spacing,max_line_width\n"
     )
@@ -206,39 +206,40 @@ def template_xlsx():
     # Define headers with tooltips
     headers_with_notes = [
         ("filename", "Output filename WITHOUT extension (e.g., 'example1' or 'my-document'). The .svg extension will be added automatically."),
-        ("text", "The text to convert to handwriting. Use \\n for line breaks (e.g., 'Line 1\\nLine 2')."),
+        ("text", "The text to convert to handwriting. Use \\n for line breaks (e.g., 'Line 1\\nLine 2'). Use \\\\ on a separate line for blank space."),
         ("page_size", f"Page size preset. Available: {', '.join(page_size_names[:5])}... Select from dropdown. Use 'Custom' to specify custom dimensions."),
-        ("page_width", "Custom page width (only used when page_size is 'Custom'). Specify in the units you selected (mm or px)."),
-        ("page_height", "Custom page height (only used when page_size is 'Custom'). Specify in the units you selected (mm or px)."),
-        ("orientation", "Page orientation: portrait (vertical) or landscape (horizontal)."),
-        ("units", "Measurement units: mm (millimeters) or px (pixels). Used for margins and dimensions."),
-        ("margin_top", "Top margin. Specify in the units you selected (mm or px). Default: 20."),
-        ("margin_right", "Right margin. Specify in the units you selected (mm or px). Default: 20."),
-        ("margin_bottom", "Bottom margin. Specify in the units you selected (mm or px). Default: 20."),
-        ("margin_left", "Left margin. Specify in the units you selected (mm or px). Default: 20."),
-        ("line_height", "Vertical spacing between lines of text. Leave empty for automatic spacing based on text size."),
-        ("empty_line_spacing", "Spacing when you use \\\\ to create blank lines. Leave empty for automatic."),
-        ("align", "Text alignment: left, center, or right. Aligns text horizontally on the page."),
-        ("background", "Background color for the page. Use color names (white, blue) or hex codes (#FFFFFF). Use 'transparent' for no background."),
-        ("global_scale", "Scales the entire output. 1.0 = normal size, >1.0 = larger, <1.0 = smaller."),
-        ("legibility", "Controls how clear and readable the handwriting is. Higher = more legible but less natural. Options: natural, normal, high."),
-        ("x_stretch", "Stretches handwriting horizontally. 1.0 = normal, >1.0 = wider, <1.0 = narrower."),
-        ("denoise", "Smooths out handwriting strokes for cleaner lines. Recommended to keep enabled (true)."),
-        ("auto_size", "Automatically adjust text size to fit the page. Set to true to enable."),
-        ("manual_size_scale", "Manual size scale override when auto_size is false. 1.0 = normal."),
-        ("biases", "Controls writing style variance. Lower (0.5-0.7) = more random/natural, higher (0.8-1.0) = more consistent. Separate with | for per-line (e.g., 0.75|0.8|0.6)."),
-        ("styles", "Use different handwriting styles for each line. Separate style numbers with | (e.g., 9|9|12)."),
-        ("stroke_colors", "Set ink color for each line. Use color names (black, blue) or hex codes (#333). Separate with | (e.g., black|blue|red)."),
-        ("stroke_widths", "Controls pen thickness for each line. Default is 2. Separate with | for different widths per line (e.g., 2|3|2)."),
-        ("wrap_char_px", "Estimated character width in pixels for text wrapping calculations."),
-        ("wrap_ratio", "Text wrapping ratio for line breaking calculations."),
-        ("wrap_utilization", "Wrap utilization factor for optimizing line width usage."),
-        ("use_chunked", "Enable chunked generation for better quality and longer lines. Recommended: true."),
-        ("adaptive_chunking", "Enable adaptive chunking based on text structure (word boundaries, punctuation)."),
-        ("adaptive_strategy", "Strategy for adaptive chunking: balanced, word_length, sentence, punctuation, or fixed."),
-        ("words_per_chunk", "Number of words per chunk when using chunked generation (e.g., 3)."),
-        ("chunk_spacing", "Spacing between chunks in pixels (e.g., 8.0)."),
-        ("max_line_width", "Maximum line width in coordinate units (default: 800)."),
+        ("page_width", "Custom page width (only used when page_size is 'Custom'). Specify in the units you selected (mm or px). Example: 210 for A4 width in mm."),
+        ("page_height", "Custom page height (only used when page_size is 'Custom'). Specify in the units you selected (mm or px). Example: 297 for A4 height in mm."),
+        ("orientation", "Page orientation: portrait (vertical) or landscape (horizontal). Portrait is taller than wide, landscape is wider than tall."),
+        ("units", "Measurement units: mm (millimeters) or px (pixels). Affects margins and custom dimensions. mm is recommended for print output."),
+        ("margin_top", "Top margin in selected units (mm or px). Default: 20. Larger values push text further from the top edge."),
+        ("margin_right", "Right margin in selected units (mm or px). Default: 20. Larger values push text further from the right edge."),
+        ("margin_bottom", "Bottom margin in selected units (mm or px). Default: 20. Larger values limit how far text extends toward the bottom."),
+        ("margin_left", "Left margin in selected units (mm or px). Default: 20. Larger values push text further from the left edge."),
+        ("line_height", "Vertical spacing between lines of text in selected units. Leave empty for automatic spacing. Larger values = more space between lines."),
+        ("empty_line_spacing", "Spacing for blank lines created with \\\\. Leave empty for automatic. Use this to control paragraph spacing."),
+        ("align", "Text alignment: left (default), center, or right. Controls horizontal positioning of text on the page."),
+        ("background", "Background color. Use color names (white, blue, cream) or hex codes (#FFFFFF, #F5F5DC). Use 'transparent' for no background."),
+        ("global_scale", "Scales the entire output. 1.0 = normal size, 1.5 = 50% larger, 0.8 = 20% smaller. Affects all text proportionally."),
+        ("legibility", "Controls handwriting clarity. 'natural' = most realistic but harder to read, 'normal' = balanced (recommended), 'high' = clearest but less natural."),
+        ("x_stretch", "Horizontal stretch factor. 1.0 = normal width, >1.0 = wider/stretched, <1.0 = narrower/condensed. Useful for fitting more text."),
+        ("denoise", "Smooth handwriting strokes for cleaner appearance. true = enabled (recommended), false = raw strokes with more variation."),
+        ("auto_size", "Automatically size text to fit line height. true = automatic sizing (recommended), false = use manual_size_scale instead."),
+        ("manual_size_scale", "Manual text size when auto_size is false. 1.0 = base size, 2.0 = double size, 0.5 = half size. Only used when auto_size=false."),
+        ("biases", "Writing style variance per line. Values 0.5-1.0. Lower = more random/natural, higher = more consistent. Separate with | (e.g., 0.75|0.8|0.6)."),
+        ("styles", "Handwriting style number per line (0-12). Different numbers = different handwriting character. Separate with | (e.g., 9|9|12)."),
+        ("stroke_colors", "Ink color per line. Use color names (black, blue, red) or hex codes (#333, #0000FF). Separate with | (e.g., black|blue|red)."),
+        ("stroke_widths", "Pen thickness per line. Default: 1. Larger = thicker strokes. Separate with | for per-line (e.g., 1|1.5|1)."),
+        ("character_override_collection_id", "ID of a character override collection to use custom hand-drawn characters. Leave empty to use AI-generated characters."),
+        ("wrap_char_px", "Estimated character width in pixels for wrapping. Leave empty for automatic. Adjust if text wraps too early or late."),
+        ("wrap_ratio", "Text wrapping ratio (0.1-0.3). Controls how text breaks across lines. Lower = tighter wrap, higher = looser. Default: 0.18."),
+        ("wrap_utilization", "Line width utilization (1.0-2.0). Higher values fill more of the available width. Default: 1.35."),
+        ("use_chunked", "Generate text in chunks for better quality. true = enabled (strongly recommended), false = single-pass generation."),
+        ("adaptive_chunking", "Adjust chunk sizes based on text structure. true = enabled (recommended), false = fixed chunk sizes."),
+        ("adaptive_strategy", "Chunking strategy: 'balanced' (recommended), 'word_length', 'sentence', 'punctuation', or 'fixed'. Controls how text is split."),
+        ("words_per_chunk", "Target words per chunk (1-8). Default: 3. Fewer words = more variation between chunks, more = smoother flow."),
+        ("chunk_spacing", "Horizontal space between chunks in pixels. Default: 8.0. Larger = more gaps between word groups."),
+        ("max_line_width", "Maximum line width in coordinate units. Default: 800. Controls when text wraps to the next line."),
     ]
 
     headers = [h[0] for h in headers_with_notes]
@@ -272,15 +273,16 @@ def template_xlsx():
     # A=filename, B=text, C=page_size, D=page_width, E=page_height, F=orientation, G=units,
     # H=margin_top, I=margin_right, J=margin_bottom, K=margin_left, L=line_height, M=empty_line_spacing,
     # N=align, O=background, P=global_scale, Q=legibility, R=x_stretch, S=denoise, T=auto_size, U=manual_size_scale,
-    # V=biases, W=styles, X=stroke_colors, Y=stroke_widths, Z=wrap_char_px, AA=wrap_ratio, AB=wrap_utilization,
-    # AC=use_chunked, AD=adaptive_chunking, AE=adaptive_strategy, AF=words_per_chunk, AG=chunk_spacing, AH=max_line_width
+    # V=biases, W=styles, X=stroke_colors, Y=stroke_widths, Z=character_override_collection_id,
+    # AA=wrap_char_px, AB=wrap_ratio, AC=wrap_utilization,
+    # AD=use_chunked, AE=adaptive_chunking, AF=adaptive_strategy, AG=words_per_chunk, AH=chunk_spacing, AI=max_line_width
     col_widths = {
         'A': 20, 'B': 50, 'C': 15, 'D': 12, 'E': 12, 'F': 12, 'G': 10,
         'H': 12, 'I': 12, 'J': 12, 'K': 12, 'L': 12, 'M': 18,
         'N': 10, 'O': 12, 'P': 12, 'Q': 12, 'R': 12, 'S': 10,
         'T': 12, 'U': 18, 'V': 15, 'W': 15, 'X': 15, 'Y': 15,
-        'Z': 15, 'AA': 15, 'AB': 18, 'AC': 15, 'AD': 18, 'AE': 18,
-        'AF': 18, 'AG': 15, 'AH': 15
+        'Z': 30, 'AA': 15, 'AB': 15, 'AC': 18, 'AD': 15, 'AE': 18,
+        'AF': 18, 'AG': 18, 'AH': 15, 'AI': 15
     }
     for col, width in col_widths.items():
         ws_data.column_dimensions[col].width = width
@@ -292,11 +294,12 @@ def template_xlsx():
     # Column mapping: A=filename, B=text, C=page_size, D=page_width, E=page_height, F=orientation, G=units,
     # H=margin_top, I=margin_right, J=margin_bottom, K=margin_left, L=line_height, M=empty_line_spacing,
     # N=align, O=background, P=global_scale, Q=legibility, R=x_stretch, S=denoise, T=auto_size, U=manual_size_scale,
-    # V=biases, W=styles, X=stroke_colors, Y=stroke_widths, Z=wrap_char_px, AA=wrap_ratio, AB=wrap_utilization,
-    # AC=use_chunked, AD=adaptive_chunking, AE=adaptive_strategy, AF=words_per_chunk, AG=chunk_spacing, AH=max_line_width
+    # V=biases, W=styles, X=stroke_colors, Y=stroke_widths, Z=character_override_collection_id,
+    # AA=wrap_char_px, AB=wrap_ratio, AC=wrap_utilization,
+    # AD=use_chunked, AE=adaptive_chunking, AF=adaptive_strategy, AG=words_per_chunk, AH=chunk_spacing, AI=max_line_width
 
     # Numeric columns with decimal format
-    numeric_cols_decimal = ['D', 'E', 'H', 'I', 'J', 'K', 'L', 'M', 'P', 'R', 'U', 'Z', 'AA', 'AB', 'AG', 'AH']
+    numeric_cols_decimal = ['D', 'E', 'H', 'I', 'J', 'K', 'L', 'M', 'P', 'R', 'U', 'AA', 'AB', 'AC', 'AH', 'AI']
     # page_width, page_height, margin_top, margin_right, margin_bottom, margin_left, line_height, empty_line_spacing,
     # global_scale, x_stretch, manual_size_scale, wrap_char_px, wrap_ratio, wrap_utilization, chunk_spacing, max_line_width
     for col in numeric_cols_decimal:
@@ -305,14 +308,14 @@ def template_xlsx():
             cell.number_format = numbers.FORMAT_NUMBER_00  # Two decimal places
 
     # Integer columns
-    integer_cols = ['AF']  # words_per_chunk
+    integer_cols = ['Z', 'AG']  # character_override_collection_id, words_per_chunk
     for col in integer_cols:
         for row in range(2, 1001):
             cell = ws_data[f'{col}{row}']
             cell.number_format = numbers.FORMAT_NUMBER
 
     # Text columns (explicitly set for clarity)
-    text_cols = ['A', 'B', 'C', 'F', 'G', 'N', 'O', 'Q', 'S', 'T', 'V', 'W', 'X', 'Y', 'AC', 'AD', 'AE']
+    text_cols = ['A', 'B', 'C', 'F', 'G', 'N', 'O', 'Q', 'S', 'T', 'V', 'W', 'X', 'Y', 'AD', 'AE', 'AF']
     # filename, text, page_size, orientation, units, align, background, legibility, denoise, auto_size,
     # biases, styles, stroke_colors, stroke_widths, use_chunked, adaptive_chunking, adaptive_strategy
     for col in text_cols:
@@ -363,15 +366,15 @@ def template_xlsx():
     ws_data.add_data_validation(bool_dv)
     bool_dv.add(f'S2:S1000')  # denoise
     bool_dv.add(f'T2:T1000')  # auto_size
-    bool_dv.add(f'AC2:AC1000')  # use_chunked
-    bool_dv.add(f'AD2:AD1000')  # adaptive_chunking
+    bool_dv.add(f'AD2:AD1000')  # use_chunked
+    bool_dv.add(f'AE2:AE1000')  # adaptive_chunking
 
     # Adaptive strategy dropdown
     strategy_dv = DataValidation(type="list", formula1='"balanced,word_length,sentence,punctuation,fixed"', allow_blank=True)
     strategy_dv.error = 'Please select from the dropdown'
     strategy_dv.errorTitle = 'Invalid Strategy'
     ws_data.add_data_validation(strategy_dv)
-    strategy_dv.add(f'AE2:AE1000')
+    strategy_dv.add(f'AF2:AF1000')
 
     # Template is blank - users fill in their own data
     # For examples, download the sample file instead
@@ -525,7 +528,8 @@ def sample_xlsx():
         "filename", "text", "page_size", "page_width", "page_height", "orientation", "units",
         "margin_top", "margin_right", "margin_bottom", "margin_left", "line_height", "empty_line_spacing",
         "align", "background", "global_scale", "legibility", "x_stretch", "denoise", "auto_size", "manual_size_scale",
-        "biases", "styles", "stroke_colors", "stroke_widths", "wrap_char_px", "wrap_ratio", "wrap_utilization",
+        "biases", "styles", "stroke_colors", "stroke_widths", "character_override_collection_id",
+        "wrap_char_px", "wrap_ratio", "wrap_utilization",
         "use_chunked", "adaptive_chunking", "adaptive_strategy", "words_per_chunk", "chunk_spacing", "max_line_width"
     ]
 
@@ -541,13 +545,13 @@ def sample_xlsx():
     example_data = [
         ["example1", "The quick brown fox jumps over the lazy dog.", "A4", "", "", "portrait", "mm",
          "20", "20", "20", "20", "", "", "left", "white", "1.0", "normal", "1.0", "true", "true", "",
-         "", "", "", "", "", "", "", "true", "true", "balanced", "3", "8.0", "800"],
+         "", "", "", "", "", "", "", "", "true", "true", "balanced", "3", "8.0", "800"],
         ["example2", "Hello World!\\nThis is a new line.", "Letter", "", "", "portrait", "mm",
          "15", "15", "15", "15", "", "", "center", "white", "1.0", "high", "1.0", "true", "true", "",
-         "", "", "", "", "", "", "", "true", "false", "", "", "", ""],
+         "", "", "", "", "", "", "", "", "true", "false", "", "", "", ""],
         ["custom_size", "Custom page dimensions example.", "Custom", "200", "300", "portrait", "mm",
          "10", "10", "10", "10", "", "", "left", "white", "1.0", "normal", "1.0", "true", "true", "",
-         "", "", "", "", "", "", "", "true", "true", "balanced", "3", "8.0", "800"],
+         "", "", "", "", "", "", "", "", "true", "true", "balanced", "3", "8.0", "800"],
     ]
 
     # Add example rows

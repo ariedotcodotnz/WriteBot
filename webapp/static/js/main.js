@@ -883,7 +883,7 @@ function appendLog(message) {
  */
 async function batchGenerateStream() {
   if (!CSV_FILE) {
-    toastError('Please select a CSV file first');
+    toastError('Please select a CSV or XLSX file first');
     return;
   }
 
@@ -895,13 +895,59 @@ async function batchGenerateStream() {
   formData.append('file', CSV_FILE);
 
   // Add current configuration as defaults (as form fields, not JSON)
+  // Style settings
   formData.append('styles', SELECTED_STYLE_ID || '');
   formData.append('legibility', document.getElementById('legibility').value);
-  formData.append('page_size', resolvePageSize(document.getElementById('pageSize').value));
+  formData.append('character_override_collection_id', document.getElementById('characterOverrideCollection').value || '');
+
+  // Page settings
+  const pageSize = document.getElementById('pageSize').value;
+  formData.append('page_size', resolvePageSize(pageSize));
   formData.append('orientation', document.getElementById('orientation').value);
   formData.append('units', document.getElementById('units').value);
-  formData.append('margins', buildMargins());
-  formData.append('character_override_collection_id', document.getElementById('characterOverrideCollection').value || '');
+  formData.append('align', document.getElementById('align').value);
+  formData.append('background', document.getElementById('background').value || '');
+
+  // Custom page size (only if custom selected)
+  if (pageSize === 'custom') {
+    formData.append('page_width', document.getElementById('pageWidth').value || '');
+    formData.append('page_height', document.getElementById('pageHeight').value || '');
+  }
+
+  // Margins - send as individual fields, not as an object
+  formData.append('margin_top', document.getElementById('marginTop').value || '');
+  formData.append('margin_right', document.getElementById('marginRight').value || '');
+  formData.append('margin_bottom', document.getElementById('marginBottom').value || '');
+  formData.append('margin_left', document.getElementById('marginLeft').value || '');
+
+  // Line settings
+  formData.append('line_height', document.getElementById('lineHeight').value || '');
+  formData.append('empty_line_spacing', document.getElementById('emptyLineSpacing').value || '');
+  formData.append('global_scale', document.getElementById('globalScale').value || '');
+
+  // Writing size settings
+  formData.append('auto_size', document.getElementById('autoSize').checked ? 'true' : 'false');
+  formData.append('manual_size_scale', document.getElementById('manualSizeScale').value || '');
+
+  // Advanced style options
+  formData.append('biases', document.getElementById('biases').value || '');
+  formData.append('stroke_colors', document.getElementById('strokeColors').value || '');
+  formData.append('stroke_widths', document.getElementById('strokeWidths').value || '');
+  formData.append('x_stretch', document.getElementById('xStretch').value || '');
+  formData.append('denoise', document.getElementById('denoise').value || '');
+
+  // Text wrapping options
+  formData.append('wrap_char_px', document.getElementById('wrapCharPx').value || '');
+  formData.append('wrap_ratio', document.getElementById('wrapRatio').value || '');
+  formData.append('wrap_utilization', document.getElementById('wrapUtil').value || '');
+
+  // Text generation options
+  formData.append('use_chunked', document.getElementById('useChunked').checked ? 'true' : 'false');
+  formData.append('adaptive_chunking', document.getElementById('adaptiveChunking').checked ? 'true' : 'false');
+  formData.append('adaptive_strategy', document.getElementById('adaptiveStrategy').value || '');
+  formData.append('words_per_chunk', document.getElementById('wordsPerChunk').value || '');
+  formData.append('chunk_spacing', document.getElementById('chunkSpacing').value || '');
+  formData.append('max_line_width', document.getElementById('maxLineWidth').value || '');
 
   let ok = 0, err = 0, total = 0;
   const liveGrid = document.getElementById('batchLiveGrid');
