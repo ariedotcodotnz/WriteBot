@@ -546,6 +546,44 @@ function resolvePageSize(pageSizeValue) {
 }
 
 /**
+ * Get page dimensions from preset or custom inputs.
+ * @param {string} pageSizeValue - The selected page size value (ID or 'custom').
+ * @returns {object} - Object with width, height, and unit (or nulls if using predefined size).
+ */
+function getPageDimensions(pageSizeValue) {
+  if (pageSizeValue === 'custom') {
+    // Use custom input fields
+    const pageWidth = document.getElementById('pageWidth').value;
+    const pageHeight = document.getElementById('pageHeight').value;
+    return {
+      width: pageWidth ? Number(pageWidth) : null,
+      height: pageHeight ? Number(pageHeight) : null,
+      unit: document.getElementById('units').value
+    };
+  }
+
+  // Find the preset and get its dimensions
+  const preset = PAGE_SIZE_PRESETS.find(p => String(p.id) === String(pageSizeValue));
+  if (preset) {
+    // Check if this is a predefined size (A4, A5, Letter, Legal) that the backend knows about
+    const predefinedSizes = ['A4', 'A5', 'Letter', 'Legal'];
+    if (predefinedSizes.includes(preset.name)) {
+      // Backend knows this size by name, no need to send dimensions
+      return { width: null, height: null, unit: null };
+    }
+    // Custom preset - send the actual dimensions so backend can use them
+    return {
+      width: preset.width,
+      height: preset.height,
+      unit: preset.unit || 'mm'
+    };
+  }
+
+  // Fallback - no dimensions
+  return { width: null, height: null, unit: null };
+}
+
+/**
  * Trigger handwriting generation.
  * Collects all form parameters and sends them to the generation API.
  */
@@ -591,6 +629,9 @@ async function generate() {
   const parseList = (s, cast) => s ? s.split('|').map(v => cast(v.trim())) : undefined;
   const stylesList = stylesOverride ? parseList(stylesOverride, Number) : (globalStyle ? [Number(globalStyle)] : undefined);
 
+  // Get page dimensions from preset or custom inputs
+  const pageDimensions = getPageDimensions(pageSize);
+
   const payload = {
     text,
     page_size: resolvePageSize(pageSize),
@@ -603,9 +644,9 @@ async function generate() {
     legibility,
     character_override_collection_id: characterOverrideCollectionId ? Number(characterOverrideCollectionId) : undefined,
     global_scale: globalScale ? Number(globalScale) : undefined,
-    // Only send custom dimensions when custom page size is selected
-    page_width: (pageSize === 'custom' && pageWidth) ? Number(pageWidth) : undefined,
-    page_height: (pageSize === 'custom' && pageHeight) ? Number(pageHeight) : undefined,
+    // Send page dimensions from preset or custom inputs
+    page_width: pageDimensions.width || undefined,
+    page_height: pageDimensions.height || undefined,
     biases: parseList(biases, Number),
     styles: stylesList,
     stroke_colors: parseList(strokeColors, String),
@@ -908,10 +949,13 @@ async function batchGenerateStream() {
   formData.append('align', document.getElementById('align').value);
   formData.append('background', document.getElementById('background').value || '');
 
-  // Custom page size (only if custom selected)
-  if (pageSize === 'custom') {
-    formData.append('page_width', document.getElementById('pageWidth').value || '');
-    formData.append('page_height', document.getElementById('pageHeight').value || '');
+  // Page dimensions from preset or custom inputs
+  const pageDimensions = getPageDimensions(pageSize);
+  if (pageDimensions.width) {
+    formData.append('page_width', String(pageDimensions.width));
+  }
+  if (pageDimensions.height) {
+    formData.append('page_height', String(pageDimensions.height));
   }
 
   // Margins - send as individual fields, not as an object
