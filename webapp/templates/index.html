@@ -185,7 +185,12 @@ Use \\ on its own line to insert blank space."></textarea>
                   </div>
                 </div>
                 <div class="form-group">
-                  <label for="pageSize" class="bx--label">Page Size</label>
+                  <label for="pageSize" class="bx--label label-with-tooltip">
+                    Page Size
+                    <span class="tooltip-icon">
+                      <span class="tooltip-text">Select a page size preset (A4, Letter, etc.) or choose 'Custom' to specify your own dimensions.</span>
+                    </span>
+                  </label>
                   <div class="bx--select">
                     <select id="pageSize" class="bx--select-input">
                       <option value="">Loading...</option>
@@ -194,7 +199,12 @@ Use \\ on its own line to insert blank space."></textarea>
                   </div>
                 </div>
                 <div class="form-group">
-                  <label for="orientation" class="bx--label">Orientation</label>
+                  <label for="orientation" class="bx--label label-with-tooltip">
+                    Orientation
+                    <span class="tooltip-icon">
+                      <span class="tooltip-text">Portrait = vertical (taller than wide). Landscape = horizontal (wider than tall).</span>
+                    </span>
+                  </label>
                   <div class="bx--select">
                     <select id="orientation" class="bx--select-input">
                       <option value="portrait">Portrait</option>
@@ -204,7 +214,12 @@ Use \\ on its own line to insert blank space."></textarea>
                   </div>
                 </div>
                 <div class="form-group">
-                  <label for="units" class="bx--label">Units</label>
+                  <label for="units" class="bx--label label-with-tooltip">
+                    Units
+                    <span class="tooltip-icon">
+                      <span class="tooltip-text">Measurement units for margins and dimensions. Use mm (millimeters) for print output, px (pixels) for screen.</span>
+                    </span>
+                  </label>
                   <div class="bx--select">
                     <select id="units" class="bx--select-input">
                       <option value="mm">Millimeters</option>
@@ -214,7 +229,12 @@ Use \\ on its own line to insert blank space."></textarea>
                   </div>
                 </div>
                 <div class="form-group">
-                  <label for="align" class="bx--label">Text Alignment</label>
+                  <label for="align" class="bx--label label-with-tooltip">
+                    Text Alignment
+                    <span class="tooltip-icon">
+                      <span class="tooltip-text">Horizontal text alignment on the page. Left is most natural for handwriting.</span>
+                    </span>
+                  </label>
                   <div class="bx--select">
                     <select id="align" class="bx--select-input">
                       <option value="left">Left</option>
@@ -230,11 +250,21 @@ Use \\ on its own line to insert blank space."></textarea>
               <div id="customSizeFields" style="display: none;">
                 <div class="form-grid mt-2">
                   <div class="form-group">
-                    <label for="pageWidth" class="bx--label">Width</label>
+                    <label for="pageWidth" class="bx--label label-with-tooltip">
+                      Width
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Custom page width in the selected units. Example: 210 for A4 width in mm.</span>
+                      </span>
+                    </label>
                     <input id="pageWidth" class="bx--text-input" type="number" step="any" placeholder="210" />
                   </div>
                   <div class="form-group">
-                    <label for="pageHeight" class="bx--label">Height</label>
+                    <label for="pageHeight" class="bx--label label-with-tooltip">
+                      Height
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Custom page height in the selected units. Example: 297 for A4 height in mm.</span>
+                      </span>
+                    </label>
                     <input id="pageHeight" class="bx--text-input" type="number" step="any" placeholder="297" />
                   </div>
                 </div>
@@ -299,12 +329,22 @@ Use \\ on its own line to insert blank space."></textarea>
                 <div class="form-group">
                   <label style="display: flex; align-items: center; gap: 0.5rem;">
                     <input id="autoSize" type="checkbox" checked style="width: auto;" />
-                    <span class="bx--label" style="margin: 0;">Auto Size (fit to line height)</span>
+                    <span class="bx--label label-with-tooltip" style="margin: 0;">
+                      Auto Size (fit to line height)
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Automatically adjusts text size to fit the line height. Recommended for consistent results.</span>
+                      </span>
+                    </span>
                   </label>
                 </div>
                 <div class="form-group">
-                  <label for="manualSizeScale" class="bx--label">Manual Size Scale</label>
-                  <input id="manualSizeScale" class="bx--text-input" type="number" step="0.1" placeholder="1.0" disabled title="Scale for writing size when Auto Size is disabled" />
+                  <label for="manualSizeScale" class="bx--label label-with-tooltip">
+                    Manual Size Scale
+                    <span class="tooltip-icon">
+                      <span class="tooltip-text">Manual text size when Auto Size is disabled. 1.0 = normal, 2.0 = double, 0.5 = half.</span>
+                    </span>
+                  </label>
+                  <input id="manualSizeScale" class="bx--text-input" type="number" step="0.1" placeholder="1.0" disabled />
                 </div>
               </div>
 
@@ -315,15 +355,30 @@ Use \\ on its own line to insert blank space."></textarea>
                 </summary>
                 <div class="form-grid mt-2">
                   <div class="form-group">
-                    <label for="wrapCharPx" class="bx--label">Character Width (px)</label>
+                    <label for="wrapCharPx" class="bx--label label-with-tooltip">
+                      Character Width (px)
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Estimated character width in pixels for wrapping calculations. Leave empty for automatic.</span>
+                      </span>
+                    </label>
                     <input id="wrapCharPx" class="bx--text-input" type="number" step="0.5" placeholder="10.5" />
                   </div>
                   <div class="form-group">
-                    <label for="wrapRatio" class="bx--label">Wrap Ratio</label>
+                    <label for="wrapRatio" class="bx--label label-with-tooltip">
+                      Wrap Ratio
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Text wrapping ratio (0.1-0.3). Controls how text breaks across lines. Default: 0.18.</span>
+                      </span>
+                    </label>
                     <input id="wrapRatio" class="bx--text-input" type="number" step="0.01" placeholder="0.18" />
                   </div>
                   <div class="form-group">
-                    <label for="wrapUtil" class="bx--label">Utilization</label>
+                    <label for="wrapUtil" class="bx--label label-with-tooltip">
+                      Utilization
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Line width utilization (1.0-2.0). Higher values fill more of the available line width. Default: 1.35.</span>
+                      </span>
+                    </label>
                     <input id="wrapUtil" class="bx--text-input" type="number" step="0.05" placeholder="1.35" />
                   </div>
                 </div>
@@ -336,29 +391,44 @@ Use \\ on its own line to insert blank space."></textarea>
                 </summary>
                 <div class="form-grid mt-2">
                   <div class="form-group">
-                    <label class="bx--checkbox-wrapper">
-                      <input id="useChunked" type="checkbox" class="bx--checkbox" checked />
-                      <label for="useChunked" class="bx--checkbox-label">
-                        <span class="bx--checkbox-label-text">Use Chunked Generation (Recommended)</span>
+                    <div class="label-with-tooltip" style="margin-bottom: 0.25rem;">
+                      <label class="bx--checkbox-wrapper" style="margin: 0;">
+                        <input id="useChunked" type="checkbox" class="bx--checkbox" checked />
+                        <label for="useChunked" class="bx--checkbox-label">
+                          <span class="bx--checkbox-label-text">Use Chunked Generation (Recommended)</span>
+                        </label>
                       </label>
-                    </label>
-                    <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Generate text in small word groups for better quality. Strongly recommended for all uses.</span>
+                      </span>
+                    </div>
+                    <small style="display: block; color: var(--text-02);">
                       Generate text in small chunks for better quality and longer lines
                     </small>
                   </div>
                   <div class="form-group">
-                    <label class="bx--checkbox-wrapper">
-                      <input id="adaptiveChunking" type="checkbox" class="bx--checkbox" checked />
-                      <label for="adaptiveChunking" class="bx--checkbox-label">
-                        <span class="bx--checkbox-label-text">Adaptive Chunking</span>
+                    <div class="label-with-tooltip" style="margin-bottom: 0.25rem;">
+                      <label class="bx--checkbox-wrapper" style="margin: 0;">
+                        <input id="adaptiveChunking" type="checkbox" class="bx--checkbox" checked />
+                        <label for="adaptiveChunking" class="bx--checkbox-label">
+                          <span class="bx--checkbox-label-text">Adaptive Chunking</span>
+                        </label>
                       </label>
-                    </label>
-                    <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Intelligently varies chunk sizes based on word boundaries, punctuation, and sentence structure.</span>
+                      </span>
+                    </div>
+                    <small style="display: block; color: var(--text-02);">
                       Intelligently adjust chunk sizes based on text content
                     </small>
                   </div>
                   <div class="form-group">
-                    <label for="adaptiveStrategy" class="bx--label">Adaptive Strategy</label>
+                    <label for="adaptiveStrategy" class="bx--label label-with-tooltip">
+                      Adaptive Strategy
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">How text is split into chunks: balanced (recommended) combines strategies, word_length groups by length, sentence respects sentences, punctuation breaks at punctuation.</span>
+                      </span>
+                    </label>
                     <div class="bx--select">
                       <select id="adaptiveStrategy" class="bx--select-input">
                         <option value="balanced" selected>Balanced (Recommended)</option>
@@ -374,21 +444,36 @@ Use \\ on its own line to insert blank space."></textarea>
                     </small>
                   </div>
                   <div class="form-group">
-                    <label for="wordsPerChunk" class="bx--label">Words Per Chunk</label>
+                    <label for="wordsPerChunk" class="bx--label label-with-tooltip">
+                      Words Per Chunk
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Target number of words per chunk (1-8). Fewer words = more variation, more words = smoother flow. Default: 3.</span>
+                      </span>
+                    </label>
                     <input id="wordsPerChunk" class="bx--text-input" type="number" step="1" min="1" max="8" placeholder="3" />
                     <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
                       Target words per chunk (adaptively adjusted)
                     </small>
                   </div>
                   <div class="form-group">
-                    <label for="chunkSpacing" class="bx--label">Chunk Spacing</label>
+                    <label for="chunkSpacing" class="bx--label label-with-tooltip">
+                      Chunk Spacing
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Horizontal space between word chunks in pixels. Larger values create more visible gaps between word groups. Default: 8.0.</span>
+                      </span>
+                    </label>
                     <input id="chunkSpacing" class="bx--text-input" type="number" step="0.5" min="0" placeholder="8.0" />
                     <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
                       Horizontal space between chunks (default: 8.0)
                     </small>
                   </div>
                   <div class="form-group">
-                    <label for="maxLineWidth" class="bx--label">Max Line Width</label>
+                    <label for="maxLineWidth" class="bx--label label-with-tooltip">
+                      Max Line Width
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Maximum width of a line in coordinate units before wrapping to the next line. Default: 800.</span>
+                      </span>
+                    </label>
                     <input id="maxLineWidth" class="bx--text-input" type="number" step="10" min="300" placeholder="800" />
                     <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
                       Maximum line width in coordinate units (default: 800)
@@ -486,12 +571,12 @@ Use \\ on its own line to insert blank space."></textarea>
         <div class="bx--col-lg-10 bx--col-md-10">
           <div class="card">
             <!-- Upload Area -->
-            <div id="csvDrop" class="dropzone" onclick="document.getElementById('csv').click()">
+            <div id="csvDrop" class="dropzone" onclick="document.getElementById('csv').click()" title="Upload a CSV or XLSX file with your batch data. Use the template buttons below to get started.">
               <div class="dropzone-icon">
                 <i data-feather="file-text" style="width: 48px; height: 48px; stroke-width: 1.5;"></i>
               </div>
               <div class="dropzone-text">Drop CSV or XLSX file here or click to browse</div>
-              <div class="dropzone-subtext">Maximum file size: 10MB</div>
+              <div class="dropzone-subtext">Maximum file size: 10MB. Current form settings will be used as defaults for missing columns.</div>
               <div id="csvInfo" style="display: none;"></div>
             </div>
             <input id="csv" type="file" accept=".csv,.xlsx" style="display: none;" />
@@ -501,25 +586,33 @@ Use \\ on its own line to insert blank space."></textarea>
                 <i data-feather="layers" style="margin-right: 0.5rem; width: 16px; height: 16px;"></i>
                 Start Batch Processing
               </button>
-              <a href="/api/template-xlsx" class="bx--btn bx--btn--secondary">
+              <a href="/api/template-xlsx" class="bx--btn bx--btn--secondary" title="Download an XLSX template with all columns, dropdowns, and tooltips">
                 <i data-feather="download" style="margin-right: 0.5rem; width: 16px; height: 16px;"></i>
                 Download XLSX Template
               </a>
-              <a href="/api/template-csv" class="bx--btn bx--btn--tertiary">
+              <a href="/api/template-csv" class="bx--btn bx--btn--tertiary" title="Download a basic CSV template with column headers">
                 <i data-feather="file" style="margin-right: 0.5rem; width: 16px; height: 16px;"></i>
                 CSV Template
               </a>
-              <a href="/api/sample-xlsx" class="bx--btn bx--btn--tertiary">
+              <a href="/api/sample-xlsx" class="bx--btn bx--btn--tertiary" title="Download an XLSX file with example data to learn from">
                 <i data-feather="book-open" style="margin-right: 0.5rem; width: 16px; height: 16px;"></i>
                 Sample XLSX
               </a>
               <div class="actions-secondary">
-                <label style="display: flex; align-items: center; gap: 0.5rem; margin-right: 1rem;">
+                <label style="display: flex; align-items: center; gap: 0.5rem; margin-right: 1rem;" class="label-with-tooltip">
                   <input id="autoStartBatch" type="checkbox" style="width: auto;" />
                   <span class="text-small text-muted">Auto-start on upload</span>
+                  <span class="tooltip-icon">
+                    <span class="tooltip-text">Automatically start batch processing when a file is dropped or selected.</span>
+                  </span>
                 </label>
-                <label for="liveLimit" class="text-small text-muted">Preview limit:</label>
-                <input id="liveLimit" class="bx--text-input" type="number" min="1" max="50" value="12" style="width: 80px;" />
+                <label for="liveLimit" class="text-small text-muted label-with-tooltip" style="display: flex; align-items: center; gap: 0.25rem;">
+                  Preview limit:
+                  <span class="tooltip-icon">
+                    <span class="tooltip-text">Maximum number of live previews to show during processing. Higher values use more memory.</span>
+                  </span>
+                </label>
+                <input id="liveLimit" class="bx--text-input" type="number" min="1" max="50" value="12" style="width: 80px;" title="Maximum number of live previews to display" />
               </div>
             </div>
 
