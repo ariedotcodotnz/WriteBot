@@ -579,6 +579,66 @@ body {
   font-weight: 400;
 }
 
+/* Button Group Dropdown */
+.btn-group-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  min-width: 140px;
+  background: var(--ui-01);
+  border: 1px solid var(--ui-03);
+  border-radius: 4px;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  margin-bottom: 4px;
+  overflow: hidden;
+}
+
+/* For dropdowns not in sticky bars, open downward */
+.actions-bar:not(.actions-bar-sticky) .dropdown-menu {
+  top: 100%;
+  bottom: auto;
+  margin-top: 4px;
+  margin-bottom: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.625rem 1rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--text-01);
+  text-align: left;
+  transition: background 0.1s ease;
+}
+
+.dropdown-item:hover {
+  background: var(--hover-ui);
+}
+
+.dropdown-item:active {
+  background: var(--active-ui);
+}
+
+.dropdown-item svg,
+.dropdown-item i {
+  width: 14px;
+  height: 14px;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
 /* Checkbox Styling */
 .bx--checkbox-wrapper {
   display: flex;
@@ -672,6 +732,40 @@ body {
   color: var(--inverse-01);
 }
 
+/* Generate button - prominent styling */
+.bx--btn--generate {
+  flex: 1;
+  min-width: 120px;
+}
+
+.bx--btn--generate i,
+.bx--btn--generate svg {
+  width: 16px;
+  height: 16px;
+  margin-right: 0.5rem;
+}
+
+/* Button with chevron dropdown indicator */
+.bx--btn--with-chevron {
+  padding-right: 0.75rem;
+}
+
+.bx--btn--with-chevron i:first-child,
+.bx--btn--with-chevron svg:first-child {
+  width: 16px;
+  height: 16px;
+  margin-right: 0.5rem;
+}
+
+.bx--btn--with-chevron .btn-chevron,
+.bx--btn--with-chevron i:last-child,
+.bx--btn--with-chevron svg:last-child {
+  width: 14px;
+  height: 14px;
+  margin-left: 0.5rem;
+  margin-right: 0;
+}
+
 .bx--btn--ghost {
   background: transparent;
   color: var(--interactive-01);
@@ -711,6 +805,14 @@ body {
   margin-right: -1rem;
   padding: var(--spacing-05) 1rem;
   border-top: 1px solid var(--border-subtle-01);
+  overflow: visible;
+}
+
+.actions-primary {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-03);
+  flex-wrap: wrap;
 }
 
 .actions-secondary {

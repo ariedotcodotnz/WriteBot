@@ -500,18 +500,27 @@ Use \\ on its own line to insert blank space."></textarea>
           <!-- Action Buttons -->
           <div class="actions-bar actions-bar-sticky">
             <div class="actions-primary">
-              <button class="bx--btn bx--btn--primary" onclick="generate()">
-                <i data-feather="zap" style="margin-right: 0.5rem; width: 16px; height: 16px;"></i>
-                Generate Handwriting
+              <button class="bx--btn bx--btn--primary bx--btn--generate" onclick="generate()">
+                <i data-feather="zap"></i>
+                Generate
               </button>
-              <button class="bx--btn bx--btn--secondary" onclick="downloadSVG()">
-                <i data-feather="download" style="margin-right: 0.5rem; width: 16px; height: 16px;"></i>
-                Download SVG
-              </button>
-              <button class="bx--btn bx--btn--secondary" onclick="downloadPDF()">
-                <i data-feather="file-text" style="margin-right: 0.5rem; width: 16px; height: 16px;"></i>
-                Download PDF
-              </button>
+              <div class="btn-group-dropdown">
+                <button class="bx--btn bx--btn--secondary bx--btn--with-chevron" onclick="toggleDownloadMenu(event)">
+                  <i data-feather="download"></i>
+                  Download
+                  <i data-feather="chevron-down" class="btn-chevron"></i>
+                </button>
+                <div id="downloadMenu" class="dropdown-menu">
+                  <button class="dropdown-item" onclick="downloadSVG(); closeDownloadMenu();">
+                    <i data-feather="image"></i>
+                    SVG Image
+                  </button>
+                  <button class="dropdown-item" onclick="downloadPDF(); closeDownloadMenu();">
+                    <i data-feather="file-text"></i>
+                    PDF Document
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

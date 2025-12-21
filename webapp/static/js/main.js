@@ -1226,6 +1226,41 @@ function setupZoomControl() {
   });
 }
 
+// Download Menu
+
+/**
+ * Toggle the download dropdown menu.
+ * @param {Event} event - Click event.
+ */
+function toggleDownloadMenu(event) {
+  event.stopPropagation();
+  const menu = document.getElementById('downloadMenu');
+  const isVisible = menu.style.display === 'block';
+  menu.style.display = isVisible ? 'none' : 'block';
+
+  // Re-initialize feather icons in menu
+  if (!isVisible && typeof feather !== 'undefined') {
+    feather.replace();
+  }
+}
+
+/**
+ * Close the download dropdown menu.
+ */
+function closeDownloadMenu() {
+  const menu = document.getElementById('downloadMenu');
+  if (menu) {
+    menu.style.display = 'none';
+  }
+}
+
+// Close download menu when clicking outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.btn-group-dropdown')) {
+    closeDownloadMenu();
+  }
+});
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
   loadStyles();
