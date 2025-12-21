@@ -68,7 +68,7 @@ jobs:
 
       - name: Test Docker image
         run: |
-          docker-compose -f docker-compose.yml config
+          docker compose -f docker-compose.yml config
 
   security-scan:
     name: Security Scan
