@@ -1,3 +1,4 @@
+# WriteBot - Handwriting Synthesis Application
 WriteBot is an AI-powered handwriting synthesis web application that converts digital text into realistic handwritten SVG documents. The system uses a trained TensorFlow recurrent neural network (RNN) to generate stroke sequences that mimic natural handwriting, with extensive customization options for page layout, styling, and character rendering.
 
 ## System Purpose and Scope
@@ -8,3 +9,4 @@ WriteBot serves two primary use cases:
 The system is deployed as a multi-user web application with role-based access control, activity logging, and usage statistics tracking.
 
 For more details: https://deepwiki.com/ariedotcodotnz/WriteBot
+

@@ -1,6 +1,6 @@
 # Multi-stage Dockerfile for WriteBot
 
-FROM python:3.10-slim as builder
+FROM python:3.10-slim AS builder
 
 # Set working directory
 WORKDIR /app
@@ -26,7 +26,8 @@ WORKDIR /app
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
-    libhdf5-103 \
+    libhdf5-310 \
+    libhdf5-hl-310 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy Python dependencies from builder
