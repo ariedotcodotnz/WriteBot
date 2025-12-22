@@ -5,9 +5,15 @@ pandas>= 0.22.0
 scikit-learn>=0.19.1
 scipy>=1.0.0
 svgwrite>=1.1.12
-tensorflow==2.12.1
-tensorflow-probability==0.20.1
 openpyxl
+
+# TensorFlow (CPU/GPU auto-detection)
+# TensorFlow 2.15.x is used for Keras 2 compatibility (required for RNNCell API)
+# TensorFlow 2.16+ uses Keras 3 which removes legacy RNN APIs
+# For GPU: Install CUDA 12.x and cuDNN 8.9+ separately
+# CPU fallback works automatically when GPU is not available
+tensorflow>=2.15.0,<2.16.0
+tensorflow-probability>=0.23.0,<0.24.0
 
 # Flask dependencies
 flask>=2.3.2
@@ -25,5 +31,3 @@ rjsmin
 rcssmin
 alembic>=1.13.0
 gunicorn>=21.2.0
-
-# Note: For documentation dependencies, see docs/requirements.txt

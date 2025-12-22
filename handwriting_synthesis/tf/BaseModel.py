@@ -14,10 +14,15 @@ import tensorflow.compat.v1 as tfcompat
 
 from handwriting_synthesis.config import checkpoint_path, prediction_path
 from handwriting_synthesis.tf.utils import shape
+from handwriting_synthesis.tf.gpu_config import initialize_gpu, log_gpu_status
 
 # Suppress TensorFlow deprecation warnings for intentional TF1 compatibility mode usage
 warnings.filterwarnings('ignore', category=UserWarning, module='tensorflow')
 warnings.filterwarnings('ignore', category=DeprecationWarning, module='tensorflow')
+
+# Initialize GPU configuration before disabling v2 behavior
+# This ensures proper GPU detection and memory configuration
+_gpu_config = initialize_gpu()
 
 tfcompat.disable_v2_behavior()
 
@@ -145,7 +150,27 @@ class BaseModel(object):
         logging.info('\nNew run with parameters:\n{}'.format(pp.pformat(self.__dict__)))
 
         self.graph = self.build_graph()
-        self.session = tfcompat.Session(graph=self.graph)
+
+        # Configure session with GPU optimization
+        session_config = tfcompat.ConfigProto()
+        session_config.allow_soft_placement = True
+        session_config.log_device_placement = False
+
+        if _gpu_config.is_gpu_available:
+            # GPU-optimized settings
+            session_config.gpu_options.allow_growth = True
+            session_config.gpu_options.per_process_gpu_memory_fraction = 0.9
+            # Enable GPU memory optimization
+            session_config.graph_options.optimizer_options.global_jit_level = tfcompat.OptimizerOptions.ON_1
+            logging.info(f'GPU session configured: {_gpu_config.get_status_summary()}')
+        else:
+            # CPU-optimized settings
+            session_config.intra_op_parallelism_threads = 0  # Auto-detect
+            session_config.inter_op_parallelism_threads = 0  # Auto-detect
+            logging.info('CPU session configured')
+
+        self.session = tfcompat.Session(graph=self.graph, config=session_config)
+        log_gpu_status()
         logging.info('Built Graph')
 
     def update_train_params(self):

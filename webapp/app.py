@@ -50,6 +50,15 @@ from webapp.models import db, User
 # Import extensions module
 from webapp.extensions import init_extensions
 
+# Import GPU configuration for status reporting
+try:
+    from handwriting_synthesis.tf.gpu_config import get_gpu_config, initialize_gpu
+    _gpu_available = True
+except ImportError:
+    _gpu_available = False
+    get_gpu_config = None
+    initialize_gpu = None
+
 # Import route blueprints
 from webapp.routes import generation_bp, batch_bp, style_bp, presets_bp
 
@@ -270,24 +279,45 @@ def health():
     Health check endpoint (cached for 60 seconds).
 
     Returns:
-        JSON status response.
+        JSON status response with GPU info.
     """
+    def _get_health_status():
+        status = {
+            "status": "ok",
+            "model_ready": True,
+            "version": 1,
+        }
+
+        # Add GPU status if available
+        if _gpu_available and get_gpu_config:
+            gpu_config = get_gpu_config()
+            if gpu_config:
+                status["gpu"] = {
+                    "available": gpu_config.is_gpu_available,
+                    "count": gpu_config.gpu_count,
+                    "mixed_precision": gpu_config.is_mixed_precision_enabled,
+                }
+                if gpu_config.is_gpu_available:
+                    status["compute_mode"] = "GPU"
+                else:
+                    status["compute_mode"] = "CPU"
+            else:
+                status["compute_mode"] = "CPU"
+                status["gpu"] = {"available": False}
+        else:
+            status["compute_mode"] = "CPU"
+            status["gpu"] = {"available": False}
+
+        return jsonify(status)
+
     # Example of using cache decorator - cache this endpoint for 60 seconds
     if cache:
         @cache.cached(timeout=60, key_prefix='health_check')
         def _cached_health():
-            return jsonify({
-                "status": "ok",
-                "model_ready": True,
-                "version": 1,
-            })
+            return _get_health_status()
         return _cached_health()
     else:
-        return jsonify({
-            "status": "ok",
-            "model_ready": True,
-            "version": 1,
-        })
+        return _get_health_status()
 
 @app.route('/robots.txt')
 def robots():
