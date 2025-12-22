@@ -1,3 +1,4 @@
+import tensorflow as tf
 from tensorflow.python.framework import constant_op
 from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import ops
@@ -180,7 +181,7 @@ def raw_rnn(cell, loop_fn, parallel_iterations=None, swap_memory=False, scope=No
             return (next_time, elements_finished, next_input, state_ta,
                     emit_ta, next_state, loop_state)
 
-        returned = control_flow_ops.while_loop(
+        returned = tf.while_loop(
             condition, body, loop_vars=[
                 time, elements_finished, next_input, state_ta,
                 emit_ta, state, loop_state],
@@ -229,7 +230,7 @@ def rnn_teacher_force(inputs, cell, sequence_length, initial_state, scope='dynam
         elements_finished = time >= sequence_length
         finished = math_ops.reduce_all(elements_finished)
 
-        next_input = control_flow_ops.cond(
+        next_input = tf.cond(
             finished,
             lambda: array_ops.zeros([array_ops.shape(inputs)[1], inputs.shape.as_list()[2]], dtype=dtypes.float32),
             lambda: inputs_ta.read(time)
@@ -279,7 +280,7 @@ def rnn_free_run(cell, initial_state, sequence_length, initial_input=None, scope
         )
         finished = math_ops.reduce_all(elements_finished)
 
-        next_input = control_flow_ops.cond(
+        next_input = tf.cond(
             finished,
             lambda: array_ops.zeros_like(initial_input),
             lambda: initial_input if cell_output is None else cell.output_function(next_cell_state)

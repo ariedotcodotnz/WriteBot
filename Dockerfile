@@ -1,4 +1,5 @@
-# Multi-stage Dockerfile for WriteBot
+# Multi-stage Dockerfile for WriteBot (CPU version)
+# For GPU support with RTX 50/40/30 series, use Dockerfile.gpu instead
 
 FROM python:3.10-slim AS builder
 
