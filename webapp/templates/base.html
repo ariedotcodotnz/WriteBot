@@ -22,6 +22,11 @@
     {% endassets %}
 
   {% block extra_css %}{% endblock %}
+
+  <style>
+    /* Hide Alpine elements until initialized */
+    [x-cloak] { display: none !important; }
+  </style>
 </head>
 <body>
   {% include 'components/header.html' %}
@@ -43,10 +48,16 @@
   <!-- Notification Container -->
   <div id="notif" class="notification-container"></div>
 
-  <!-- Scripts -->
+  <!-- HTMX -->
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.4/dist/htmx.min.js"></script>
+
+  <!-- Scripts (must load before Alpine.js to register alpine:init listener) -->
     {% assets "js_common" %}
         <script src="{{ ASSET_URL }}"></script>
     {% endassets %}
+
+  <!-- Alpine.js (must load after js_common to pick up registered components) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
 
   {% block extra_js %}{% endblock %}
 </body>

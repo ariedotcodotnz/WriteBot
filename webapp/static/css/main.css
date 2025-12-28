@@ -542,7 +542,7 @@ body {
   display: none;
 }
 
-.style-dropdown-custom.open {
+.style-dropdown-custom.active {
   display: block;
 }
 
@@ -586,7 +586,6 @@ body {
 }
 
 .dropdown-menu {
-  display: none;
   position: absolute;
   bottom: 100%;
   left: 0;
@@ -1178,6 +1177,228 @@ body {
 .mt-1 { margin-top: var(--spacing-02); }
 .mt-2 { margin-top: var(--spacing-05); }
 .mt-3 { margin-top: var(--spacing-07); }
+
+/* Details/Summary Accordion Styling */
+.details-summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--interactive-01);
+}
+
+/* Margin Grid (4-column) */
+.margin-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+/* Flex Label with Checkbox */
+.flex-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.flex-label-spaced {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: 1rem;
+}
+
+/* Checkbox auto width */
+.checkbox-auto {
+  width: auto;
+}
+
+/* Reset margin utility */
+.m-0 {
+  margin: 0;
+}
+
+/* Helper text styling */
+.helper-text {
+  display: block;
+  color: var(--text-02);
+}
+
+.helper-text-mt {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--text-02);
+}
+
+/* Label tooltip with bottom margin */
+.label-tooltip-mb {
+  margin-bottom: 0.25rem;
+}
+
+/* Preset section divider */
+.preset-section-divider {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ui-03);
+}
+
+/* Icon sizing classes */
+.icon-sm {
+  margin-right: 0.5rem;
+  width: 14px;
+  height: 14px;
+}
+
+.icon-md {
+  margin-right: 0.5rem;
+  width: 16px;
+  height: 16px;
+}
+
+.icon-md-mr-sm {
+  margin-right: 0.25rem;
+  width: 16px;
+  height: 16px;
+}
+
+.icon-lg {
+  width: 48px;
+  height: 48px;
+  stroke-width: 1.5;
+}
+
+.icon-close {
+  width: 16px;
+  height: 16px;
+}
+
+/* Preview controls */
+.preview-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Zoom slider */
+.zoom-slider {
+  width: 120px;
+}
+
+/* Metadata padding */
+.metadata-info {
+  padding: 0 1rem;
+}
+
+/* Hidden element */
+.hidden {
+  display: none;
+}
+
+/* Live limit input */
+.live-limit-input {
+  width: 80px;
+}
+
+/* Batch log styles */
+.batch-log-container {
+  color: white;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.batch-log-pre {
+  margin: 0;
+  padding: 1rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+/* Modal Base Styling */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.modal-dark {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+/* Modal Content */
+.modal-content {
+  background: var(--ui-01, #fff);
+  border-radius: 4px;
+  max-width: 500px;
+  width: 90%;
+  padding: 2rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content-lg {
+  background: var(--ui-01, #fff);
+  border-radius: 4px;
+  max-width: 90%;
+  max-height: 90%;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  overflow: auto;
+}
+
+/* Modal Header */
+.modal-title {
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* Form Item Spacing */
+.form-item-mb {
+  margin-bottom: 1rem;
+}
+
+.form-item-mb-lg {
+  margin-bottom: 1.5rem;
+}
+
+/* Modal Footer */
+.modal-footer {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* Modal Preview Content */
+.modal-preview-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+/* Live preview card clickable state */
+.live-preview-card.clickable {
+  cursor: pointer;
+}
 
 /* Responsive Design */
 @media (max-width: 1056px) {

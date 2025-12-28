@@ -83,3 +83,7 @@ output/
 *.zip
 *.rar
 /webapp/static/generator.js
+.claude/settings.local.json
+.claude/settings.local.json
+_ul
+nul

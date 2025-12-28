@@ -147,48 +147,68 @@ if Environment is not None and Bundle is not None:
         assets.url = app.static_url_path
         assets.directory = app.static_folder
 
-        # Define CSS bundle - will minify and combine CSS files
+        # Define CSS bundle - modular CSS files combined and minified
         css_common = Bundle(
-            'css/main.css',
+            # Base styles
+            'css/base/variables.css',
+            'css/base/reset.css',
+            # Layout
+            'css/layout/grid.css',
+            'css/layout/actions.css',
+            # Components
+            'css/components/cards.css',
+            'css/components/forms.css',
+            'css/components/buttons.css',
+            'css/components/tooltips.css',
+            'css/components/modals.css',
+            'css/components/style-dropdown.css',
+            'css/components/preview.css',
+            'css/components/code.css',
+            'css/components/dropzone.css',
+            'css/components/batch.css',
+            'css/components/notifications.css',
+            'css/components/loading.css',
+            # Utilities and responsive
+            'css/utilities.css',
+            'css/responsive.css',
+            # External libraries
             'css/carbon-components.min.css',
-            # Add more CSS files as needed
-            filters='rcssmin',  # Use rcssmin filter
+            filters='rcssmin',
             output='common.css'
         )
 
-        # Define CSS bundle - will minify and combine CSS files
+        # Define CSS bundle for admin pages
         css_admin = Bundle(
             'css/admin.css',
             'css/character_overrides.css',
-            # Add more CSS files as needed
-            filters='rcssmin',  # Use rcssmin filter
+            filters='rcssmin',
             output='admin.css'
         )
 
-        # Define JS bundle - will minify and combine JS files
+        # Define JS bundle - modular JS files combined and minified
         js_common = Bundle(
-            'js/main.js',  # List your JS files explicitly
+            # Module: Notifications (must come first as other modules depend on it)
+            'js/modules/notifications.js',
+            # Module: Alpine.js Application
+            'js/modules/alpine-app.js',
+            # External libraries
             'js/libraries/carbon-components.min.js',
-            # Add more JS files as needed
-            filters='rjsmin',  # Use rjsmin filter
+            filters='rjsmin',
             output='common.js'
         )
 
-        # Define JS bundle - will minify and combine JS files
+        # Define JS bundle for generator page (SVG ruler)
         js_generator = Bundle(
             'js/svg-ruler.js',
-
-            # Add more JS files as needed
-            filters='rjsmin',  # Use rjsmin filter
+            filters='rjsmin',
             output='generator.js'
         )
 
-        # Define JS bundle - will minify and combine JS files
+        # Define JS bundle for admin pages
         js_admin = Bundle(
-            'js/admin.js',  # List your JS files explicitly
+            'js/admin.js',
             'js/character_overrides.js',
-            # Add more JS files as needed
-            filters='rjsmin',  # Use rjsmin filter
+            filters='rjsmin',
             output='admin.js'
         )
 

@@ -441,11 +441,41 @@ function initSVGRuler() {
 
 /**
  * Update the ruler dimensions based on the generated SVG and metadata.
+ * Also updates the SVG preview content directly for reliability.
  * @param {string} svgText - The raw SVG XML string.
  * @param {Object} metadata - The metadata object returned by the generation API.
  */
 function updateRulerForSVG(svgText, metadata) {
   if (!svgRulerInstance) return;
+
+  // Directly update the SVG preview content (bypasses Alpine for reliability)
+  const preview = document.getElementById('preview');
+  if (preview && svgText) {
+    // Find or create the SVG container
+    let svgContainer = preview.querySelector('[x-ref="svgPreview"]') ||
+                       preview.querySelector('.svg-content');
+
+    if (!svgContainer) {
+      // If no dedicated container, find the element with x-html or create one
+      svgContainer = preview.querySelector('[x-html]');
+      if (!svgContainer) {
+        // Create a new container as fallback
+        svgContainer = document.createElement('div');
+        svgContainer.className = 'svg-content';
+        preview.appendChild(svgContainer);
+      }
+    }
+
+    // Set the SVG content directly
+    svgContainer.innerHTML = svgText;
+    svgContainer.style.display = 'block';
+
+    // Hide the placeholder
+    const placeholder = preview.querySelector('.preview-empty');
+    if (placeholder) {
+      placeholder.style.display = 'none';
+    }
+  }
 
   // Try to extract dimensions from metadata
   if (metadata && metadata.page) {

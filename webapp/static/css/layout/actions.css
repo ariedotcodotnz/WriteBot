@@ -1,0 +1,48 @@
+/**
+ * Actions Bar Layout
+ */
+
+.actions-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-04);
+  flex-wrap: wrap;
+  padding: var(--spacing-05) 0;
+  border-top: 1px solid var(--border-subtle-00);
+  margin-top: var(--spacing-05);
+}
+
+.actions-bar-sticky {
+  position: sticky;
+  bottom: 0;
+  background: var(--ui-background);
+  z-index: 100;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 0;
+  margin-left: -1rem;
+  margin-right: -1rem;
+  padding: var(--spacing-05) 1rem;
+  border-top: 1px solid var(--border-subtle-01);
+  overflow: visible;
+}
+
+.actions-primary {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-03);
+  flex-wrap: wrap;
+}
+
+.actions-secondary {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-03);
+  margin-left: auto;
+}
+
+/* Preset section divider */
+.preset-section-divider {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ui-03);
+}

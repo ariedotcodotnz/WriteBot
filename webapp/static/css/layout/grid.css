@@ -1,0 +1,90 @@
+/**
+ * Grid Layout System
+ */
+
+.bx--header {
+  background: var(--ui-05);
+  border-bottom: 1px solid var(--interactive-01);
+}
+
+.bx--header__name {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.bx--header__name--prefix {
+  font-weight: 300;
+  opacity: 0.8;
+}
+
+.bx--content {
+  flex: 1;
+  padding-top: var(--spacing-09);
+  background: var(--ui-background);
+}
+
+.bx--grid {
+  max-width: 1584px;
+  margin: 0 auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.bx--row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+}
+
+.bx--col-lg-5,
+.bx--col-lg-7,
+.bx--col-lg-10,
+.bx--col-lg-16,
+.bx--col-lg-20,
+.bx--col-md-7,
+.bx--col-md-8,
+.bx--col-md-10 {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.bx--col-lg-5 {
+  flex: 0 0 31.25%;
+  max-width: 31.25%;
+}
+
+.bx--col-lg-7 {
+  flex: 0 0 43.75%;
+  max-width: 43.75%;
+}
+
+.bx--col-lg-10 {
+  flex: 0 0 62.5%;
+  max-width: 62.5%;
+}
+
+.bx--col-lg-16 {
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+
+.bx--col-lg-20 {
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+
+.bx--col-md-7 {
+  flex: 0 0 87.5%;
+  max-width: 87.5%;
+}
+
+.bx--col-md-8 {
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+
+.bx--col-md-10 {
+  flex: 0 0 100%;
+  max-width: 100%;
+}

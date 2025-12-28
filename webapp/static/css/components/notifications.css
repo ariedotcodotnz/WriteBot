@@ -1,0 +1,82 @@
+/**
+ * Notification Components
+ */
+
+.notification-container {
+  position: fixed;
+  top: 70px;
+  right: 1rem;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 400px;
+}
+
+.notification {
+  background: var(--layer-01);
+  border-radius: 0;
+  padding: var(--spacing-05);
+  box-shadow: var(--shadow-02);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-04);
+  animation: slideIn 0.3s cubic-bezier(0.2, 0, 0.38, 0.9);
+  border-left: 3px solid var(--border-subtle-01);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.notification-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.notification.error {
+  border-left: 4px solid var(--support-01);
+}
+
+.notification.success {
+  border-left: 4px solid var(--support-02);
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-title {
+  font-weight: 600;
+  color: var(--text-01);
+  margin-bottom: 0.25rem;
+}
+
+.notification-message {
+  color: var(--text-02);
+  font-size: 0.875rem;
+}
+
+.notification-close {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text-02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notification-close:hover {
+  color: var(--text-01);
+}

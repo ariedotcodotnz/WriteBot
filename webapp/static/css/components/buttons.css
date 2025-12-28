@@ -1,0 +1,167 @@
+/**
+ * Button Components
+ */
+
+.bx--btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.875rem 1rem;
+  border: none;
+  cursor: pointer;
+  font-family: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.28572;
+  text-decoration: none;
+  transition: background 70ms cubic-bezier(0.2, 0, 0.38, 0.9),
+              box-shadow 70ms cubic-bezier(0.2, 0, 0.38, 0.9);
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+  min-height: 48px;
+}
+
+.bx--btn:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+.bx--btn--primary {
+  background: var(--interactive-01);
+  color: var(--inverse-01);
+}
+
+.bx--btn--primary:hover {
+  background: var(--hover-primary);
+}
+
+.bx--btn--secondary {
+  background: transparent;
+  color: var(--text-01);
+  border: 1px solid var(--interactive-01);
+}
+
+.bx--btn--secondary:hover {
+  background: var(--hover-primary);
+  color: var(--inverse-01);
+}
+
+.bx--btn--tertiary {
+  background: transparent;
+  color: var(--interactive-01);
+  border: 1px solid transparent;
+}
+
+.bx--btn--tertiary:hover {
+  background: var(--layer-01);
+}
+
+/* Generate button - prominent styling */
+.bx--btn--generate {
+  flex: 1;
+  min-width: 120px;
+}
+
+.bx--btn--generate i,
+.bx--btn--generate svg {
+  width: 16px;
+  height: 16px;
+  margin-right: 0.5rem;
+}
+
+/* Button with chevron dropdown indicator */
+.bx--btn--with-chevron {
+  padding-right: 0.75rem;
+}
+
+.bx--btn--with-chevron i:first-child,
+.bx--btn--with-chevron svg:first-child {
+  width: 16px;
+  height: 16px;
+  margin-right: 0.5rem;
+}
+
+.bx--btn--with-chevron .btn-chevron,
+.bx--btn--with-chevron i:last-child,
+.bx--btn--with-chevron svg:last-child {
+  width: 14px;
+  height: 14px;
+  margin-left: 0.5rem;
+  margin-right: 0;
+}
+
+.bx--btn--ghost {
+  background: transparent;
+  color: var(--interactive-01);
+  padding: 0.875rem 1rem;
+}
+
+.bx--btn--ghost:hover {
+  background: var(--hover-primary-text);
+  color: var(--inverse-01);
+}
+
+.bx--btn--sm {
+  min-height: 32px;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+/* Button Group Dropdown */
+.btn-group-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  min-width: 140px;
+  background: var(--ui-01);
+  border: 1px solid var(--ui-03);
+  border-radius: 4px;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  margin-bottom: 4px;
+  overflow: hidden;
+}
+
+/* For dropdowns not in sticky bars, open downward */
+.actions-bar:not(.actions-bar-sticky) .dropdown-menu {
+  top: 100%;
+  bottom: auto;
+  margin-top: 4px;
+  margin-bottom: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.625rem 1rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--text-01);
+  text-align: left;
+  transition: background 0.1s ease;
+}
+
+.dropdown-item:hover {
+  background: var(--hover-ui);
+}
+
+.dropdown-item:active {
+  background: var(--active-ui);
+}
+
+.dropdown-item svg,
+.dropdown-item i {
+  width: 14px;
+  height: 14px;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}

@@ -1,0 +1,62 @@
+/**
+ * Tooltip Components
+ */
+
+.label-with-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.tooltip-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ui-04);
+  color: var(--inverse-01);
+  font-size: 10px;
+  cursor: help;
+  user-select: none;
+}
+
+.tooltip-icon::before {
+  content: '?';
+  font-weight: 600;
+}
+
+.tooltip-icon:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+.tooltip-text {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ui-05);
+  color: var(--inverse-01);
+  padding: 0.5rem 0.75rem;
+  border-radius: 2px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 1000;
+  transition: opacity 0.2s, visibility 0.2s;
+  box-shadow: var(--shadow-02);
+}
+
+.tooltip-text::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--ui-05);
+}
