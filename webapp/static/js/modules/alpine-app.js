@@ -55,6 +55,10 @@ document.addEventListener('alpine:init', () => {
     xStretch: '',
     denoise: 'true',
 
+    // Margin jitter (natural handwriting variation)
+    marginJitterFrac: '',
+    marginJitterCoherence: '',
+
     // Text wrapping
     wrapCharPx: '',
     wrapRatio: '',
@@ -265,6 +269,8 @@ document.addEventListener('alpine:init', () => {
         wrap_utilization: this.wrapUtil ? Number(this.wrapUtil) : undefined,
         x_stretch: this.xStretch ? Number(this.xStretch) : undefined,
         denoise: this.denoise || undefined,
+        margin_jitter_frac: this.marginJitterFrac ? Number(this.marginJitterFrac) : undefined,
+        margin_jitter_coherence: this.marginJitterCoherence ? Number(this.marginJitterCoherence) : undefined,
         empty_line_spacing: this.emptyLineSpacing ? Number(this.emptyLineSpacing) : undefined,
         auto_size: this.autoSize,
         manual_size_scale: (!this.autoSize && this.manualSizeScale) ? Number(this.manualSizeScale) : undefined,
@@ -623,6 +629,8 @@ document.addEventListener('alpine:init', () => {
       formData.append('stroke_widths', this.strokeWidths || '');
       formData.append('x_stretch', this.xStretch || '');
       formData.append('denoise', this.denoise || '');
+      formData.append('margin_jitter_frac', this.marginJitterFrac || '');
+      formData.append('margin_jitter_coherence', this.marginJitterCoherence || '');
       formData.append('wrap_char_px', this.wrapCharPx || '');
       formData.append('wrap_ratio', this.wrapRatio || '');
       formData.append('wrap_utilization', this.wrapUtil || '');

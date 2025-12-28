@@ -161,6 +161,7 @@ def template_csv():
         "margin_top,margin_right,margin_bottom,margin_left,line_height,empty_line_spacing,"
         "align,background,global_scale,legibility,x_stretch,denoise,auto_size,manual_size_scale,"
         "biases,styles,stroke_colors,stroke_widths,character_override_collection_id,"
+        "margin_jitter_frac,margin_jitter_coherence,"
         "wrap_char_px,wrap_ratio,wrap_utilization,"
         "use_chunked,adaptive_chunking,adaptive_strategy,words_per_chunk,chunk_spacing,max_line_width\n"
     )
@@ -231,6 +232,8 @@ def template_xlsx():
         ("stroke_colors", "Ink color per line. Use color names (black, blue, red) or hex codes (#333, #0000FF). Separate with | (e.g., black|blue|red)."),
         ("stroke_widths", "Pen thickness per line. Default: 1. Larger = thicker strokes. Separate with | for per-line (e.g., 1|1.5|1)."),
         ("character_override_collection_id", "ID of a character override collection to use custom hand-drawn characters. Leave empty to use AI-generated characters."),
+        ("margin_jitter_frac", "Bi-directional margin jitter (0.0-0.1). Adds natural variation to left margin. Higher = more random line starts. Leave empty for auto (based on legibility)."),
+        ("margin_jitter_coherence", "Smoothing for margin variation (0.0-1.0). Higher = more consistent line-to-line spacing. Lower = more random. Leave empty for auto."),
         ("wrap_char_px", "Estimated character width in pixels for wrapping. Leave empty for automatic. Adjust if text wraps too early or late."),
         ("wrap_ratio", "Text wrapping ratio (0.1-0.3). Controls how text breaks across lines. Lower = tighter wrap, higher = looser. Default: 0.18."),
         ("wrap_utilization", "Line width utilization (1.0-2.0). Higher values fill more of the available width. Default: 1.35."),
@@ -274,15 +277,16 @@ def template_xlsx():
     # H=margin_top, I=margin_right, J=margin_bottom, K=margin_left, L=line_height, M=empty_line_spacing,
     # N=align, O=background, P=global_scale, Q=legibility, R=x_stretch, S=denoise, T=auto_size, U=manual_size_scale,
     # V=biases, W=styles, X=stroke_colors, Y=stroke_widths, Z=character_override_collection_id,
-    # AA=wrap_char_px, AB=wrap_ratio, AC=wrap_utilization,
-    # AD=use_chunked, AE=adaptive_chunking, AF=adaptive_strategy, AG=words_per_chunk, AH=chunk_spacing, AI=max_line_width
+    # AA=margin_jitter_frac, AB=margin_jitter_coherence,
+    # AC=wrap_char_px, AD=wrap_ratio, AE=wrap_utilization,
+    # AF=use_chunked, AG=adaptive_chunking, AH=adaptive_strategy, AI=words_per_chunk, AJ=chunk_spacing, AK=max_line_width
     col_widths = {
         'A': 20, 'B': 50, 'C': 15, 'D': 12, 'E': 12, 'F': 12, 'G': 10,
         'H': 12, 'I': 12, 'J': 12, 'K': 12, 'L': 12, 'M': 18,
         'N': 10, 'O': 12, 'P': 12, 'Q': 12, 'R': 12, 'S': 10,
         'T': 12, 'U': 18, 'V': 15, 'W': 15, 'X': 15, 'Y': 15,
-        'Z': 30, 'AA': 15, 'AB': 15, 'AC': 18, 'AD': 15, 'AE': 18,
-        'AF': 18, 'AG': 18, 'AH': 15, 'AI': 15
+        'Z': 30, 'AA': 18, 'AB': 20, 'AC': 15, 'AD': 15, 'AE': 18,
+        'AF': 15, 'AG': 18, 'AH': 18, 'AI': 18, 'AJ': 15, 'AK': 15
     }
     for col, width in col_widths.items():
         ws_data.column_dimensions[col].width = width
@@ -295,20 +299,21 @@ def template_xlsx():
     # H=margin_top, I=margin_right, J=margin_bottom, K=margin_left, L=line_height, M=empty_line_spacing,
     # N=align, O=background, P=global_scale, Q=legibility, R=x_stretch, S=denoise, T=auto_size, U=manual_size_scale,
     # V=biases, W=styles, X=stroke_colors, Y=stroke_widths, Z=character_override_collection_id,
-    # AA=wrap_char_px, AB=wrap_ratio, AC=wrap_utilization,
-    # AD=use_chunked, AE=adaptive_chunking, AF=adaptive_strategy, AG=words_per_chunk, AH=chunk_spacing, AI=max_line_width
+    # AA=margin_jitter_frac, AB=margin_jitter_coherence,
+    # AC=wrap_char_px, AD=wrap_ratio, AE=wrap_utilization,
+    # AF=use_chunked, AG=adaptive_chunking, AH=adaptive_strategy, AI=words_per_chunk, AJ=chunk_spacing, AK=max_line_width
 
     # Numeric columns with decimal format
-    numeric_cols_decimal = ['D', 'E', 'H', 'I', 'J', 'K', 'L', 'M', 'P', 'R', 'U', 'AA', 'AB', 'AC', 'AH', 'AI']
+    numeric_cols_decimal = ['D', 'E', 'H', 'I', 'J', 'K', 'L', 'M', 'P', 'R', 'U', 'AA', 'AB', 'AC', 'AD', 'AE', 'AJ', 'AK']
     # page_width, page_height, margin_top, margin_right, margin_bottom, margin_left, line_height, empty_line_spacing,
-    # global_scale, x_stretch, manual_size_scale, wrap_char_px, wrap_ratio, wrap_utilization, chunk_spacing, max_line_width
+    # global_scale, x_stretch, manual_size_scale, margin_jitter_frac, margin_jitter_coherence, wrap_char_px, wrap_ratio, wrap_utilization, chunk_spacing, max_line_width
     for col in numeric_cols_decimal:
         for row in range(2, 1001):
             cell = ws_data[f'{col}{row}']
             cell.number_format = numbers.FORMAT_NUMBER_00  # Two decimal places
 
     # Integer columns
-    integer_cols = ['Z', 'AG']  # character_override_collection_id, words_per_chunk
+    integer_cols = ['Z', 'AI']  # character_override_collection_id, words_per_chunk
     for col in integer_cols:
         for row in range(2, 1001):
             cell = ws_data[f'{col}{row}']
@@ -529,6 +534,7 @@ def sample_xlsx():
         "margin_top", "margin_right", "margin_bottom", "margin_left", "line_height", "empty_line_spacing",
         "align", "background", "global_scale", "legibility", "x_stretch", "denoise", "auto_size", "manual_size_scale",
         "biases", "styles", "stroke_colors", "stroke_widths", "character_override_collection_id",
+        "margin_jitter_frac", "margin_jitter_coherence",
         "wrap_char_px", "wrap_ratio", "wrap_utilization",
         "use_chunked", "adaptive_chunking", "adaptive_strategy", "words_per_chunk", "chunk_spacing", "max_line_width"
     ]
@@ -545,13 +551,13 @@ def sample_xlsx():
     example_data = [
         ["example1", "The quick brown fox jumps over the lazy dog.", "A4", "", "", "portrait", "mm",
          "20", "20", "20", "20", "", "", "left", "white", "1.0", "normal", "1.0", "true", "true", "",
-         "", "", "", "", "", "", "", "", "true", "true", "balanced", "3", "8.0", "800"],
+         "", "", "", "", "", "", "", "", "", "", "true", "true", "balanced", "3", "8.0", "800"],
         ["example2", "Hello World!\\nThis is a new line.", "Letter", "", "", "portrait", "mm",
          "15", "15", "15", "15", "", "", "center", "white", "1.0", "high", "1.0", "true", "true", "",
-         "", "", "", "", "", "", "", "", "true", "false", "", "", "", ""],
+         "", "", "", "", "", "", "", "", "", "", "true", "false", "", "", "", ""],
         ["custom_size", "Custom page dimensions example.", "Custom", "200", "300", "portrait", "mm",
-         "10", "10", "10", "10", "", "", "left", "white", "1.0", "normal", "1.0", "true", "true", "",
-         "", "", "", "", "", "", "", "", "true", "true", "balanced", "3", "8.0", "800"],
+         "10", "10", "10", "10", "", "", "left", "white", "1.0", "natural", "1.0", "true", "true", "",
+         "", "", "", "", "", "0.015", "0.3", "", "", "", "true", "true", "balanced", "3", "8.0", "800"],
     ]
 
     # Add example rows

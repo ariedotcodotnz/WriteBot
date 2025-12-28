@@ -14,7 +14,8 @@
       "Bash(dir /b writebot.db 2)",
       "Bash(copy:*)",
       "Bash(del writebot.db)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
