@@ -1,0 +1,44 @@
+/**
+ * Code Display Components
+ */
+
+.code-container {
+  background: #1e1e1e;
+  border-radius: 4px;
+  position: relative;
+  max-height: 400px;
+  overflow: hidden;
+}
+
+.code-header {
+  background: #2d2d2d;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #3e3e3e;
+}
+
+.code-title {
+  color: #cccccc;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.code-content {
+  padding: 1rem;
+  overflow: auto;
+  max-height: 320px;
+  background: #1e1e1e;
+}
+
+.code-content pre {
+  margin: 0;
+  color: #d4d4d4;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}

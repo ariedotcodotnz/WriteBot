@@ -1,0 +1,170 @@
+# Docker Compose for WriteBot with GPU support
+# Optimized for NVIDIA RTX 50/40/30 series GPUs
+#
+# Prerequisites:
+# 1. Install NVIDIA Container Toolkit: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
+# 2. Verify with: docker run --rm --gpus all nvidia/cuda:12.3.1-base-ubuntu22.04 nvidia-smi
+#
+# Usage:
+#   docker-compose -f docker-compose.gpu.yml up -d
+#
+# To use with main docker-compose.yml (override):
+#   docker-compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+
+version: '3.8'
+
+services:
+  writebot:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+    container_name: writebot-app-gpu
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///instance/writebot.db}
+      - CACHE_TYPE=${CACHE_TYPE:-simple}
+      - RATELIMIT_STORAGE_URL=${RATELIMIT_STORAGE_URL:-memory://}
+      # GPU-specific environment variables
+      - TF_CPP_MIN_LOG_LEVEL=2
+      - TF_FORCE_GPU_ALLOW_GROWTH=true
+      - TF_ENABLE_TF32=1
+      - CUDA_VISIBLE_DEVICES=0
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    volumes:
+      # Persist database and uploads
+      - ./webapp/instance:/app/webapp/instance
+      - ./webapp/logs:/app/webapp/logs
+      - ./model/data:/app/model/data
+    depends_on:
+      - redis
+    networks:
+      - writebot-network
+    # GPU configuration for Docker
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    # Alternative GPU configuration (for older Docker versions)
+    # runtime: nvidia
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:5000/api/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Celery worker with GPU support
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+    container_name: writebot-celery-worker-gpu
+    restart: unless-stopped
+    command: celery -A webapp.celery_app:celery_app worker --loglevel=info --concurrency=1 --max-tasks-per-child=50
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///instance/writebot.db}
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - TF_CPP_MIN_LOG_LEVEL=2
+      - TF_FORCE_GPU_ALLOW_GROWTH=true
+      - TF_ENABLE_TF32=1
+      - CUDA_VISIBLE_DEVICES=0
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    volumes:
+      - ./webapp/instance:/app/webapp/instance
+      - ./webapp/logs:/app/webapp/logs
+      - ./model/data:/app/model/data
+      - task-results:/tmp/writebot_task_results
+    depends_on:
+      - redis
+    networks:
+      - writebot-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          memory: 8G
+
+  # Celery Flower for monitoring
+  celery-flower:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+    container_name: writebot-celery-flower
+    restart: unless-stopped
+    command: celery -A webapp.celery_app:celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+      - celery-worker
+    networks:
+      - writebot-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: writebot-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - writebot-network
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  nginx:
+    image: nginx:alpine
+    container_name: writebot-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/ssl:/etc/nginx/ssl:ro
+      - ./webapp/static:/usr/share/nginx/html/static:ro
+    depends_on:
+      - writebot
+    networks:
+      - writebot-network
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  redis-data:
+    driver: local
+  task-results:
+    driver: local
+
+networks:
+  writebot-network:
+    driver: bridge

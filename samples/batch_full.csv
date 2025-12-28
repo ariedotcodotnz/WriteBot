@@ -1,5 +1,6 @@
-filename,text,page_size,units,page_width,page_height,margins,line_height,align,background,global_scale,orientation,biases,styles,stroke_colors,stroke_widths,wrap_char_px,wrap_ratio,wrap_utilization,legibility,x_stretch,denoise
-full_1.svg,"A4 portrait, defaults",A4,mm,,,20,60,left,white,1.0,portrait,,9,black|#333,2|2,,0.18,1.35,normal,1.0,true
-full_2.svg,"Letter landscape, wider",Letter,mm,,,15,55,center,white,1.0,landscape,0.8|0.9,9|9|10,black|black|black,2|2|2,,,1.4,high,1.05,true
-full_custom.svg,"Custom 200x120 px, margins 10, no denoise",custom,px,200,120,"10,10,10,10",50,right,none,1.0,portrait,0.7,6,#111,2,10.5,,1.2,natural,1.0,false
+filename,text,page_size,units,page_width,page_height,margins,line_height,align,background,global_scale,orientation,biases,styles,stroke_colors,stroke_widths,wrap_char_px,wrap_ratio,wrap_utilization,legibility,x_stretch,denoise,margin_jitter_frac,margin_jitter_coherence
+full_1.svg,"A4 portrait, defaults",A4,mm,,,20,60,left,white,1.0,portrait,,9,black|#333,2|2,,0.18,1.35,normal,1.0,true,,
+full_2.svg,"Letter landscape, wider",Letter,mm,,,15,55,center,white,1.0,landscape,0.8|0.9,9|9|10,black|black|black,2|2|2,,,1.4,high,1.05,true,0,0
+full_natural.svg,"Natural handwriting with margin jitter",A4,mm,,,20,60,left,white,1.0,portrait,,9,black,2,,0.18,1.35,natural,1.0,true,0.015,0.3
+full_custom.svg,"Custom 200x120 px, margins 10, no denoise",custom,px,200,120,"10,10,10,10",50,right,none,1.0,portrait,0.7,6,#111,2,10.5,,1.2,natural,1.0,false,0.02,0.25
 

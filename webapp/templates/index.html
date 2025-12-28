@@ -1,7 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="bx--grid">
+    <div class="bx--grid" x-data="generationApp" x-cloak>
+      <!-- Loading Overlay (Alpine controlled) -->
+      <div class="overlay" :class="{ 'visible': loading }">
+        <div class="loading-container">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">Processing...</div>
+        </div>
+      </div>
+
       <!-- Main Configuration Panel -->
       <div class="bx--row">
         <div class="bx--col-lg-16">
@@ -26,6 +34,7 @@
                 <label for="text" class="bx--label">Content</label>
                 <div class="bx--text-area__wrapper">
                   <textarea id="text" class="bx--text-area" rows="6"
+                    x-model="text"
                     placeholder="Enter your text here. Each line will become a new paragraph.
 Use \\ on its own line to insert blank space."></textarea>
                 </div>
@@ -50,14 +59,28 @@ Use \\ on its own line to insert blank space."></textarea>
                       <span class="tooltip-text">Choose a handwriting style. Each style represents a different handwriting character.</span>
                     </span>
                   </label>
-                  <div id="styleSelectWrapper" class="style-dropdown-wrapper">
-                    <div class="bx--select style-select-trigger">
-                      <select id="styleSelect" class="bx--select-input">
-                        <option value="">Loading styles...</option>
+                  <div class="style-dropdown-wrapper" @click.away="styleDropdownOpen = false">
+                    <div class="bx--select style-select-trigger" @click="styleDropdownOpen = !styleDropdownOpen">
+                      <select id="styleSelect" class="bx--select-input" x-model="selectedStyleId" @click.stop>
+                        <template x-for="style in styles" :key="style.id">
+                          <option :value="style.id" x-text="`Style ${style.id} - ${style.label || 'Custom'}`"></option>
+                        </template>
                       </select>
                       <i data-feather="chevron-down" class="bx--select__arrow"></i>
                     </div>
-                    <div id="styleDropdown" class="style-dropdown-custom"></div>
+                    <div id="styleDropdown" class="style-dropdown-custom" :class="{ 'active': styleDropdownOpen }">
+                      <template x-for="style in styles" :key="style.id">
+                        <div class="style-option"
+                             :class="{ 'selected': selectedStyleId === style.id }"
+                             @click="selectStyle(style.id)">
+                          <img class="style-preview-img"
+                               :src="`/api/style-preview/${style.id}`"
+                               :alt="`Style ${style.id} preview`"
+                               @error="$el.style.display = 'none'">
+                          <span class="style-label" x-text="`Style ${style.id}${style.label ? ' - ' + style.label : ''}`"></span>
+                        </div>
+                      </template>
+                    </div>
                   </div>
                 </div>
                 <div class="form-group">
@@ -68,9 +91,9 @@ Use \\ on its own line to insert blank space."></textarea>
                     </span>
                   </label>
                   <div class="bx--select">
-                    <select id="legibility" class="bx--select-input">
+                    <select id="legibility" class="bx--select-input" x-model="legibility">
                       <option value="natural">Natural</option>
-                      <option value="normal" selected>Normal</option>
+                      <option value="normal">Normal</option>
                       <option value="high">High</option>
                     </select>
                     <i data-feather="chevron-down" class="bx--select__arrow"></i>
@@ -84,8 +107,11 @@ Use \\ on its own line to insert blank space."></textarea>
                     </span>
                   </label>
                   <div class="bx--select">
-                    <select id="characterOverrideCollection" class="bx--select-input">
+                    <select id="characterOverrideCollection" class="bx--select-input" x-model="characterOverrideCollection">
                       <option value="">None (use AI)</option>
+                      <template x-for="col in characterOverrideCollections" :key="col.id">
+                        <option :value="col.id" x-text="col.name"></option>
+                      </template>
                     </select>
                     <i data-feather="chevron-down" class="bx--select__arrow"></i>
                   </div>
@@ -94,7 +120,7 @@ Use \\ on its own line to insert blank space."></textarea>
 
               <!-- Advanced Style Options -->
               <details class="mt-2">
-                <summary style="cursor: pointer; font-weight: 500; color: var(--interactive-01);">
+                <summary class="details-summary">
                   Advanced Style Options
                 </summary>
                 <div class="form-grid mt-2">
@@ -105,7 +131,7 @@ Use \\ on its own line to insert blank space."></textarea>
                         <span class="tooltip-text">Controls writing style variance. Lower values (0.5-0.7) = more random/natural, higher (0.8-1.0) = more consistent. Separate values with | for each line.</span>
                       </span>
                     </label>
-                    <input id="biases" class="bx--text-input" type="text" placeholder="0.75|0.75|0.6" />
+                    <input id="biases" class="bx--text-input" type="text" placeholder="0.75|0.75|0.6" x-model="biases" />
                   </div>
                   <div class="form-group">
                     <label for="styles" class="bx--label label-with-tooltip">
@@ -114,7 +140,7 @@ Use \\ on its own line to insert blank space."></textarea>
                         <span class="tooltip-text">Use different handwriting styles for each line. Separate style numbers with | (e.g., 9|9|12).</span>
                       </span>
                     </label>
-                    <input id="styles" class="bx--text-input" type="text" placeholder="9|9|12" />
+                    <input id="styles" class="bx--text-input" type="text" placeholder="9|9|12" x-model="perLineStyles" />
                   </div>
                   <div class="form-group">
                     <label for="strokeColors" class="bx--label label-with-tooltip">
@@ -123,7 +149,7 @@ Use \\ on its own line to insert blank space."></textarea>
                         <span class="tooltip-text">Set ink color for each line. Use color names (black, blue) or hex codes (#333). Separate with |.</span>
                       </span>
                     </label>
-                    <input id="strokeColors" class="bx--text-input" type="text" placeholder="black|#333|red" />
+                    <input id="strokeColors" class="bx--text-input" type="text" placeholder="black|#333|red" x-model="strokeColors" />
                   </div>
                   <div class="form-group">
                     <label for="strokeWidths" class="bx--label label-with-tooltip">
@@ -132,16 +158,16 @@ Use \\ on its own line to insert blank space."></textarea>
                         <span class="tooltip-text">Controls pen thickness for each line. Default is 1. Separate with | for different widths per line.</span>
                       </span>
                     </label>
-                    <input id="strokeWidths" class="bx--text-input" type="text" placeholder="1|1|1" />
+                    <input id="strokeWidths" class="bx--text-input" type="text" placeholder="1|1|1" x-model="strokeWidths" />
                   </div>
                   <div class="form-group">
                     <label for="xStretch" class="bx--label label-with-tooltip">
                       Horizontal Stretch
                       <span class="tooltip-icon">
-                        <span class="tooltip-text">Stretches handwriting horizontally. 1.0 = normal, >1.0 = wider, <1.0 = narrower.</span>
+                        <span class="tooltip-text">Stretches handwriting horizontally. 1.0 = normal, >1.0 = wider, &lt;1.0 = narrower.</span>
                       </span>
                     </label>
-                    <input id="xStretch" class="bx--text-input" type="number" step="0.05" placeholder="1.0" />
+                    <input id="xStretch" class="bx--text-input" type="number" step="0.05" placeholder="1.0" x-model="xStretch" />
                   </div>
                   <div class="form-group">
                     <label for="denoise" class="bx--label label-with-tooltip">
@@ -151,12 +177,30 @@ Use \\ on its own line to insert blank space."></textarea>
                       </span>
                     </label>
                     <div class="bx--select">
-                      <select id="denoise" class="bx--select-input">
-                        <option value="true" selected>Enabled</option>
+                      <select id="denoise" class="bx--select-input" x-model="denoise">
+                        <option value="true">Enabled</option>
                         <option value="false">Disabled</option>
                       </select>
                       <i data-feather="chevron-down" class="bx--select__arrow"></i>
                     </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="marginJitterFrac" class="bx--label label-with-tooltip">
+                      Margin Jitter
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Adds natural variation to left margin (0.0-0.1). Higher values = more random line starts. Leave empty for auto (based on legibility).</span>
+                      </span>
+                    </label>
+                    <input id="marginJitterFrac" class="bx--text-input" type="number" step="0.005" min="0" max="0.1" placeholder="Auto" x-model="marginJitterFrac" />
+                  </div>
+                  <div class="form-group">
+                    <label for="marginJitterCoherence" class="bx--label label-with-tooltip">
+                      Jitter Coherence
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Smoothing factor for line-to-line margin variation (0.0-1.0). Higher = more consistent between lines. Leave empty for auto.</span>
+                      </span>
+                    </label>
+                    <input id="marginJitterCoherence" class="bx--text-input" type="number" step="0.1" min="0" max="1" placeholder="Auto" x-model="marginJitterCoherence" />
                   </div>
                 </div>
               </details>
@@ -178,8 +222,11 @@ Use \\ on its own line to insert blank space."></textarea>
                     </span>
                   </label>
                   <div class="bx--select">
-                    <select id="templatePreset" class="bx--select-input">
+                    <select id="templatePreset" class="bx--select-input" @change="applyTemplatePreset($event.target.value)">
                       <option value="">None (Manual Settings)</option>
+                      <template x-for="preset in templatePresets" :key="preset.id">
+                        <option :value="preset.id" x-text="preset.name"></option>
+                      </template>
                     </select>
                     <i data-feather="chevron-down" class="bx--select__arrow"></i>
                   </div>
@@ -192,8 +239,11 @@ Use \\ on its own line to insert blank space."></textarea>
                     </span>
                   </label>
                   <div class="bx--select">
-                    <select id="pageSize" class="bx--select-input">
-                      <option value="">Loading...</option>
+                    <select id="pageSize" class="bx--select-input" x-model="pageSize">
+                      <template x-for="preset in pageSizePresets" :key="preset.id">
+                        <option :value="preset.id" x-text="preset.name"></option>
+                      </template>
+                      <option value="custom">Custom</option>
                     </select>
                     <i data-feather="chevron-down" class="bx--select__arrow"></i>
                   </div>
@@ -206,7 +256,7 @@ Use \\ on its own line to insert blank space."></textarea>
                     </span>
                   </label>
                   <div class="bx--select">
-                    <select id="orientation" class="bx--select-input">
+                    <select id="orientation" class="bx--select-input" x-model="orientation">
                       <option value="portrait">Portrait</option>
                       <option value="landscape">Landscape</option>
                     </select>
@@ -221,7 +271,7 @@ Use \\ on its own line to insert blank space."></textarea>
                     </span>
                   </label>
                   <div class="bx--select">
-                    <select id="units" class="bx--select-input">
+                    <select id="units" class="bx--select-input" x-model="units">
                       <option value="mm">Millimeters</option>
                       <option value="px">Pixels</option>
                     </select>
@@ -236,7 +286,7 @@ Use \\ on its own line to insert blank space."></textarea>
                     </span>
                   </label>
                   <div class="bx--select">
-                    <select id="align" class="bx--select-input">
+                    <select id="align" class="bx--select-input" x-model="align">
                       <option value="left">Left</option>
                       <option value="center">Center</option>
                       <option value="right">Right</option>
@@ -247,7 +297,7 @@ Use \\ on its own line to insert blank space."></textarea>
               </div>
 
               <!-- Custom Size Fields -->
-              <div id="customSizeFields" style="display: none;">
+              <div id="customSizeFields" x-show="showCustomSize" x-transition>
                 <div class="form-grid mt-2">
                   <div class="form-group">
                     <label for="pageWidth" class="bx--label label-with-tooltip">
@@ -256,7 +306,7 @@ Use \\ on its own line to insert blank space."></textarea>
                         <span class="tooltip-text">Custom page width in the selected units. Example: 210 for A4 width in mm.</span>
                       </span>
                     </label>
-                    <input id="pageWidth" class="bx--text-input" type="number" step="any" placeholder="210" />
+                    <input id="pageWidth" class="bx--text-input" type="number" step="any" placeholder="210" x-model="pageWidth" />
                   </div>
                   <div class="form-group">
                     <label for="pageHeight" class="bx--label label-with-tooltip">
@@ -265,7 +315,7 @@ Use \\ on its own line to insert blank space."></textarea>
                         <span class="tooltip-text">Custom page height in the selected units. Example: 297 for A4 height in mm.</span>
                       </span>
                     </label>
-                    <input id="pageHeight" class="bx--text-input" type="number" step="any" placeholder="297" />
+                    <input id="pageHeight" class="bx--text-input" type="number" step="any" placeholder="297" x-model="pageHeight" />
                   </div>
                 </div>
               </div>
@@ -279,11 +329,11 @@ Use \\ on its own line to insert blank space."></textarea>
                       <span class="tooltip-text">Set page margins (Top, Right, Bottom, Left) in the selected units.</span>
                     </span>
                   </label>
-                  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;">
-                    <input id="marginTop" class="bx--text-input" type="number" placeholder="Top" title="Top margin" />
-                    <input id="marginRight" class="bx--text-input" type="number" placeholder="Right" title="Right margin" />
-                    <input id="marginBottom" class="bx--text-input" type="number" placeholder="Bottom" title="Bottom margin" />
-                    <input id="marginLeft" class="bx--text-input" type="number" placeholder="Left" title="Left margin" />
+                  <div class="margin-grid">
+                    <input id="marginTop" class="bx--text-input" type="number" placeholder="Top" title="Top margin" x-model="marginTop" />
+                    <input id="marginRight" class="bx--text-input" type="number" placeholder="Right" title="Right margin" x-model="marginRight" />
+                    <input id="marginBottom" class="bx--text-input" type="number" placeholder="Bottom" title="Bottom margin" x-model="marginBottom" />
+                    <input id="marginLeft" class="bx--text-input" type="number" placeholder="Left" title="Left margin" x-model="marginLeft" />
                   </div>
                 </div>
                 <div class="form-group">
@@ -293,7 +343,7 @@ Use \\ on its own line to insert blank space."></textarea>
                       <span class="tooltip-text">Vertical spacing between lines of text. Leave empty for automatic spacing.</span>
                     </span>
                   </label>
-                  <input id="lineHeight" class="bx--text-input" type="number" placeholder="Auto" title="Spacing between regular lines" />
+                  <input id="lineHeight" class="bx--text-input" type="number" placeholder="Auto" title="Spacing between regular lines" x-model="lineHeight" />
                 </div>
                 <div class="form-group">
                   <label for="emptyLineSpacing" class="bx--label label-with-tooltip">
@@ -302,16 +352,16 @@ Use \\ on its own line to insert blank space."></textarea>
                       <span class="tooltip-text">Spacing when you use \\ to create blank lines. Leave empty for automatic.</span>
                     </span>
                   </label>
-                  <input id="emptyLineSpacing" class="bx--text-input" type="number" placeholder="Auto" title="Spacing for empty/blank lines" />
+                  <input id="emptyLineSpacing" class="bx--text-input" type="number" placeholder="Auto" title="Spacing for empty/blank lines" x-model="emptyLineSpacing" />
                 </div>
                 <div class="form-group">
                   <label for="globalScale" class="bx--label label-with-tooltip">
                     Global Scale
                     <span class="tooltip-icon">
-                      <span class="tooltip-text">Scales the entire output. 1.0 = normal size, >1.0 = larger, <1.0 = smaller.</span>
+                      <span class="tooltip-text">Scales the entire output. 1.0 = normal size, >1.0 = larger, &lt;1.0 = smaller.</span>
                     </span>
                   </label>
-                  <input id="globalScale" class="bx--text-input" type="number" step="0.1" placeholder="1.0" />
+                  <input id="globalScale" class="bx--text-input" type="number" step="0.1" placeholder="1.0" x-model="globalScale" />
                 </div>
                 <div class="form-group">
                   <label for="background" class="bx--label label-with-tooltip">
@@ -320,16 +370,16 @@ Use \\ on its own line to insert blank space."></textarea>
                       <span class="tooltip-text">Background color for the page. Use color names or hex codes. Use 'transparent' for no background.</span>
                     </span>
                   </label>
-                  <input id="background" class="bx--text-input" type="text" placeholder="white" />
+                  <input id="background" class="bx--text-input" type="text" placeholder="white" x-model="background" />
                 </div>
               </div>
 
               <!-- Writing Size Settings -->
               <div class="form-grid mt-3">
                 <div class="form-group">
-                  <label style="display: flex; align-items: center; gap: 0.5rem;">
-                    <input id="autoSize" type="checkbox" checked style="width: auto;" />
-                    <span class="bx--label label-with-tooltip" style="margin: 0;">
+                  <label class="flex-label">
+                    <input id="autoSize" type="checkbox" x-model="autoSize" class="checkbox-auto" />
+                    <span class="bx--label label-with-tooltip m-0">
                       Auto Size (fit to line height)
                       <span class="tooltip-icon">
                         <span class="tooltip-text">Automatically adjusts text size to fit the line height. Recommended for consistent results.</span>
@@ -344,13 +394,13 @@ Use \\ on its own line to insert blank space."></textarea>
                       <span class="tooltip-text">Manual text size when Auto Size is disabled. 1.0 = normal, 2.0 = double, 0.5 = half.</span>
                     </span>
                   </label>
-                  <input id="manualSizeScale" class="bx--text-input" type="number" step="0.1" placeholder="1.0" disabled />
+                  <input id="manualSizeScale" class="bx--text-input" type="number" step="0.1" placeholder="1.0" x-model="manualSizeScale" :disabled="autoSize" />
                 </div>
               </div>
 
               <!-- Advanced Layout Options -->
               <details class="mt-2">
-                <summary style="cursor: pointer; font-weight: 500; color: var(--interactive-01);">
+                <summary class="details-summary">
                   Text Wrapping Options
                 </summary>
                 <div class="form-grid mt-2">
@@ -361,7 +411,7 @@ Use \\ on its own line to insert blank space."></textarea>
                         <span class="tooltip-text">Estimated character width in pixels for wrapping calculations. Leave empty for automatic.</span>
                       </span>
                     </label>
-                    <input id="wrapCharPx" class="bx--text-input" type="number" step="0.5" placeholder="10.5" />
+                    <input id="wrapCharPx" class="bx--text-input" type="number" step="0.5" placeholder="10.5" x-model="wrapCharPx" />
                   </div>
                   <div class="form-group">
                     <label for="wrapRatio" class="bx--label label-with-tooltip">
@@ -370,7 +420,7 @@ Use \\ on its own line to insert blank space."></textarea>
                         <span class="tooltip-text">Text wrapping ratio (0.1-0.3). Controls how text breaks across lines. Default: 0.18.</span>
                       </span>
                     </label>
-                    <input id="wrapRatio" class="bx--text-input" type="number" step="0.01" placeholder="0.18" />
+                    <input id="wrapRatio" class="bx--text-input" type="number" step="0.01" placeholder="0.18" x-model="wrapRatio" />
                   </div>
                   <div class="form-group">
                     <label for="wrapUtil" class="bx--label label-with-tooltip">
@@ -379,21 +429,21 @@ Use \\ on its own line to insert blank space."></textarea>
                         <span class="tooltip-text">Line width utilization (1.0-2.0). Higher values fill more of the available line width. Default: 1.35.</span>
                       </span>
                     </label>
-                    <input id="wrapUtil" class="bx--text-input" type="number" step="0.05" placeholder="1.35" />
+                    <input id="wrapUtil" class="bx--text-input" type="number" step="0.05" placeholder="1.35" x-model="wrapUtil" />
                   </div>
                 </div>
               </details>
 
               <!-- Text Generation Options -->
               <details class="mt-2">
-                <summary style="cursor: pointer; font-weight: 500; color: var(--interactive-01);">
+                <summary class="details-summary">
                   Text Generation Options (Advanced)
                 </summary>
                 <div class="form-grid mt-2">
                   <div class="form-group">
-                    <div class="label-with-tooltip" style="margin-bottom: 0.25rem;">
-                      <label class="bx--checkbox-wrapper" style="margin: 0;">
-                        <input id="useChunked" type="checkbox" class="bx--checkbox" checked />
+                    <div class="label-with-tooltip label-tooltip-mb">
+                      <label class="bx--checkbox-wrapper m-0">
+                        <input id="useChunked" type="checkbox" class="bx--checkbox" x-model="useChunked" />
                         <label for="useChunked" class="bx--checkbox-label">
                           <span class="bx--checkbox-label-text">Use Chunked Generation (Recommended)</span>
                         </label>
@@ -402,14 +452,14 @@ Use \\ on its own line to insert blank space."></textarea>
                         <span class="tooltip-text">Generate text in small word groups for better quality. Strongly recommended for all uses.</span>
                       </span>
                     </div>
-                    <small style="display: block; color: var(--text-02);">
+                    <small class="helper-text">
                       Generate text in small chunks for better quality and longer lines
                     </small>
                   </div>
                   <div class="form-group">
-                    <div class="label-with-tooltip" style="margin-bottom: 0.25rem;">
-                      <label class="bx--checkbox-wrapper" style="margin: 0;">
-                        <input id="adaptiveChunking" type="checkbox" class="bx--checkbox" checked />
+                    <div class="label-with-tooltip label-tooltip-mb">
+                      <label class="bx--checkbox-wrapper m-0">
+                        <input id="adaptiveChunking" type="checkbox" class="bx--checkbox" x-model="adaptiveChunking" />
                         <label for="adaptiveChunking" class="bx--checkbox-label">
                           <span class="bx--checkbox-label-text">Adaptive Chunking</span>
                         </label>
@@ -418,7 +468,7 @@ Use \\ on its own line to insert blank space."></textarea>
                         <span class="tooltip-text">Intelligently varies chunk sizes based on word boundaries, punctuation, and sentence structure.</span>
                       </span>
                     </div>
-                    <small style="display: block; color: var(--text-02);">
+                    <small class="helper-text">
                       Intelligently adjust chunk sizes based on text content
                     </small>
                   </div>
@@ -430,8 +480,8 @@ Use \\ on its own line to insert blank space."></textarea>
                       </span>
                     </label>
                     <div class="bx--select">
-                      <select id="adaptiveStrategy" class="bx--select-input">
-                        <option value="balanced" selected>Balanced (Recommended)</option>
+                      <select id="adaptiveStrategy" class="bx--select-input" x-model="adaptiveStrategy">
+                        <option value="balanced">Balanced (Recommended)</option>
                         <option value="word_length">Word Length</option>
                         <option value="sentence">Sentence Boundaries</option>
                         <option value="punctuation">Punctuation Aware</option>
@@ -439,7 +489,7 @@ Use \\ on its own line to insert blank space."></textarea>
                       </select>
                       <i data-feather="chevron-down" class="bx--select__arrow"></i>
                     </div>
-                    <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
+                    <small class="helper-text-mt">
                       How to split text into chunks (balanced combines multiple strategies)
                     </small>
                   </div>
@@ -450,8 +500,8 @@ Use \\ on its own line to insert blank space."></textarea>
                         <span class="tooltip-text">Target number of words per chunk (1-8). Fewer words = more variation, more words = smoother flow. Default: 3.</span>
                       </span>
                     </label>
-                    <input id="wordsPerChunk" class="bx--text-input" type="number" step="1" min="1" max="8" placeholder="3" />
-                    <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
+                    <input id="wordsPerChunk" class="bx--text-input" type="number" step="1" min="1" max="8" placeholder="3" x-model="wordsPerChunk" />
+                    <small class="helper-text-mt">
                       Target words per chunk (adaptively adjusted)
                     </small>
                   </div>
@@ -462,8 +512,8 @@ Use \\ on its own line to insert blank space."></textarea>
                         <span class="tooltip-text">Horizontal space between word chunks in pixels. Larger values create more visible gaps between word groups. Default: 8.0.</span>
                       </span>
                     </label>
-                    <input id="chunkSpacing" class="bx--text-input" type="number" step="0.5" min="0" placeholder="8.0" />
-                    <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
+                    <input id="chunkSpacing" class="bx--text-input" type="number" step="0.5" min="0" placeholder="8.0" x-model="chunkSpacing" />
+                    <small class="helper-text-mt">
                       Horizontal space between chunks (default: 8.0)
                     </small>
                   </div>
@@ -474,8 +524,8 @@ Use \\ on its own line to insert blank space."></textarea>
                         <span class="tooltip-text">Maximum width of a line in coordinate units before wrapping to the next line. Default: 800.</span>
                       </span>
                     </label>
-                    <input id="maxLineWidth" class="bx--text-input" type="number" step="10" min="300" placeholder="800" />
-                    <small style="display: block; margin-top: 0.25rem; color: var(--text-02);">
+                    <input id="maxLineWidth" class="bx--text-input" type="number" step="10" min="300" placeholder="800" x-model="maxLineWidth" />
+                    <small class="helper-text-mt">
                       Maximum line width in coordinate units (default: 800)
                     </small>
                   </div>
@@ -484,12 +534,12 @@ Use \\ on its own line to insert blank space."></textarea>
 
               <!-- Save as Preset Button (Admin Only) -->
               {% if current_user.is_authenticated and current_user.role == 'admin' %}
-              <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--ui-03);">
-                <button type="button" class="bx--btn bx--btn--tertiary bx--btn--sm" onclick="openSavePresetModal()">
-                  <i data-feather="save" style="margin-right: 0.5rem; width: 14px; height: 14px;"></i>
+              <div class="preset-section-divider">
+                <button type="button" class="bx--btn bx--btn--tertiary bx--btn--sm" @click="savePresetModalOpen = true">
+                  <i data-feather="save" class="icon-sm"></i>
                   Save as Preset
                 </button>
-                <small style="display: block; margin-top: 0.5rem; color: var(--text-02);">
+                <small class="helper-text-mt">
                   Save current settings as a template preset (Admin only)
                 </small>
               </div>
@@ -500,22 +550,22 @@ Use \\ on its own line to insert blank space."></textarea>
           <!-- Action Buttons -->
           <div class="actions-bar actions-bar-sticky">
             <div class="actions-primary">
-              <button class="bx--btn bx--btn--primary bx--btn--generate" onclick="generate()">
+              <button class="bx--btn bx--btn--primary bx--btn--generate" @click="generate()" :disabled="loading">
                 <i data-feather="zap"></i>
                 Generate
               </button>
-              <div class="btn-group-dropdown">
-                <button class="bx--btn bx--btn--secondary bx--btn--with-chevron" onclick="toggleDownloadMenu(event)">
+              <div class="btn-group-dropdown" @click.away="downloadMenuOpen = false">
+                <button class="bx--btn bx--btn--secondary bx--btn--with-chevron" @click="downloadMenuOpen = !downloadMenuOpen">
                   <i data-feather="download"></i>
                   Download
                   <i data-feather="chevron-down" class="btn-chevron"></i>
                 </button>
-                <div id="downloadMenu" class="dropdown-menu">
-                  <button class="dropdown-item" onclick="downloadSVG(); closeDownloadMenu();">
+                <div id="downloadMenu" class="dropdown-menu" x-show="downloadMenuOpen" x-transition>
+                  <button class="dropdown-item" @click="downloadSVG()">
                     <i data-feather="image"></i>
                     SVG Image
                   </button>
-                  <button class="dropdown-item" onclick="downloadPDF(); closeDownloadMenu();">
+                  <button class="dropdown-item" @click="downloadPDF()">
                     <i data-feather="file-text"></i>
                     PDF Document
                   </button>
@@ -531,16 +581,17 @@ Use \\ on its own line to insert blank space."></textarea>
           <div class="card">
             <div class="card-header">
               <h3 class="card-title">Preview</h3>
-              <div style="display: flex; align-items: center; gap: 1rem;">
+              <div class="preview-controls">
                 <label for="zoom" class="text-small text-muted">Zoom:</label>
-                <input id="zoom" type="range" min="25" max="200" value="100" style="width: 120px;" />
-                <span id="zoomVal" class="text-small">100%</span>
+                <input id="zoom" type="range" min="25" max="200" x-model="zoom" @input="updateZoom()" class="zoom-slider" />
+                <span class="text-small" x-text="`${zoom}%`"></span>
               </div>
             </div>
             <div class="preview-container-with-ruler" id="previewContainerRuler">
               <div class="preview-container">
-                <div id="preview">
-                  <div class="preview-empty">Generated handwriting will appear here</div>
+                <div id="preview" :style="`transform: scale(${zoom / 100}); transform-origin: top left;`">
+                  <div x-show="!lastSvgText" class="preview-empty">Generated handwriting will appear here</div>
+                  <div x-ref="svgPreview" x-show="lastSvgText"></div>
                 </div>
               </div>
             </div>
@@ -550,18 +601,18 @@ Use \\ on its own line to insert blank space."></textarea>
           <div class="card">
             <div class="card-header">
               <h3 class="card-title">SVG Source Code</h3>
-              <button class="bx--btn bx--btn--ghost bx--btn--sm" onclick="copySvg()">
-                <i data-feather="copy" style="margin-right: 0.5rem; width: 16px; height: 16px;"></i>
+              <button class="bx--btn bx--btn--ghost bx--btn--sm" @click="copySvg()">
+                <i data-feather="copy" class="icon-md"></i>
                 Copy to Clipboard
               </button>
             </div>
             <div class="code-container">
               <div class="code-content">
-                <pre id="output"><code>// SVG output will appear here after generation</code></pre>
+                <pre id="output"><code x-text="lastSvgText || '// SVG output will appear here after generation'"></code></pre>
               </div>
             </div>
-            <div class="text-small text-muted mt-2" style="padding: 0 1rem;">
-              <strong>Metadata:</strong> <span id="metaInfo">Generate handwriting to view metadata</span>
+            <div class="text-small text-muted mt-2 metadata-info">
+              <strong>Metadata:</strong> <span x-text="metadataInfo"></span>
             </div>
           </div>
         </div>
@@ -569,7 +620,7 @@ Use \\ on its own line to insert blank space."></textarea>
 
       <!-- Batch Processing Section -->
       <div class="bx--row mt-3">
-        <div class="bx--col-lg-20">
+        <div class="bx--col-lg-16 bx--col-md-10">
           <div class="section-header">
             <h2 class="section-title">Batch Processing</h2>
           </div>
@@ -577,85 +628,94 @@ Use \\ on its own line to insert blank space."></textarea>
       </div>
 
       <div class="bx--row">
-        <div class="bx--col-lg-10 bx--col-md-10">
+        <div class="bx--col-lg-19 bx--col-md-10">
           <div class="card">
             <!-- Upload Area -->
-            <div id="csvDrop" class="dropzone" onclick="document.getElementById('csv').click()" title="Upload a CSV or XLSX file with your batch data. Use the template buttons below to get started.">
+            <div id="csvDrop" class="dropzone"
+                 @click="$refs.csvInput.click()"
+                 @dragenter.prevent="$el.classList.add('dragover')"
+                 @dragover.prevent="$el.classList.add('dragover')"
+                 @dragleave.prevent="$el.classList.remove('dragover')"
+                 @drop.prevent="$el.classList.remove('dragover'); handleFileDrop($event)"
+                 title="Upload a CSV or XLSX file with your batch data. Use the template buttons below to get started.">
               <div class="dropzone-icon">
-                <i data-feather="file-text" style="width: 48px; height: 48px; stroke-width: 1.5;"></i>
+                <i data-feather="file-text" class="icon-lg"></i>
               </div>
               <div class="dropzone-text">Drop CSV or XLSX file here or click to browse</div>
               <div class="dropzone-subtext">Maximum file size: 10MB. Current form settings will be used as defaults for missing columns.</div>
-              <div id="csvInfo" style="display: none;"></div>
+              <div x-show="csvFile" class="file-info mt-2">
+                <span class="file-info-name" x-text="csvFile?.name"></span>
+                <span class="file-info-size" x-text="csvFile ? `${(csvFile.size / 1024).toFixed(1)} KB` : ''"></span>
+              </div>
             </div>
-            <input id="csv" type="file" accept=".csv,.xlsx" style="display: none;" />
+            <input x-ref="csvInput" type="file" accept=".csv,.xlsx" class="hidden" @change="handleFileSelect($event)" />
 
             <div class="actions-bar">
-              <button class="bx--btn bx--btn--primary" onclick="batchGenerateStream()">
-                <i data-feather="layers" style="margin-right: 0.5rem; width: 16px; height: 16px;"></i>
+              <button class="bx--btn bx--btn--primary" @click="batchGenerateStream()" :disabled="loading">
+                <i data-feather="layers" class="icon-md"></i>
                 Start Batch Processing
               </button>
               <a href="/api/template-xlsx" class="bx--btn bx--btn--secondary" title="Download an XLSX template with all columns, dropdowns, and tooltips">
-                <i data-feather="download" style="margin-right: 0.5rem; width: 16px; height: 16px;"></i>
+                <i data-feather="download" class="icon-md"></i>
                 Download XLSX Template
               </a>
               <a href="/api/template-csv" class="bx--btn bx--btn--tertiary" title="Download a basic CSV template with column headers">
-                <i data-feather="file" style="margin-right: 0.5rem; width: 16px; height: 16px;"></i>
+                <i data-feather="file" class="icon-md"></i>
                 CSV Template
               </a>
               <a href="/api/sample-xlsx" class="bx--btn bx--btn--tertiary" title="Download an XLSX file with example data to learn from">
-                <i data-feather="book-open" style="margin-right: 0.5rem; width: 16px; height: 16px;"></i>
+                <i data-feather="book-open" class="icon-md"></i>
                 Sample XLSX
               </a>
               <div class="actions-secondary">
-                <label style="display: flex; align-items: center; gap: 0.5rem; margin-right: 1rem;" class="label-with-tooltip">
-                  <input id="autoStartBatch" type="checkbox" style="width: auto;" />
+                <label class="flex-label-spaced label-with-tooltip">
+                  <input type="checkbox" x-model="autoStartBatch" class="checkbox-auto" />
                   <span class="text-small text-muted">Auto-start on upload</span>
                   <span class="tooltip-icon">
                     <span class="tooltip-text">Automatically start batch processing when a file is dropped or selected.</span>
                   </span>
                 </label>
-                <label for="liveLimit" class="text-small text-muted label-with-tooltip" style="display: flex; align-items: center; gap: 0.25rem;">
+                <label for="liveLimit" class="text-small text-muted label-with-tooltip flex-label">
                   Preview limit:
                   <span class="tooltip-icon">
                     <span class="tooltip-text">Maximum number of live previews to show during processing. Higher values use more memory.</span>
                   </span>
                 </label>
-                <input id="liveLimit" class="bx--text-input" type="number" min="1" max="50" value="12" style="width: 80px;" title="Maximum number of live previews to display" />
+                <input id="liveLimit" class="bx--text-input live-limit-input" type="number" min="1" max="50" x-model.number="liveLimit" title="Maximum number of live previews to display" />
               </div>
             </div>
 
             <!-- Batch Status -->
-            <div class="batch-container" id="batchContainer" style="display: none;">
+            <div class="batch-container" x-show="batchContainer" x-transition>
               <div class="batch-header">
                 <h4>Processing Status</h4>
-                <button class="bx--btn bx--btn--ghost bx--btn--sm" onclick="clearBatchUI()">
-                  <i data-feather="trash-2" style="margin-right: 0.25rem; width: 16px; height: 16px;"></i>
+                <button class="bx--btn bx--btn--ghost bx--btn--sm" @click="clearBatchUI()">
+                  <i data-feather="trash-2" class="icon-md-mr-sm"></i>
                   Clear
                 </button>
               </div>
 
               <!-- Progress Bar -->
               <div class="progress-bar">
-                <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+                <div class="progress-fill" :style="`width: ${progressPercent}%`"></div>
               </div>
 
               <!-- Statistics -->
               <div class="batch-stats">
                 <div class="stat-card">
-                  <span id="batchProg" class="stat-value">0</span>
+                  <span class="stat-value" x-text="batchProgress"></span>
                   <span class="stat-label">Processed</span>
                 </div>
                 <div class="stat-card">
-                  <span id="batchTotal" class="stat-value">0</span>
+                  <span class="stat-value" x-text="batchTotal"></span>
                   <span class="stat-label">Total</span>
                 </div>
                 <div class="stat-card">
-                  <span id="batchOk" class="stat-value">0</span>
+                  <span class="stat-value" x-text="batchOk"></span>
                   <span class="stat-label">Success</span>
                 </div>
                 <div class="stat-card">
-                  <span id="batchErr" class="stat-value">0</span>
+                  <span class="stat-value" x-text="batchErr"></span>
                   <span class="stat-label">Errors</span>
                 </div>
               </div>
@@ -664,20 +724,32 @@ Use \\ on its own line to insert blank space."></textarea>
               <div class="batch-previews">
                 <div class="preview-section">
                   <div class="preview-section-header">Live Previews (click to enlarge)</div>
-                  <div id="batchLiveGrid" class="live-preview-grid"></div>
+                  <div class="live-preview-grid">
+                    <template x-for="(item, index) in batchLiveItems" :key="index">
+                      <div class="live-preview-card"
+                           :class="{ 'clickable': item.svg }"
+                           @click="item.svg && openBatchPreview(item.filename, item.svg)">
+                        <div class="live-preview-filename" x-text="item.filename"></div>
+                        <template x-if="item.svg">
+                          <div class="batch-svg-preview" x-html="item.svg"></div>
+                        </template>
+                        <div class="live-preview-status" x-text="item.status === 'complete' ? 'Complete' : 'Generating...'"></div>
+                      </div>
+                    </template>
+                  </div>
                 </div>
                 <div class="preview-section">
                   <div class="preview-section-header">Processing Log</div>
-                  <div class="code-container" style="color: white; max-height: 400px; overflow-y: auto;">
-                    <pre id="batchLog" style="margin: 0; padding: 1rem; font-size: 0.85rem; line-height: 1.4;"><code>Ready to process batch...</code></pre>
+                  <div class="code-container batch-log-container">
+                    <pre class="batch-log-pre"><code x-text="batchLog"></code></pre>
                   </div>
                 </div>
               </div>
 
               <!-- Download Button -->
-              <div class="actions-bar mt-2">
-                <a id="batchDownload" class="bx--btn bx--btn--primary" style="display: none;">
-                  <i data-feather="download" style="margin-right: 0.5rem; width: 16px; height: 16px;"></i>
+              <div class="actions-bar mt-2" x-show="batchDownloadUrl">
+                <a :href="batchDownloadUrl" class="bx--btn bx--btn--primary">
+                  <i data-feather="download" class="icon-md"></i>
                   Download Results
                 </a>
               </div>
@@ -685,39 +757,57 @@ Use \\ on its own line to insert blank space."></textarea>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Save Preset Modal -->
-    <div id="savePresetModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
-      <div style="background: var(--ui-01, #fff); border-radius: 4px; max-width: 500px; width: 90%; padding: 2rem; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
-        <h3 style="margin: 0 0 1rem 0; font-size: 1.25rem;">Save as Template Preset</h3>
-        <div class="bx--form">
-          <div class="bx--form-item" style="margin-bottom: 1rem;">
-            <label for="presetName" class="bx--label">Template Name *</label>
-            <input type="text" id="presetName" class="bx--text-input" placeholder="e.g., Standard Letter" required />
-          </div>
-          <div class="bx--form-item" style="margin-bottom: 1.5rem;">
-            <label for="presetDescription" class="bx--label">Description (Optional)</label>
-            <textarea id="presetDescription" class="bx--text-area" rows="3" placeholder="Describe this template's use case..."></textarea>
-          </div>
-          <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
-            <button type="button" class="bx--btn bx--btn--secondary" onclick="closeSavePresetModal()">Cancel</button>
-            <button type="button" class="bx--btn bx--btn--primary" onclick="savePreset()">Save Preset</button>
+      <!-- Save Preset Modal -->
+      <div class="modal-overlay"
+           :class="{ 'active': savePresetModalOpen }"
+           x-show="savePresetModalOpen"
+           x-transition:enter="transition ease-out duration-200"
+           x-transition:enter-start="opacity-0"
+           x-transition:enter-end="opacity-100"
+           x-transition:leave="transition ease-in duration-150"
+           x-transition:leave-start="opacity-100"
+           x-transition:leave-end="opacity-0"
+           @click.self="savePresetModalOpen = false">
+        <div class="modal-content">
+          <h3 class="modal-title">Save as Template Preset</h3>
+          <div class="bx--form">
+            <div class="bx--form-item form-item-mb">
+              <label for="presetName" class="bx--label">Template Name *</label>
+              <input type="text" id="presetName" class="bx--text-input" placeholder="e.g., Standard Letter" x-model="presetName" required />
+            </div>
+            <div class="bx--form-item form-item-mb-lg">
+              <label for="presetDescription" class="bx--label">Description (Optional)</label>
+              <textarea id="presetDescription" class="bx--text-area" rows="3" placeholder="Describe this template's use case..." x-model="presetDescription"></textarea>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="bx--btn bx--btn--secondary" @click="savePresetModalOpen = false">Cancel</button>
+              <button type="button" class="bx--btn bx--btn--primary" @click="savePreset()">Save Preset</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Batch Preview Modal -->
-    <div id="batchPreviewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 9999; align-items: center; justify-content: center;" onclick="closeBatchPreview()">
-      <div style="background: var(--ui-01, #fff); border-radius: 4px; max-width: 90%; max-height: 90%; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); overflow: auto;" onclick="event.stopPropagation()">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-          <h3 id="batchPreviewTitle" style="margin: 0; font-size: 1.25rem;">Preview</h3>
-          <button class="bx--btn bx--btn--ghost bx--btn--sm" onclick="closeBatchPreview()">
-            <i data-feather="x" style="width: 16px; height: 16px;"></i>
-          </button>
+      <!-- Batch Preview Modal -->
+      <div class="modal-overlay modal-dark"
+           :class="{ 'active': batchPreviewModalOpen }"
+           x-show="batchPreviewModalOpen"
+           x-transition:enter="transition ease-out duration-200"
+           x-transition:enter-start="opacity-0"
+           x-transition:enter-end="opacity-100"
+           x-transition:leave="transition ease-in duration-150"
+           x-transition:leave-start="opacity-100"
+           x-transition:leave-end="opacity-0"
+           @click.self="batchPreviewModalOpen = false">
+        <div class="modal-content-lg" @click.stop>
+          <div class="modal-header">
+            <h3 x-text="batchPreviewTitle"></h3>
+            <button class="bx--btn bx--btn--ghost bx--btn--sm" @click="batchPreviewModalOpen = false">
+              <i data-feather="x" class="icon-close"></i>
+            </button>
+          </div>
+          <div class="modal-preview-content" x-ref="batchPreviewSvg"></div>
         </div>
-        <div id="batchPreviewContent" style="display: flex; justify-content: center; align-items: center; min-height: 200px;"></div>
       </div>
     </div>
 {% endblock %}
@@ -739,6 +829,11 @@ Use \\ on its own line to insert blank space."></textarea>
     if (typeof initSVGRuler === 'function') {
       initSVGRuler();
     }
+  });
+
+  // Re-initialize feather icons when Alpine updates the DOM
+  document.addEventListener('alpine:initialized', () => {
+    feather.replace();
   });
 </script>
 {% endblock %}

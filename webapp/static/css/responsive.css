@@ -1,0 +1,38 @@
+/**
+ * Responsive Design - Media Queries
+ */
+
+@media (max-width: 1056px) {
+  .bx--col-lg-5 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .bx--col-lg-7 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .batch-previews {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 672px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actions-secondary {
+    margin-left: 0;
+  }
+
+  .batch-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

@@ -117,6 +117,8 @@ def _draw(
     manual_size_scale=1.0,
     character_override_collection_id=None,
     overrides_dict=None,  # New parameter
+    margin_jitter_frac=None,  # Bi-directional left margin jitter (fraction of content width)
+    margin_jitter_coherence=None,  # Smoothing factor for coherent line-to-line jitter (0-1)
 ):
     """
     Draws generated handwriting strokes to an SVG file.
@@ -207,6 +209,12 @@ def _draw(
         indent_max_frac = 0.02
         baseline_jitter_frac = 0.005
         interpolate_factor = 1
+
+    # Set margin jitter defaults based on legibility if not explicitly provided
+    if margin_jitter_frac is None:
+        margin_jitter_frac = {'high': 0.0, 'normal': 0.008}.get(legibility, 0.015)
+    if margin_jitter_coherence is None:
+        margin_jitter_coherence = {'high': 0.0, 'normal': 0.4}.get(legibility, 0.3)
 
     # First pass: preprocess each line and compute per-line max allowed scale
     preprocessed_lines = []
@@ -326,7 +334,28 @@ def _draw(
     rng = np.random.RandomState(42)
     x_stretch = float(x_stretch) if x_stretch is not None else 1.0
 
-    for preprocessed_segments in preprocessed_lines:
+    # Pre-generate bi-directional margin jitter for all lines (Gaussian + coherence smoothing)
+    num_lines = len(preprocessed_lines)
+    if margin_jitter_frac > 0.0 and num_lines > 0:
+        max_jitter = margin_jitter_frac * content_width_px
+        sigma = max_jitter * 0.5  # Standard deviation is half the max for natural clustering
+        raw_jitters = rng.normal(0, sigma, num_lines)
+        raw_jitters = np.clip(raw_jitters, -max_jitter, max_jitter)
+
+        # Apply coherence smoothing (exponential moving average) to prevent jarring jumps
+        if margin_jitter_coherence > 0.0:
+            alpha = 1.0 - margin_jitter_coherence
+            smoothed_jitters = np.zeros(num_lines)
+            smoothed_jitters[0] = raw_jitters[0]
+            for i in range(1, num_lines):
+                smoothed_jitters[i] = alpha * raw_jitters[i] + (1.0 - alpha) * smoothed_jitters[i - 1]
+            margin_jitters = smoothed_jitters
+        else:
+            margin_jitters = raw_jitters
+    else:
+        margin_jitters = np.zeros(num_lines)
+
+    for line_idx, preprocessed_segments in enumerate(preprocessed_lines):
         # Check if entire line is empty
         if len(preprocessed_segments) == 1 and preprocessed_segments[0].get('empty'):
             cursor_y += empty_line_spacing_px
@@ -385,9 +414,17 @@ def _draw(
         else:
             line_offset_x = m_left
 
-        utilization_ratio = total_line_width / max(1.0, content_width_px)
-        if indent_max_frac > 0.0 and utilization_ratio < 0.6:
-            line_offset_x += float(rng.uniform(0.0, indent_max_frac) * content_width_px)
+        # Apply bi-directional margin jitter (for ALL lines, all alignments)
+        if margin_jitter_frac > 0.0:
+            jitter = margin_jitters[line_idx]
+            # Safety clamp: don't intrude more than 20% into left margin
+            safe_minimum = m_left * 0.8
+            line_offset_x = max(safe_minimum, line_offset_x + jitter)
+        else:
+            # Legacy behavior: positive-only indent for short lines when no margin jitter
+            utilization_ratio = total_line_width / max(1.0, content_width_px)
+            if indent_max_frac > 0.0 and utilization_ratio < 0.6:
+                line_offset_x += float(rng.uniform(0.0, indent_max_frac) * content_width_px)
 
         if baseline_jitter_frac > 0.0:
             line_offset_y = cursor_y + float(rng.uniform(-baseline_jitter_frac, baseline_jitter_frac) * line_height_px)

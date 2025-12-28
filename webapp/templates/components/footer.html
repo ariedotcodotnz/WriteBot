@@ -5,14 +5,15 @@
         {% if current_user.is_authenticated %}
           {% if current_user.is_admin() %}
             <a href="{{ url_for('admin.dashboard') }}">Admin</a>
-                  <span class="footer-divider">|</span>
+            <span class="footer-divider">|</span>
           {% endif %}
         {% endif %}
-        <a href="/docs/" target="_blank">API Docs</a>
-        <a href="/api/health">Health</a>
+        <a href="/docs/" target="_blank">Documentation</a>
+        <span class="footer-divider">|</span>
+        <a href="/api/health">API Health</a>
       </div>
       <div class="footer-meta">
-        <span class="footer-copyright">WriteBot v1.0.0</span>
+        <span class="footer-copyright">WriteBot v1.3 - Handwriting Synthesis</span>
       </div>
     </div>
   </div>

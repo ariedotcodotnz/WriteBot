@@ -1,0 +1,56 @@
+/**
+ * Dropzone Components
+ */
+
+.dropzone {
+  border: 2px dashed var(--border-subtle-01);
+  background: var(--layer-02);
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0, 0.38, 0.9);
+  margin-bottom: var(--spacing-05);
+}
+
+.dropzone:hover,
+.dropzone.dragover {
+  border-color: var(--interactive-01);
+  background: var(--layer-01);
+}
+
+.dropzone-icon {
+  color: var(--text-03);
+  margin-bottom: 1rem;
+}
+
+.dropzone-text {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-01);
+  margin-bottom: 0.5rem;
+}
+
+.dropzone-subtext {
+  font-size: 0.875rem;
+  color: var(--text-02);
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: var(--layer-01);
+  border-radius: 4px;
+  margin-top: 1rem;
+}
+
+.file-info-name {
+  font-weight: 500;
+  color: var(--text-01);
+}
+
+.file-info-size {
+  font-size: 0.875rem;
+  color: var(--text-02);
+}

@@ -1,0 +1,56 @@
+/**
+ * Utility Classes
+ */
+
+/* Text utilities */
+.text-small {
+  font-size: 0.75rem;
+}
+
+.text-muted {
+  color: var(--text-02);
+}
+
+/* Margin utilities */
+.m-0 {
+  margin: 0;
+}
+
+.mt-1 { margin-top: var(--spacing-02); }
+.mt-2 { margin-top: var(--spacing-05); }
+.mt-3 { margin-top: var(--spacing-07); }
+
+/* Icon sizing classes */
+.icon-sm {
+  margin-right: 0.5rem;
+  width: 14px;
+  height: 14px;
+}
+
+.icon-md {
+  margin-right: 0.5rem;
+  width: 16px;
+  height: 16px;
+}
+
+.icon-md-mr-sm {
+  margin-right: 0.25rem;
+  width: 16px;
+  height: 16px;
+}
+
+.icon-lg {
+  width: 48px;
+  height: 48px;
+  stroke-width: 1.5;
+}
+
+.icon-close {
+  width: 16px;
+  height: 16px;
+}
+
+/* Hidden element */
+.hidden {
+  display: none;
+}

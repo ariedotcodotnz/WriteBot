@@ -121,6 +121,10 @@ def parse_generation_params(params: Dict[str, Any], defaults: Optional[Dict[str,
     # Character overrides
     character_override_collection_id = _parse_int(_get("character_override_collection_id"))
 
+    # Margin jitter parameters (for natural handwriting variation)
+    margin_jitter_frac = _parse_float(_get("margin_jitter_frac"))
+    margin_jitter_coherence = _parse_float(_get("margin_jitter_coherence"))
+
     # Wrapping parameters
     wrap_char_px = _parse_float(_get("wrap_char_px"))
     wrap_ratio = _parse_float(_get("wrap_ratio"))
@@ -175,6 +179,8 @@ def parse_generation_params(params: Dict[str, Any], defaults: Optional[Dict[str,
         "target_chars_per_chunk": target_chars_per_chunk,
         "adaptive_chunking": adaptive_chunking,
         "adaptive_strategy": adaptive_strategy,
+        "margin_jitter_frac": margin_jitter_frac,
+        "margin_jitter_coherence": margin_jitter_coherence,
     }
 
 
@@ -277,6 +283,8 @@ def generate_handwriting_to_file(
             auto_size=params["auto_size"],
             manual_size_scale=params["manual_size_scale"],
             character_override_collection_id=params["character_override_collection_id"],
+            margin_jitter_frac=params["margin_jitter_frac"],
+            margin_jitter_coherence=params["margin_jitter_coherence"],
         )
     else:
         # Traditional line-by-line generation with wrapping
@@ -329,6 +337,8 @@ def generate_handwriting_to_file(
             auto_size=params["auto_size"],
             manual_size_scale=params["manual_size_scale"],
             character_override_collection_id=params["character_override_collection_id"],
+            margin_jitter_frac=params["margin_jitter_frac"],
+            margin_jitter_coherence=params["margin_jitter_coherence"],
         )
 
 

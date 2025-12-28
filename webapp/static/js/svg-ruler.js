@@ -274,18 +274,27 @@ class SVGRuler {
   }
 
   /**
-   * Draw the horizontal ruler.
+   * Draw the horizontal ruler with HiDPI support.
    */
   drawHorizontalRuler() {
     const canvas = this.topCanvas;
     const ctx = canvas.getContext('2d');
 
+    // Get device pixel ratio for crisp rendering on HiDPI displays
+    const dpr = window.devicePixelRatio || 1;
+
     // Set canvas size
     const rulerHeight = 30;
     const width = this.previewContainer.scrollWidth;
-    canvas.width = width;
-    canvas.height = rulerHeight;
+
+    // Scale canvas for HiDPI
+    canvas.width = width * dpr;
+    canvas.height = rulerHeight * dpr;
+    canvas.style.width = width + 'px';
     canvas.style.height = rulerHeight + 'px';
+
+    // Scale context to match
+    ctx.scale(dpr, dpr);
 
     // Clear canvas
     ctx.clearRect(0, 0, width, rulerHeight);
@@ -296,21 +305,33 @@ class SVGRuler {
 
     // Draw ruler markings
     this.drawRulerMarkings(ctx, 'horizontal', width, rulerHeight);
+
+    // Reset transform for next draw
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 
   /**
-   * Draw the vertical ruler.
+   * Draw the vertical ruler with HiDPI support.
    */
   drawVerticalRuler() {
     const canvas = this.leftCanvas;
     const ctx = canvas.getContext('2d');
 
+    // Get device pixel ratio for crisp rendering on HiDPI displays
+    const dpr = window.devicePixelRatio || 1;
+
     // Set canvas size
     const rulerWidth = 30;
     const height = this.previewContainer.scrollHeight;
-    canvas.width = rulerWidth;
-    canvas.height = height;
+
+    // Scale canvas for HiDPI
+    canvas.width = rulerWidth * dpr;
+    canvas.height = height * dpr;
     canvas.style.width = rulerWidth + 'px';
+    canvas.style.height = height + 'px';
+
+    // Scale context to match
+    ctx.scale(dpr, dpr);
 
     // Clear canvas
     ctx.clearRect(0, 0, rulerWidth, height);
@@ -321,6 +342,9 @@ class SVGRuler {
 
     // Draw ruler markings
     this.drawRulerMarkings(ctx, 'vertical', rulerWidth, height);
+
+    // Reset transform for next draw
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 
   /**
@@ -441,11 +465,41 @@ function initSVGRuler() {
 
 /**
  * Update the ruler dimensions based on the generated SVG and metadata.
+ * Also updates the SVG preview content directly for reliability.
  * @param {string} svgText - The raw SVG XML string.
  * @param {Object} metadata - The metadata object returned by the generation API.
  */
 function updateRulerForSVG(svgText, metadata) {
   if (!svgRulerInstance) return;
+
+  // Directly update the SVG preview content (bypasses Alpine for reliability)
+  const preview = document.getElementById('preview');
+  if (preview && svgText) {
+    // Find or create the SVG container
+    let svgContainer = preview.querySelector('[x-ref="svgPreview"]') ||
+                       preview.querySelector('.svg-content');
+
+    if (!svgContainer) {
+      // If no dedicated container, find the element with x-html or create one
+      svgContainer = preview.querySelector('[x-html]');
+      if (!svgContainer) {
+        // Create a new container as fallback
+        svgContainer = document.createElement('div');
+        svgContainer.className = 'svg-content';
+        preview.appendChild(svgContainer);
+      }
+    }
+
+    // Set the SVG content directly
+    svgContainer.innerHTML = svgText;
+    svgContainer.style.display = 'block';
+
+    // Hide the placeholder
+    const placeholder = preview.querySelector('.preview-empty');
+    if (placeholder) {
+      placeholder.style.display = 'none';
+    }
+  }
 
   // Try to extract dimensions from metadata
   if (metadata && metadata.page) {

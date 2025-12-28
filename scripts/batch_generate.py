@@ -73,7 +73,7 @@ def main():
     and executes them, saving the output SVGs to the specified directory.
     """
     parser = argparse.ArgumentParser(description='Batch generate SVG handwriting from CSV')
-    parser.add_argument('csv', help='CSV file with rows to generate. Required column: text. Optional: filename, biases, styles, stroke_colors, stroke_widths, page_size, units, page_width, page_height, margins, line_height, align, background, global_scale, orientation, legibility, x_stretch, denoise, empty_line_spacing, auto_size, manual_size_scale, character_override_collection_id, use_chunked, words_per_chunk, chunk_spacing, rotate_chunks, min_words_per_chunk, max_words_per_chunk, target_chars_per_chunk, adaptive_chunking, adaptive_strategy')
+    parser.add_argument('csv', help='CSV file with rows to generate. Required column: text. Optional: filename, biases, styles, stroke_colors, stroke_widths, page_size, units, page_width, page_height, margins, line_height, align, background, global_scale, orientation, legibility, x_stretch, denoise, empty_line_spacing, auto_size, manual_size_scale, character_override_collection_id, margin_jitter_frac, margin_jitter_coherence, use_chunked, words_per_chunk, chunk_spacing, rotate_chunks, min_words_per_chunk, max_words_per_chunk, target_chars_per_chunk, adaptive_chunking, adaptive_strategy')
     parser.add_argument('--out-dir', default='out', help='Output directory for SVGs')
     args = parser.parse_args()
 
@@ -128,6 +128,10 @@ def main():
         manual_size_scale = parse_float_or_none(r.get('manual_size_scale')) or 1.0
         character_override_collection_id = parse_str_or_none(r.get('character_override_collection_id'))
 
+        # Margin jitter parameters
+        margin_jitter_frac = parse_float_or_none(r.get('margin_jitter_frac'))
+        margin_jitter_coherence = parse_float_or_none(r.get('margin_jitter_coherence'))
+
         # Check if chunked mode is requested
         use_chunked = parse_bool(r.get('use_chunked')) if r.get('use_chunked') != '' else False
 
@@ -173,6 +177,8 @@ def main():
                 auto_size=auto_size,
                 manual_size_scale=manual_size_scale,
                 character_override_collection_id=character_override_collection_id,
+                margin_jitter_frac=margin_jitter_frac,
+                margin_jitter_coherence=margin_jitter_coherence,
             )
         else:
             # Use regular write for line-by-line mode
@@ -199,6 +205,8 @@ def main():
                 auto_size=auto_size,
                 manual_size_scale=manual_size_scale,
                 character_override_collection_id=character_override_collection_id,
+                margin_jitter_frac=margin_jitter_frac,
+                margin_jitter_coherence=margin_jitter_coherence,
             )
         print(f"Wrote {out_path}")
 
