@@ -773,6 +773,14 @@ document.addEventListener('alpine:init', () => {
 
     // Update zoom
     updateZoom() {
+      // Directly apply transform to preview element (bypasses Alpine binding issues)
+      const preview = document.getElementById('preview');
+      if (preview) {
+        preview.style.transform = `scale(${this.zoom / 100})`;
+        preview.style.transformOrigin = 'top left';
+      }
+
+      // Update ruler zoom
       if (typeof window.svgRulerInstance !== 'undefined' && window.svgRulerInstance) {
         window.svgRulerInstance.zoom = this.zoom / 100;
         window.svgRulerInstance.drawRulers();

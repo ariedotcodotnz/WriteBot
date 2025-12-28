@@ -58,7 +58,12 @@
 
 .ruler-canvas {
   display: block;
+  /* Crisp rendering for HiDPI displays */
+  image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Crosshairs */

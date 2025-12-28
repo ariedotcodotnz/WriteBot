@@ -274,18 +274,27 @@ class SVGRuler {
   }
 
   /**
-   * Draw the horizontal ruler.
+   * Draw the horizontal ruler with HiDPI support.
    */
   drawHorizontalRuler() {
     const canvas = this.topCanvas;
     const ctx = canvas.getContext('2d');
 
+    // Get device pixel ratio for crisp rendering on HiDPI displays
+    const dpr = window.devicePixelRatio || 1;
+
     // Set canvas size
     const rulerHeight = 30;
     const width = this.previewContainer.scrollWidth;
-    canvas.width = width;
-    canvas.height = rulerHeight;
+
+    // Scale canvas for HiDPI
+    canvas.width = width * dpr;
+    canvas.height = rulerHeight * dpr;
+    canvas.style.width = width + 'px';
     canvas.style.height = rulerHeight + 'px';
+
+    // Scale context to match
+    ctx.scale(dpr, dpr);
 
     // Clear canvas
     ctx.clearRect(0, 0, width, rulerHeight);
@@ -296,21 +305,33 @@ class SVGRuler {
 
     // Draw ruler markings
     this.drawRulerMarkings(ctx, 'horizontal', width, rulerHeight);
+
+    // Reset transform for next draw
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 
   /**
-   * Draw the vertical ruler.
+   * Draw the vertical ruler with HiDPI support.
    */
   drawVerticalRuler() {
     const canvas = this.leftCanvas;
     const ctx = canvas.getContext('2d');
 
+    // Get device pixel ratio for crisp rendering on HiDPI displays
+    const dpr = window.devicePixelRatio || 1;
+
     // Set canvas size
     const rulerWidth = 30;
     const height = this.previewContainer.scrollHeight;
-    canvas.width = rulerWidth;
-    canvas.height = height;
+
+    // Scale canvas for HiDPI
+    canvas.width = rulerWidth * dpr;
+    canvas.height = height * dpr;
     canvas.style.width = rulerWidth + 'px';
+    canvas.style.height = height + 'px';
+
+    // Scale context to match
+    ctx.scale(dpr, dpr);
 
     // Clear canvas
     ctx.clearRect(0, 0, rulerWidth, height);
@@ -321,6 +342,9 @@ class SVGRuler {
 
     // Draw ruler markings
     this.drawRulerMarkings(ctx, 'vertical', rulerWidth, height);
+
+    // Reset transform for next draw
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 
   /**
