@@ -168,6 +168,7 @@ if Environment is not None and Bundle is not None:
             'css/components/batch.css',
             'css/components/notifications.css',
             'css/components/loading.css',
+            'css/components/footer.css',
             # Utilities and responsive
             'css/utilities.css',
             'css/responsive.css',
