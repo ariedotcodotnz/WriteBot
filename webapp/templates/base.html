@@ -21,6 +21,9 @@
         <link rel="stylesheet" href="{{ ASSET_URL }}">
     {% endassets %}
 
+  <!-- @deltablot/dropzone v7 CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/@deltablot/dropzone@7/dist/dropzone.css">
+
   {% block extra_css %}{% endblock %}
 
   <style>
@@ -58,6 +61,10 @@
 
   <!-- svg-exportJS standalone (includes Canvg, PDFKit, and all dependencies for SVG/PNG/JPEG/PDF export) -->
   <script src="https://cdn.jsdelivr.net/gh/sharonchoong/svg-exportJS@master/dist/umd/svg-export.umd.standalone.min.js"></script>
+
+  <!-- @deltablot/dropzone v7 -->
+  <script src="https://unpkg.com/@deltablot/dropzone@7/dist/dropzone-min.js"></script>
+  <script>Dropzone.autoDiscover = false;</script>
 
   <!-- Alpine.js (must load after js_common to pick up registered components) -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>

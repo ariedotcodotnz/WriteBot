@@ -95,6 +95,7 @@ document.addEventListener('alpine:init', () => {
     batchLiveItems: [],
     autoStartBatch: false,
     liveLimit: 12,
+    batchDropzone: null,
 
     // Zoom
     zoom: 100,
@@ -543,34 +544,50 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
-    // Handle file selection
-    handleFileSelect(event) {
-      const file = event.target.files[0];
-      if (file) {
+    // Initialize batch upload Dropzone
+    initBatchDropzone() {
+      if (this.batchDropzone) return;
+
+      this.batchDropzone = new Dropzone('#csvDropzoneForm', {
+        url: '/api/batch/upload-preview',  // Placeholder URL (we don't auto-upload)
+        autoProcessQueue: false,
+        maxFiles: 1,
+        maxFilesize: 10, // MB
+        acceptedFiles: '.csv,.xlsx',
+        addRemoveLinks: true,
+        dictDefaultMessage: '',
+        dictRemoveFile: 'Remove',
+        dictFileTooBig: 'File is too big ({{filesize}}MB). Max filesize: {{maxFilesize}}MB.',
+        dictInvalidFileType: 'Only CSV and XLSX files are allowed.',
+        init: function() {
+          this.on('addedfile', function() {
+            // Remove previous files (keep only latest)
+            if (this.files.length > 1) {
+              this.removeFile(this.files[0]);
+            }
+            // Reinitialize feather icons for new elements
+            if (typeof feather !== 'undefined') {
+              feather.replace();
+            }
+          });
+        }
+      });
+
+      this.batchDropzone.on('addedfile', (file) => {
         this.csvFile = file;
         if (this.autoStartBatch) {
           this.batchGenerateStream();
         }
-      }
-    },
+      });
 
-    // Handle file drop
-    handleFileDrop(event) {
-      event.preventDefault();
-      const files = event.dataTransfer?.files;
-      if (!files?.length) return;
+      this.batchDropzone.on('removedfile', () => {
+        this.csvFile = null;
+      });
 
-      const file = Array.from(files).find(f => {
-        const name = f.name.toLowerCase();
-        return name.endsWith('.csv') || name.endsWith('.xlsx');
-      }) || files[0];
-
-      this.csvFile = file;
-
-      const filename = file.name.toLowerCase();
-      if ((filename.endsWith('.csv') || filename.endsWith('.xlsx')) && this.autoStartBatch) {
-        this.batchGenerateStream();
-      }
+      this.batchDropzone.on('error', (file, message) => {
+        toastError(typeof message === 'string' ? message : 'File upload error');
+        this.batchDropzone.removeFile(file);
+      });
     },
 
     // Clear batch UI
