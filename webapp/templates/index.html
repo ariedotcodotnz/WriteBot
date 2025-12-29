@@ -561,11 +561,20 @@ Use \\ on its own line to insert blank space."></textarea>
                   <i data-feather="chevron-down" class="btn-chevron"></i>
                 </button>
                 <div id="downloadMenu" class="dropdown-menu" x-show="downloadMenuOpen" x-transition>
-                  <button class="dropdown-item" @click="downloadSVG()">
+                  <button class="dropdown-item" @click="downloadAs('svg')">
                     <i data-feather="image"></i>
-                    SVG Image
+                    SVG Vector
                   </button>
-                  <button class="dropdown-item" @click="downloadPDF()">
+                  <button class="dropdown-item" @click="downloadAs('png')">
+                    <i data-feather="image"></i>
+                    PNG Image
+                  </button>
+                  <button class="dropdown-item" @click="downloadAs('jpeg')">
+                    <i data-feather="image"></i>
+                    JPEG Image
+                  </button>
+                  <div class="dropdown-divider"></div>
+                  <button class="dropdown-item" @click="downloadAs('pdf')">
                     <i data-feather="file-text"></i>
                     PDF Document
                   </button>
@@ -817,9 +826,6 @@ Use \\ on its own line to insert blank space."></textarea>
     {% assets "js_generator" %}
         <script src="{{ ASSET_URL }}"></script>
     {% endassets %}
-<!-- PDF Generation Libraries -->
-<script src="{{ url_for('static', filename='js/libraries/jspdf.umd.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/libraries/svg2pdf/svg2pdf.umd.min.js') }}"></script>
 <script>
   // Initialize Feather icons and SVG ruler after page load
   document.addEventListener('DOMContentLoaded', () => {

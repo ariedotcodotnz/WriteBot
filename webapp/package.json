@@ -2,7 +2,7 @@
   "name": "writebot-webapp",
   "private": true,
   "version": "1.0.0",
-  "description": "Build scripts to minify and obfuscate frontend assets for WriteBot",
+  "description": "Build scripts for WriteBot",
   "scripts": {
     "build": "node build.js"
   },
