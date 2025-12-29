@@ -447,52 +447,88 @@
   }
 
   // ============================================
-  // Drag and Drop File Upload
+  // Dropzone File Upload
   // ============================================
 
   /**
-   * Add drag and drop functionality for file uploads.
-   * Highlights the drop zone when dragging files over it.
+   * Initialize Dropzone.js for file uploads.
+   * Uses @deltablot/dropzone v7 loaded from CDN.
    */
-  function initDragAndDrop() {
-    const fileInputs = document.querySelectorAll('input[type="file"]');
+  function initDropzones() {
+    // Check if Dropzone is available
+    if (typeof Dropzone === 'undefined') {
+      console.warn('Dropzone not loaded, skipping dropzone initialization');
+      return;
+    }
 
-    fileInputs.forEach(input => {
-      const formGroup = input.closest('.form-group');
-      if (!formGroup) return;
+    // Single SVG upload dropzone
+    const singleDropzoneEl = document.getElementById('singleSvgDropzone');
+    if (singleDropzoneEl) {
+      new Dropzone('#singleSvgDropzone', {
+        maxFiles: 1,
+        maxFilesize: 5, // MB
+        acceptedFiles: '.svg',
+        addRemoveLinks: true,
+        dictDefaultMessage: '',
+        dictRemoveFile: 'Remove',
+        dictInvalidFileType: 'Only SVG files are allowed.',
+        init: function() {
+          this.on('sending', function(_file, _xhr, formData) {
+            const character = document.getElementById('single-character').value;
+            const baseline = document.getElementById('single-baseline').value;
 
-      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        formGroup.addEventListener(eventName, preventDefaults, false);
+            if (!character || character.length !== 1) {
+              this.removeFile(_file);
+              alert('Please enter exactly one character before uploading.');
+              return;
+            }
+
+            formData.append('character', character);
+            formData.append('baseline_offset', baseline || '0');
+          });
+
+          this.on('success', function() {
+            window.location.reload();
+          });
+
+          this.on('error', function(file, message) {
+            alert(typeof message === 'string' ? message : 'Upload failed');
+            this.removeFile(file);
+          });
+        }
       });
+    }
 
-      function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
+    // Batch SVG upload dropzone
+    const batchDropzoneEl = document.getElementById('batchSvgDropzone');
+    if (batchDropzoneEl) {
+      new Dropzone('#batchSvgDropzone', {
+        maxFiles: 100,
+        maxFilesize: 5, // MB per file
+        acceptedFiles: '.svg',
+        parallelUploads: 5,
+        addRemoveLinks: true,
+        dictDefaultMessage: '',
+        dictRemoveFile: 'Remove',
+        dictInvalidFileType: 'Only SVG files are allowed.',
+        init: function() {
+          this.on('sending', function(_file, _xhr, formData) {
+            const baseline = document.getElementById('batch-baseline').value;
+            formData.append('baseline_offset', baseline || '0');
+          });
 
-      ['dragenter', 'dragover'].forEach(eventName => {
-        formGroup.addEventListener(eventName, () => {
-          formGroup.style.borderColor = '#0f62fe';
-          formGroup.style.backgroundColor = '#e8edf7';
-        }, false);
+          this.on('queuecomplete', function() {
+            if (this.getUploadingFiles().length === 0 && this.getQueuedFiles().length === 0) {
+              window.location.reload();
+            }
+          });
+
+          this.on('error', function(file, message) {
+            console.error('Upload error:', file.name, message);
+          });
+        }
       });
-
-      ['dragleave', 'drop'].forEach(eventName => {
-        formGroup.addEventListener(eventName, () => {
-          formGroup.style.borderColor = '';
-          formGroup.style.backgroundColor = '';
-        }, false);
-      });
-
-      formGroup.addEventListener('drop', function (e) {
-        const files = e.dataTransfer.files;
-        input.files = files;
-
-        // Trigger change event
-        const event = new Event('change', { bubbles: true });
-        input.dispatchEvent(event);
-      }, false);
-    });
+    }
   }
 
   // ============================================
@@ -516,7 +552,7 @@
     initCharacterValidation();
     initEnhancedDeleteConfirmation();
     initKeyboardShortcuts();
-    initDragAndDrop();
+    initDropzones();
     updateVariantStats();
 
     console.log('Character Overrides JS initialized');

@@ -95,44 +95,46 @@
         </div>
     </div>
 
-    {# Single Upload Form #}
+    {# Single Upload Form with Dropzone #}
     <div id="single-upload" class="upload-content">
-        <form method="POST" action="{{ url_for('character_overrides.upload_character', collection_id=collection.id) }}" enctype="multipart/form-data">
-            <div class="form-inline">
-                <div class="form-group" style="max-width: 120px;">
-                    <label for="character">Character *</label>
-                    <input type="text" id="character" name="character" maxlength="1" required autocomplete="off">
-                    <div class="help-text">Single character</div>
-                </div>
-                <div class="form-group" style="max-width: 160px;">
-                    <label for="baseline_offset">Baseline Offset</label>
-                    <input type="number" id="baseline_offset" name="baseline_offset" value="0" step="0.1">
-                    <div class="help-text">Vertical adjustment</div>
-                </div>
-                <div class="form-group" style="flex: 2;">
-                    <label for="svg_file">SVG File *</label>
-                    <input type="file" id="svg_file" name="svg_file" accept=".svg" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Upload</button>
+        <div class="form-inline" style="margin-bottom: 1rem;">
+            <div class="form-group" style="max-width: 120px;">
+                <label for="single-character">Character *</label>
+                <input type="text" id="single-character" maxlength="1" required autocomplete="off">
+                <div class="help-text">Single character</div>
+            </div>
+            <div class="form-group" style="max-width: 160px;">
+                <label for="single-baseline">Baseline Offset</label>
+                <input type="number" id="single-baseline" value="0" step="0.1">
+                <div class="help-text">Vertical adjustment</div>
+            </div>
+        </div>
+        <form id="singleSvgDropzone" class="dropzone admin-dropzone"
+              action="{{ url_for('character_overrides.upload_character', collection_id=collection.id) }}"
+              method="POST">
+            <div class="dz-message" data-dz-message>
+                <span class="dropzone-text">Drop SVG file here or click to browse</span>
             </div>
         </form>
     </div>
 
-    {# Batch Upload Form #}
+    {# Batch Upload Form with Dropzone #}
     <div id="batch-upload" class="upload-content">
-        <form method="POST" action="{{ url_for('character_overrides.upload_batch', collection_id=collection.id) }}" enctype="multipart/form-data">
-            <div class="form-inline">
-                <div class="form-group" style="max-width: 160px;">
-                    <label for="batch_baseline_offset">Baseline Offset</label>
-                    <input type="number" id="batch_baseline_offset" name="baseline_offset" value="0" step="0.1">
-                    <div class="help-text">Applied to all files</div>
-                </div>
-                <div class="form-group" style="flex: 2;">
-                    <label for="svg_files">SVG Files *</label>
-                    <input type="file" id="svg_files" name="svg_files" accept=".svg" multiple required>
-                    <div class="help-text">Character extracted from filename (e.g., 'a.svg', 'a_1.svg', 'a_2.svg')</div>
-                </div>
-                <button type="submit" class="btn btn-primary">Upload All</button>
+        <div class="form-inline" style="margin-bottom: 1rem;">
+            <div class="form-group" style="max-width: 160px;">
+                <label for="batch-baseline">Baseline Offset</label>
+                <input type="number" id="batch-baseline" value="0" step="0.1">
+                <div class="help-text">Applied to all files</div>
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <div class="help-text">Characters extracted from filenames (e.g., 'a.svg', 'a_1.svg', 'a_2.svg')</div>
+            </div>
+        </div>
+        <form id="batchSvgDropzone" class="dropzone admin-dropzone"
+              action="{{ url_for('character_overrides.upload_batch', collection_id=collection.id) }}"
+              method="POST">
+            <div class="dz-message" data-dz-message>
+                <span class="dropzone-text">Drop multiple SVG files here or click to browse</span>
             </div>
         </form>
     </div>

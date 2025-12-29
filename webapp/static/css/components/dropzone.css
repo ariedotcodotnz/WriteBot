@@ -1,21 +1,52 @@
 /**
  * Dropzone Components
+ * Customization for @deltablot/dropzone v7 to match Carbon Design
+ * These styles override the default dropzone.css from CDN
  */
 
+/* ============================================
+   Reset/Override Default Dropzone Styles
+   ============================================ */
+
+/* Base dropzone - override defaults */
 .dropzone {
-  border: 2px dashed var(--border-subtle-01);
-  background: var(--layer-02);
-  padding: 3rem 2rem;
+  border: 2px dashed var(--border-subtle-01) !important;
+  background: var(--layer-02) !important;
+  border-radius: 4px !important;
+  padding: 2rem !important;
+  min-height: 150px !important;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.2, 0, 0.38, 0.9);
   margin-bottom: var(--spacing-05);
+  box-sizing: border-box;
 }
 
 .dropzone:hover,
-.dropzone.dragover {
-  border-color: var(--interactive-01);
-  background: var(--layer-01);
+.dropzone.dz-drag-hover {
+  border-color: var(--interactive-01) !important;
+  background: var(--layer-01) !important;
+}
+
+/* Batch dropzone specific styling */
+.dropzone.batch-dropzone {
+  padding: 3rem 2rem !important;
+}
+
+/* Admin dropzone specific styling */
+.dropzone.admin-dropzone {
+  min-height: 120px !important;
+  padding: 1.5rem !important;
+}
+
+/* ============================================
+   Message Container
+   ============================================ */
+
+.dropzone .dz-message {
+  margin: 0 !important;
+  text-align: center;
+  color: var(--text-01);
 }
 
 .dropzone-icon {
@@ -34,6 +65,209 @@
   font-size: 0.875rem;
   color: var(--text-02);
 }
+
+/* ============================================
+   File Preview - Complete Override
+   ============================================ */
+
+.dropzone .dz-preview {
+  display: inline-flex !important;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: top;
+  margin: 0.5rem !important;
+  padding: 0.75rem !important;
+  background: var(--layer-01) !important;
+  border: 1px solid var(--border-subtle-01) !important;
+  border-radius: 4px !important;
+  min-width: 140px;
+  max-width: 200px;
+  min-height: auto !important;
+  position: relative;
+  box-sizing: border-box;
+}
+
+/* Hide the default image thumbnail completely */
+.dropzone .dz-preview .dz-image {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  visibility: hidden !important;
+}
+
+.dropzone .dz-preview .dz-image img {
+  display: none !important;
+}
+
+/* File details */
+.dropzone .dz-preview .dz-details {
+  font-size: 0.875rem;
+  color: var(--text-01);
+  padding: 0 !important;
+  margin: 0 !important;
+  opacity: 1 !important;
+  min-width: auto !important;
+  position: static !important;
+  text-align: center;
+  background: transparent !important;
+}
+
+.dropzone .dz-preview .dz-filename {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 180px;
+}
+
+.dropzone .dz-preview .dz-filename span {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.dropzone .dz-preview .dz-size {
+  font-size: 0.75rem;
+  color: var(--text-02);
+  margin-top: 0.25rem;
+  margin-bottom: 0 !important;
+}
+
+.dropzone .dz-preview .dz-size span {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+/* ============================================
+   Progress Bar - Complete Override
+   ============================================ */
+
+.dropzone .dz-preview .dz-progress {
+  position: static !important;
+  display: block !important;
+  width: 100% !important;
+  height: 4px !important;
+  background: var(--layer-accent-01, #e0e0e0) !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0 !important;
+  margin-left: 0 !important;
+  border-radius: 2px !important;
+  overflow: hidden !important;
+  opacity: 1 !important;
+  pointer-events: none !important;
+  left: auto !important;
+  top: auto !important;
+}
+
+.dropzone .dz-preview .dz-progress .dz-upload {
+  display: block !important;
+  position: static !important;
+  background: var(--interactive-01, #0f62fe) !important;
+  height: 100% !important;
+  width: 0;
+  transition: width 0.3s ease !important;
+  border-radius: 2px !important;
+}
+
+/* ============================================
+   Success/Error States
+   ============================================ */
+
+/* Success state */
+.dropzone .dz-preview.dz-success .dz-progress .dz-upload {
+  background: var(--support-02, #42be65) !important;
+}
+
+/* Error state */
+.dropzone .dz-preview.dz-error {
+  border-color: var(--support-01, #da1e28) !important;
+}
+
+.dropzone .dz-preview .dz-error-message {
+  font-size: 0.75rem !important;
+  color: var(--support-01, #da1e28) !important;
+  margin-top: 0.25rem !important;
+  position: static !important;
+  display: block !important;
+  opacity: 1 !important;
+  background: transparent !important;
+  pointer-events: none;
+  padding: 0 !important;
+  left: auto !important;
+  top: auto !important;
+  width: auto !important;
+}
+
+/* Hide default checkmark and error mark SVGs */
+.dropzone .dz-preview .dz-success-mark,
+.dropzone .dz-preview .dz-error-mark {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  visibility: hidden !important;
+}
+
+.dropzone .dz-preview .dz-success-mark svg,
+.dropzone .dz-preview .dz-error-mark svg {
+  display: none !important;
+}
+
+/* ============================================
+   Remove Link
+   ============================================ */
+
+.dropzone .dz-preview .dz-remove {
+  display: block !important;
+  margin-top: 0.5rem !important;
+  font-size: 0.75rem !important;
+  color: var(--support-01, #da1e28) !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.dropzone .dz-preview .dz-remove:hover {
+  text-decoration: underline !important;
+}
+
+/* ============================================
+   Processing State
+   ============================================ */
+
+.dropzone .dz-preview.dz-processing .dz-progress {
+  opacity: 1 !important;
+}
+
+.dropzone .dz-preview.dz-complete .dz-progress {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* ============================================
+   Clickable Area
+   ============================================ */
+
+.dropzone.dz-clickable {
+  cursor: pointer;
+}
+
+.dropzone.dz-clickable * {
+  cursor: default;
+}
+
+.dropzone.dz-clickable .dz-message,
+.dropzone.dz-clickable .dz-message * {
+  cursor: pointer;
+}
+
+/* ============================================
+   Legacy file info (backward compatibility)
+   ============================================ */
 
 .file-info {
   display: flex;

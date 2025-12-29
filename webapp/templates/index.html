@@ -561,11 +561,20 @@ Use \\ on its own line to insert blank space."></textarea>
                   <i data-feather="chevron-down" class="btn-chevron"></i>
                 </button>
                 <div id="downloadMenu" class="dropdown-menu" x-show="downloadMenuOpen" x-transition>
-                  <button class="dropdown-item" @click="downloadSVG()">
+                  <button class="dropdown-item" @click="downloadAs('svg')">
                     <i data-feather="image"></i>
-                    SVG Image
+                    SVG Vector
                   </button>
-                  <button class="dropdown-item" @click="downloadPDF()">
+                  <button class="dropdown-item" @click="downloadAs('png')">
+                    <i data-feather="image"></i>
+                    PNG Image
+                  </button>
+                  <button class="dropdown-item" @click="downloadAs('jpeg')">
+                    <i data-feather="image"></i>
+                    JPEG Image
+                  </button>
+                  <div class="dropdown-divider"></div>
+                  <button class="dropdown-item" @click="downloadAs('pdf')">
                     <i data-feather="file-text"></i>
                     PDF Document
                   </button>
@@ -630,25 +639,16 @@ Use \\ on its own line to insert blank space."></textarea>
       <div class="bx--row">
         <div class="bx--col-lg-19 bx--col-md-10">
           <div class="card">
-            <!-- Upload Area -->
-            <div id="csvDrop" class="dropzone"
-                 @click="$refs.csvInput.click()"
-                 @dragenter.prevent="$el.classList.add('dragover')"
-                 @dragover.prevent="$el.classList.add('dragover')"
-                 @dragleave.prevent="$el.classList.remove('dragover')"
-                 @drop.prevent="$el.classList.remove('dragover'); handleFileDrop($event)"
-                 title="Upload a CSV or XLSX file with your batch data. Use the template buttons below to get started.">
-              <div class="dropzone-icon">
-                <i data-feather="file-text" class="icon-lg"></i>
+            <!-- Upload Area (Dropzone.js) -->
+            <form id="csvDropzoneForm" class="dropzone batch-dropzone" x-init="initBatchDropzone()">
+              <div class="dz-message" data-dz-message>
+                <div class="dropzone-icon">
+                  <i data-feather="file-text" class="icon-lg"></i>
+                </div>
+                <div class="dropzone-text">Drop CSV or XLSX file here or click to browse</div>
+                <div class="dropzone-subtext">Maximum file size: 10MB. Current form settings will be used as defaults for missing columns.</div>
               </div>
-              <div class="dropzone-text">Drop CSV or XLSX file here or click to browse</div>
-              <div class="dropzone-subtext">Maximum file size: 10MB. Current form settings will be used as defaults for missing columns.</div>
-              <div x-show="csvFile" class="file-info mt-2">
-                <span class="file-info-name" x-text="csvFile?.name"></span>
-                <span class="file-info-size" x-text="csvFile ? `${(csvFile.size / 1024).toFixed(1)} KB` : ''"></span>
-              </div>
-            </div>
-            <input x-ref="csvInput" type="file" accept=".csv,.xlsx" class="hidden" @change="handleFileSelect($event)" />
+            </form>
 
             <div class="actions-bar">
               <button class="bx--btn bx--btn--primary" @click="batchGenerateStream()" :disabled="loading">
@@ -817,9 +817,6 @@ Use \\ on its own line to insert blank space."></textarea>
     {% assets "js_generator" %}
         <script src="{{ ASSET_URL }}"></script>
     {% endassets %}
-<!-- PDF Generation Libraries -->
-<script src="{{ url_for('static', filename='js/libraries/jspdf.umd.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/libraries/svg2pdf/svg2pdf.umd.min.js') }}"></script>
 <script>
   // Initialize Feather icons and SVG ruler after page load
   document.addEventListener('DOMContentLoaded', () => {

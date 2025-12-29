@@ -95,6 +95,7 @@ document.addEventListener('alpine:init', () => {
     batchLiveItems: [],
     autoStartBatch: false,
     liveLimit: 12,
+    batchDropzone: null,
 
     // Zoom
     zoom: 100,
@@ -329,37 +330,16 @@ document.addEventListener('alpine:init', () => {
       return `Lines: ${lines.wrapped_count || 0} (from ${lines.input_count || 0} input) | Page: ${page.width_mm || 0}×${page.height_mm || 0}mm | Orientation: ${page.orientation || 'portrait'}`;
     },
 
-    // Download SVG
-    downloadSVG() {
+    // Download as specified format using svg-exportJS (UMD standalone)
+    async downloadAs(format = 'svg') {
       if (!this.lastSvgText) {
         toastError('Please generate handwriting first');
         return;
       }
 
-      const blob = new Blob([this.lastSvgText], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'handwriting.svg';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      this.downloadMenuOpen = false;
-      toastSuccess('SVG downloaded');
-    },
-
-    // Download PDF
-    async downloadPDF() {
-      if (!this.lastSvgText) {
-        toastError('Please generate handwriting first');
-        return;
-      }
-
-      const jsPDF = window.jspdf?.jsPDF || window.jsPDF;
-      if (!jsPDF) {
-        toastError('PDF library not loaded. Please refresh the page.');
+      // Check if svg-exportJS library is loaded
+      if (!window.svgExport) {
+        toastError('Export library not loaded. Please refresh the page.');
         return;
       }
 
@@ -367,65 +347,84 @@ document.addEventListener('alpine:init', () => {
         this.loading = true;
         this.downloadMenuOpen = false;
 
+        const filename = 'handwriting';
+
+        // Parse SVG string to element for svg-exportJS
         const parser = new DOMParser();
         const svgDoc = parser.parseFromString(this.lastSvgText, 'image/svg+xml');
         const svgElement = svgDoc.documentElement;
 
+        // Check for parsing errors
         const parserError = svgDoc.querySelector('parsererror');
         if (parserError) {
           throw new Error('Failed to parse SVG: ' + parserError.textContent);
         }
 
-        const svgClone = svgElement.cloneNode(true);
-        const viewBox = svgClone.getAttribute('viewBox');
-        let width, height;
+        // Get page dimensions from metadata for better quality
+        const options = {
+          useCSS: true,
+          scale: 2  // 2x for better raster quality
+        };
 
-        if (viewBox) {
-          const viewBoxValues = viewBox.split(/\s+|,/).map(v => parseFloat(v.trim()));
-          width = viewBoxValues[2] - (viewBoxValues[0] || 0);
-          height = viewBoxValues[3] - (viewBoxValues[1] || 0);
-        } else {
-          width = parseFloat(svgClone.getAttribute('width')) || 800;
-          height = parseFloat(svgClone.getAttribute('height')) || 600;
+        if (this.lastMetadata && this.lastMetadata.page) {
+          const page = this.lastMetadata.page;
+          // Use pixel dimensions for raster formats (96 DPI)
+          const PX_PER_MM = 96.0 / 25.4;
+          options.width = (page.width_mm || 210) * PX_PER_MM;
+          options.height = (page.height_mm || 297) * PX_PER_MM;
         }
 
-        if (!width || !height || width <= 0 || height <= 0 || !isFinite(width) || !isFinite(height)) {
-          throw new Error(`Invalid SVG dimensions: ${width}x${height}`);
+        // Call the appropriate export function based on format
+        switch (format.toLowerCase()) {
+          case 'svg':
+            await svgExport.downloadSvg(svgElement, filename, options);
+            break;
+          case 'png':
+            await svgExport.downloadPng(svgElement, filename, options);
+            break;
+          case 'jpeg':
+          case 'jpg':
+            await svgExport.downloadJpeg(svgElement, filename, {
+              ...options,
+              transparentBackgroundReplace: 'white'
+            });
+            break;
+          case 'pdf':
+            await svgExport.downloadPdf(svgElement, filename, {
+              ...options,
+              pdfOptions: {
+                pageLayout: { margin: 20 },
+                addTitleToPage: false
+              }
+            });
+            break;
+          default:
+            throw new Error(`Unsupported export format: ${format}`);
         }
 
-        const widthPt = Math.max(width * 0.75, 100);
-        const heightPt = Math.max(height * 0.75, 100);
-        const pdfOrientation = widthPt > heightPt ? 'l' : 'p';
+        const formatLabels = {
+          svg: 'SVG',
+          png: 'PNG',
+          jpeg: 'JPEG',
+          pdf: 'PDF'
+        };
 
-        const pdf = new jsPDF({
-          orientation: pdfOrientation,
-          unit: 'pt',
-          format: [widthPt, heightPt],
-          compress: true
-        });
-
-        pdf.setProperties({
-          title: 'Handwriting Document',
-          subject: 'AI-Generated Handwriting',
-          author: 'WriteBot',
-          creator: 'WriteBot - Handwriting Synthesis',
-          producer: 'WriteBot'
-        });
-
-        if (typeof pdf.svg !== 'function') {
-          throw new Error('svg2pdf.js not loaded properly.');
-        }
-
-        await pdf.svg(svgClone, { x: 0, y: 0, width: widthPt, height: heightPt });
-        pdf.save('handwriting.pdf');
-
-        toastSuccess('PDF downloaded successfully');
+        toastSuccess(`${formatLabels[format] || format.toUpperCase()} downloaded successfully`);
       } catch (error) {
-        console.error('Error converting to PDF:', error);
-        toastError('Failed to convert to PDF: ' + error.message);
+        console.error(`Error exporting to ${format}:`, error);
+        toastError(`Failed to export as ${format}: ${error.message}`);
       } finally {
         this.loading = false;
       }
+    },
+
+    // Legacy method aliases for backward compatibility
+    downloadSVG() {
+      return this.downloadAs('svg');
+    },
+
+    downloadPDF() {
+      return this.downloadAs('pdf');
     },
 
     // Copy SVG to clipboard
@@ -545,34 +544,50 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
-    // Handle file selection
-    handleFileSelect(event) {
-      const file = event.target.files[0];
-      if (file) {
+    // Initialize batch upload Dropzone
+    initBatchDropzone() {
+      if (this.batchDropzone) return;
+
+      this.batchDropzone = new Dropzone('#csvDropzoneForm', {
+        url: '/api/batch/upload-preview',  // Placeholder URL (we don't auto-upload)
+        autoProcessQueue: false,
+        maxFiles: 1,
+        maxFilesize: 10, // MB
+        acceptedFiles: '.csv,.xlsx',
+        addRemoveLinks: true,
+        dictDefaultMessage: '',
+        dictRemoveFile: 'Remove',
+        dictFileTooBig: 'File is too big ({{filesize}}MB). Max filesize: {{maxFilesize}}MB.',
+        dictInvalidFileType: 'Only CSV and XLSX files are allowed.',
+        init: function() {
+          this.on('addedfile', function() {
+            // Remove previous files (keep only latest)
+            if (this.files.length > 1) {
+              this.removeFile(this.files[0]);
+            }
+            // Reinitialize feather icons for new elements
+            if (typeof feather !== 'undefined') {
+              feather.replace();
+            }
+          });
+        }
+      });
+
+      this.batchDropzone.on('addedfile', (file) => {
         this.csvFile = file;
         if (this.autoStartBatch) {
           this.batchGenerateStream();
         }
-      }
-    },
+      });
 
-    // Handle file drop
-    handleFileDrop(event) {
-      event.preventDefault();
-      const files = event.dataTransfer?.files;
-      if (!files?.length) return;
+      this.batchDropzone.on('removedfile', () => {
+        this.csvFile = null;
+      });
 
-      const file = Array.from(files).find(f => {
-        const name = f.name.toLowerCase();
-        return name.endsWith('.csv') || name.endsWith('.xlsx');
-      }) || files[0];
-
-      this.csvFile = file;
-
-      const filename = file.name.toLowerCase();
-      if ((filename.endsWith('.csv') || filename.endsWith('.xlsx')) && this.autoStartBatch) {
-        this.batchGenerateStream();
-      }
+      this.batchDropzone.on('error', (file, message) => {
+        toastError(typeof message === 'string' ? message : 'File upload error');
+        this.batchDropzone.removeFile(file);
+      });
     },
 
     // Clear batch UI

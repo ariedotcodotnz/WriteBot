@@ -15,7 +15,13 @@
       "Bash(copy:*)",
       "Bash(del writebot.db)",
       "Bash(dir:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(ls -lah \"c:\\\\Users\\\\Arie Joe\\\\Downloads\\\\WriteBot\\\\webapp\\\\static\\\\js\\\\libraries\"\" | grep -E \"jspdf)",
+      "Bash(svg \")",
+      "Bash(npm install)",
+      "Bash(npm view:*)",
+      "Bash(npm search:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []
