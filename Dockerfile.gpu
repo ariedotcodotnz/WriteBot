@@ -5,7 +5,8 @@
 #=============================================================================
 # BUILD ARGUMENTS - Customize these at build time
 #=============================================================================
-ARG CUDA_VERSION=12.3.0
+ARG CUDA_VERSION=12.2.2
+ARG CUDNN_VERSION=8
 ARG UBUNTU_VERSION=22.04
 ARG PYTHON_VERSION=3.10
 ARG GUNICORN_WORKERS=2
@@ -13,7 +14,7 @@ ARG GUNICORN_THREADS=4
 ARG GUNICORN_TIMEOUT=180
 
 # Build stage with CUDA support
-FROM nvidia/cuda:${CUDA_VERSION}-cudnn9-runtime-ubuntu${UBUNTU_VERSION} AS builder
+FROM nvidia/cuda:${CUDA_VERSION}-cudnn${CUDNN_VERSION}-runtime-ubuntu${UBUNTU_VERSION} AS builder
 
 # Re-declare ARG after FROM (Docker requirement)
 ARG PYTHON_VERSION=3.10
@@ -50,9 +51,10 @@ RUN pip install --no-cache-dir --user tensorflow[and-cuda]>=2.15.0 tensorflow-pr
 RUN pip install --no-cache-dir --user -r requirements.txt
 
 # Production stage
-ARG CUDA_VERSION=12.3.0
+ARG CUDA_VERSION=12.2.2
+ARG CUDNN_VERSION=8
 ARG UBUNTU_VERSION=22.04
-FROM nvidia/cuda:${CUDA_VERSION}-cudnn9-runtime-ubuntu${UBUNTU_VERSION}
+FROM nvidia/cuda:${CUDA_VERSION}-cudnn${CUDNN_VERSION}-runtime-ubuntu${UBUNTU_VERSION}
 
 # Re-declare ARGs for production stage
 ARG PYTHON_VERSION=3.10
@@ -67,9 +69,13 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     python${PYTHON_VERSION} \
     python3-pip \
-    libhdf5-310 \
-    libhdf5-hl-310 \
-    && rm -rf /var/lib/apt/lists/*
+    libhdf5-103-1 \
+    libhdf5-hl-100 \
+    && rm -rf /var/lib/apt/lists/* \
+    || (apt-get update && apt-get install -y \
+    python${PYTHON_VERSION} \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*)
 
 # Create symlinks for python
 RUN ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python && \
