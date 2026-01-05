@@ -192,7 +192,7 @@ def main():
 
     parser = argparse.ArgumentParser(description='Initialize WriteBot database')
     parser.add_argument('--auto', action='store_true',
-                       help='Run in automatic mode (non-interactive, for production)')
+                        help='Run in automatic mode (non-interactive, for production)')
     args = parser.parse_args()
 
     if not args.auto:
