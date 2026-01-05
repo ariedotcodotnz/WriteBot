@@ -15,7 +15,7 @@ services:
         CUDA_VERSION: ${CUDA_VERSION:-12.3.2}
         CUDNN_VERSION: ${CUDNN_VERSION:-9}
         UBUNTU_VERSION: ${UBUNTU_VERSION:-22.04}
-        PYTHON_VERSION: ${PYTHON_VERSION:-3.10}
+        PYTHON_VERSION: ${PYTHON_VERSION:-3.11}
         GUNICORN_WORKERS: ${GUNICORN_WORKERS:-2}
         GUNICORN_THREADS: ${GUNICORN_THREADS:-4}
         GUNICORN_TIMEOUT: ${GUNICORN_TIMEOUT:-180}
@@ -96,7 +96,7 @@ services:
         CUDA_VERSION: ${CUDA_VERSION:-12.3.2}
         CUDNN_VERSION: ${CUDNN_VERSION:-9}
         UBUNTU_VERSION: ${UBUNTU_VERSION:-22.04}
-        PYTHON_VERSION: ${PYTHON_VERSION:-3.10}
+        PYTHON_VERSION: ${PYTHON_VERSION:-3.11}
     image: writebot:production
     container_name: writebot-celery-worker
     restart: unless-stopped
