@@ -1,0 +1,147 @@
+# WriteBot Production Docker Compose for Proxmox Deployment
+# Connects to external PostgreSQL and Redis (LXC containers)
+# Uses GPU passthrough for TensorFlow inference
+#
+# Usage:
+#   docker compose -f docker-compose.production.yml build
+#   docker compose -f docker-compose.production.yml up -d
+
+version: '3.8'
+
+services:
+  writebot:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+      args:
+        CUDA_VERSION: ${CUDA_VERSION:-12.3.1}
+        UBUNTU_VERSION: ${UBUNTU_VERSION:-22.04}
+        PYTHON_VERSION: ${PYTHON_VERSION:-3.10}
+        GUNICORN_WORKERS: ${GUNICORN_WORKERS:-2}
+        GUNICORN_THREADS: ${GUNICORN_THREADS:-4}
+        GUNICORN_TIMEOUT: ${GUNICORN_TIMEOUT:-180}
+    image: writebot:production
+    container_name: writebot-app-production
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-5000}:5000"
+    environment:
+      # Flask configuration
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY is required}
+      - DEBUG=False
+
+      # External PostgreSQL (LXC container)
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-writebot}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@${POSTGRES_HOST:-10.10.10.11}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-writebot}
+
+      # External Redis (LXC container)
+      - CACHE_TYPE=redis
+      - CACHE_REDIS_URL=redis://${REDIS_HOST:-10.10.10.12}:${REDIS_PORT:-6379}/1
+      - RATELIMIT_STORAGE_URL=redis://${REDIS_HOST:-10.10.10.12}:${REDIS_PORT:-6379}/0
+      - CELERY_BROKER_URL=redis://${REDIS_HOST:-10.10.10.12}:${REDIS_PORT:-6379}/0
+      - CELERY_RESULT_BACKEND=redis://${REDIS_HOST:-10.10.10.12}:${REDIS_PORT:-6379}/0
+
+      # GPU configuration (RTX 5090/5080 Blackwell optimized)
+      - TF_CPP_MIN_LOG_LEVEL=2
+      - TF_FORCE_GPU_ALLOW_GROWTH=true
+      - TF_ENABLE_TF32=1
+      - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
+      # Application settings
+      - MAX_CONTENT_LENGTH=${MAX_CONTENT_LENGTH:-16777216}
+      - SESSION_COOKIE_SECURE=True
+      - SESSION_COOKIE_HTTPONLY=True
+      - SESSION_COOKIE_SAMESITE=Lax
+
+      # Gunicorn (can override build-time defaults)
+      - GUNICORN_WORKERS=${GUNICORN_WORKERS:-2}
+      - GUNICORN_THREADS=${GUNICORN_THREADS:-4}
+      - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-180}
+    volumes:
+      # Persist logs and model data
+      - ./webapp/logs:/app/webapp/logs
+      - ./model/data:/app/model/data
+      # Optional: Mount custom styles
+      - ./model/style:/app/model/style
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          memory: ${MEMORY_LIMIT:-16G}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:5000/api/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+    networks:
+      - writebot-production
+
+  # Optional: Celery worker for background batch processing
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+      args:
+        CUDA_VERSION: ${CUDA_VERSION:-12.3.1}
+        UBUNTU_VERSION: ${UBUNTU_VERSION:-22.04}
+        PYTHON_VERSION: ${PYTHON_VERSION:-3.10}
+    image: writebot:production
+    container_name: writebot-celery-worker
+    restart: unless-stopped
+    command: celery -A webapp.celery_app:celery_app worker --loglevel=info --concurrency=1 --max-tasks-per-child=50
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-writebot}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-10.10.10.11}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-writebot}
+      - CELERY_BROKER_URL=redis://${REDIS_HOST:-10.10.10.12}:${REDIS_PORT:-6379}/0
+      - CELERY_RESULT_BACKEND=redis://${REDIS_HOST:-10.10.10.12}:${REDIS_PORT:-6379}/0
+      - TF_CPP_MIN_LOG_LEVEL=2
+      - TF_FORCE_GPU_ALLOW_GROWTH=true
+      - TF_ENABLE_TF32=1
+      - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    volumes:
+      - ./webapp/logs:/app/webapp/logs
+      - ./model/data:/app/model/data
+      - ./model/style:/app/model/style
+    depends_on:
+      writebot:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          memory: ${CELERY_MEMORY_LIMIT:-8G}
+    profiles:
+      - celery
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+    networks:
+      - writebot-production
+
+networks:
+  writebot-production:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
