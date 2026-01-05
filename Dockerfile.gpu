@@ -19,11 +19,16 @@ FROM nvidia/cuda:${CUDA_VERSION}-cudnn${CUDNN_VERSION}-runtime-ubuntu${UBUNTU_VE
 # Re-declare ARG after FROM (Docker requirement)
 ARG PYTHON_VERSION=3.11
 
+# Prevent timezone prompt
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
 # Set working directory
 WORKDIR /app
 
 # Install Python 3.11 from deadsnakes PPA and build dependencies
-RUN apt-get update && apt-get install -y software-properties-common \
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
+    && apt-get update && apt-get install -y software-properties-common \
     && add-apt-repository -y ppa:deadsnakes/ppa \
     && apt-get update && apt-get install -y \
     python${PYTHON_VERSION} \
@@ -65,11 +70,16 @@ ARG GUNICORN_WORKERS=2
 ARG GUNICORN_THREADS=4
 ARG GUNICORN_TIMEOUT=180
 
+# Prevent timezone prompt
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
 # Set working directory
 WORKDIR /app
 
 # Install Python 3.11 runtime from deadsnakes PPA
-RUN apt-get update && apt-get install -y software-properties-common \
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
+    && apt-get update && apt-get install -y software-properties-common \
     && add-apt-repository -y ppa:deadsnakes/ppa \
     && apt-get update && apt-get install -y \
     python${PYTHON_VERSION} \
