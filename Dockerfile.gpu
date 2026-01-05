@@ -5,7 +5,7 @@
 #=============================================================================
 # BUILD ARGUMENTS - Customize these at build time
 #=============================================================================
-ARG CUDA_VERSION=12.3.1
+ARG CUDA_VERSION=12.3.0
 ARG UBUNTU_VERSION=22.04
 ARG PYTHON_VERSION=3.10
 ARG GUNICORN_WORKERS=2
@@ -50,7 +50,7 @@ RUN pip install --no-cache-dir --user tensorflow[and-cuda]>=2.15.0 tensorflow-pr
 RUN pip install --no-cache-dir --user -r requirements.txt
 
 # Production stage
-ARG CUDA_VERSION=12.3.1
+ARG CUDA_VERSION=12.3.0
 ARG UBUNTU_VERSION=22.04
 FROM nvidia/cuda:${CUDA_VERSION}-cudnn9-runtime-ubuntu${UBUNTU_VERSION}
 

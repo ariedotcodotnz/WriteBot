@@ -6,15 +6,13 @@
 #   docker compose -f docker-compose.production.yml build
 #   docker compose -f docker-compose.production.yml up -d
 
-version: '3.8'
-
 services:
   writebot:
     build:
       context: .
       dockerfile: Dockerfile.gpu
       args:
-        CUDA_VERSION: ${CUDA_VERSION:-12.3.1}
+        CUDA_VERSION: ${CUDA_VERSION:-12.3.0}
         UBUNTU_VERSION: ${UBUNTU_VERSION:-22.04}
         PYTHON_VERSION: ${PYTHON_VERSION:-3.10}
         GUNICORN_WORKERS: ${GUNICORN_WORKERS:-2}
@@ -94,7 +92,7 @@ services:
       context: .
       dockerfile: Dockerfile.gpu
       args:
-        CUDA_VERSION: ${CUDA_VERSION:-12.3.1}
+        CUDA_VERSION: ${CUDA_VERSION:-12.3.0}
         UBUNTU_VERSION: ${UBUNTU_VERSION:-22.04}
         PYTHON_VERSION: ${PYTHON_VERSION:-3.10}
     image: writebot:production
