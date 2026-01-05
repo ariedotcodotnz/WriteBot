@@ -29,6 +29,16 @@ BACKUP_DIR="/opt/writebot-backups"
 COMPOSE_FILE="docker-compose.production.yml"
 LOG_FILE="${APP_DIR}/deploy.log"
 
+# Detect docker compose command (v2 plugin vs v1 standalone)
+if docker compose version &> /dev/null; then
+    DOCKER_COMPOSE="docker compose"
+elif docker-compose version &> /dev/null; then
+    DOCKER_COMPOSE="docker-compose"
+else
+    echo "Error: Neither 'docker compose' nor 'docker-compose' found"
+    exit 1
+fi
+
 # Deployment options (can be overridden by flags)
 DO_GIT_PULL=true
 DO_BUILD=true
@@ -240,7 +250,7 @@ fi
 # =============================================================================
 log_step "Stopping existing containers..."
 
-docker compose -f ${COMPOSE_FILE} down --remove-orphans 2>/dev/null || true
+${DOCKER_COMPOSE} -f ${COMPOSE_FILE} down --remove-orphans 2>/dev/null || true
 log_info "Existing containers stopped"
 
 # =============================================================================
@@ -256,12 +266,12 @@ if [ "$DO_BUILD" = true ]; then
     fi
 
     # Build main application
-    docker compose -f ${COMPOSE_FILE} build ${BUILD_ARGS} writebot
+    ${DOCKER_COMPOSE} -f ${COMPOSE_FILE} build ${BUILD_ARGS} writebot
 
     # Build Celery worker if requested
     if [ "$INCLUDE_CELERY" = true ]; then
         log_info "Building Celery worker..."
-        docker compose -f ${COMPOSE_FILE} --profile celery build ${BUILD_ARGS}
+        ${DOCKER_COMPOSE} -f ${COMPOSE_FILE} --profile celery build ${BUILD_ARGS}
     fi
 
     log_info "Docker images built successfully"
@@ -276,7 +286,7 @@ if [ "$DO_MIGRATE" = true ]; then
     log_step "Running database migrations..."
 
     # Run migrations in a temporary container
-    docker compose -f ${COMPOSE_FILE} run --rm writebot python webapp/init_db.py --auto 2>&1 | tee -a ${LOG_FILE}
+    ${DOCKER_COMPOSE} -f ${COMPOSE_FILE} run --rm writebot python webapp/init_db.py --auto 2>&1 | tee -a ${LOG_FILE}
 
     if [ ${PIPESTATUS[0]} -eq 0 ]; then
         log_info "Database migrations completed"
@@ -294,9 +304,9 @@ log_step "Starting services..."
 
 if [ "$INCLUDE_CELERY" = true ]; then
     log_info "Starting with Celery worker..."
-    docker compose -f ${COMPOSE_FILE} --profile celery up -d
+    ${DOCKER_COMPOSE} -f ${COMPOSE_FILE} --profile celery up -d
 else
-    docker compose -f ${COMPOSE_FILE} up -d writebot
+    ${DOCKER_COMPOSE} -f ${COMPOSE_FILE} up -d writebot
 fi
 
 log_info "Services started"
@@ -311,12 +321,12 @@ log_info "Waiting for services to initialize..."
 sleep 10
 
 # Check container status
-CONTAINER_STATUS=$(docker compose -f ${COMPOSE_FILE} ps --format json 2>/dev/null | head -1)
+CONTAINER_STATUS=$(${DOCKER_COMPOSE} -f ${COMPOSE_FILE} ps --format json 2>/dev/null | head -1)
 if echo "$CONTAINER_STATUS" | grep -q "running"; then
     log_info "Containers are running"
 else
     log_warn "Container status check returned unexpected result"
-    docker compose -f ${COMPOSE_FILE} ps
+    ${DOCKER_COMPOSE} -f ${COMPOSE_FILE} ps
 fi
 
 # Health check loop
@@ -335,8 +345,8 @@ for i in $(seq 1 $MAX_RETRIES); do
     else
         if [ $i -eq $MAX_RETRIES ]; then
             log_error "Health check failed after ${MAX_RETRIES} attempts"
-            log_error "Check logs: docker compose -f ${COMPOSE_FILE} logs"
-            docker compose -f ${COMPOSE_FILE} logs --tail=50
+            log_error "Check logs: ${DOCKER_COMPOSE} -f ${COMPOSE_FILE} logs"
+            ${DOCKER_COMPOSE} -f ${COMPOSE_FILE} logs --tail=50
             exit 1
         fi
         log_info "Waiting for application to start (attempt ${i}/${MAX_RETRIES})..."
@@ -372,7 +382,7 @@ echo "" | tee -a ${LOG_FILE}
 
 # Show container status
 echo "CONTAINER STATUS:" | tee -a ${LOG_FILE}
-docker compose -f ${COMPOSE_FILE} ps | tee -a ${LOG_FILE}
+${DOCKER_COMPOSE} -f ${COMPOSE_FILE} ps | tee -a ${LOG_FILE}
 echo "" | tee -a ${LOG_FILE}
 
 # Show GPU status
@@ -384,7 +394,7 @@ echo "" | tee -a ${LOG_FILE}
 echo "APPLICATION INFO:" | tee -a ${LOG_FILE}
 echo "  URL:        http://localhost:${APP_PORT:-5000}" | tee -a ${LOG_FILE}
 echo "  Health:     http://localhost:${APP_PORT:-5000}/api/health" | tee -a ${LOG_FILE}
-echo "  Logs:       docker compose -f ${COMPOSE_FILE} logs -f" | tee -a ${LOG_FILE}
+echo "  Logs:       ${DOCKER_COMPOSE} -f ${COMPOSE_FILE} logs -f" | tee -a ${LOG_FILE}
 echo "  Deploy log: ${LOG_FILE}" | tee -a ${LOG_FILE}
 echo "" | tee -a ${LOG_FILE}
 
