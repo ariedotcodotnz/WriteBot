@@ -53,7 +53,8 @@ RUN python -m pip install --upgrade pip
 COPY requirements.txt .
 
 # Install TensorFlow 2.18+ with CUDA 13.0 support for RTX 50 series (Blackwell)
-RUN pip install --no-cache-dir --user "tensorflow[and-cuda]>=2.18.0" "tensorflow-probability>=0.25.0"
+# Also install tf-keras for Keras 2 compatibility (TF 2.16+ defaults to Keras 3)
+RUN pip install --no-cache-dir --user "tensorflow[and-cuda]>=2.18.0" "tensorflow-probability>=0.25.0" "tf-keras>=2.18.0"
 
 # Install remaining dependencies
 RUN pip install --no-cache-dir --user -r requirements.txt
@@ -116,6 +117,8 @@ ENV CUDA_VISIBLE_DEVICES=0
 ENV TF_FORCE_GPU_ALLOW_GROWTH=true
 # Enable TensorFloat-32 for RTX 30/40/50 series
 ENV TF_ENABLE_TF32=1
+# Use Keras 2 (tf-keras) instead of Keras 3 for TF1 compat code compatibility
+ENV TF_USE_LEGACY_KERAS=1
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
