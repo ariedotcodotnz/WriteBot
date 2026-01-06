@@ -1,13 +1,13 @@
 # GPU-enabled Dockerfile for WriteBot
 # Optimized for NVIDIA RTX 50 series (Blackwell) and RTX 40/30 series GPUs
-# Uses CUDA 12.x for best performance with modern GPUs
+# Uses CUDA 13.x for RTX 50 series (Blackwell) support
 
 #=============================================================================
 # BUILD ARGUMENTS - Customize these at build time
 #=============================================================================
-ARG CUDA_VERSION=12.3.2
+ARG CUDA_VERSION=13.0.1
 ARG CUDNN_VERSION=9
-ARG UBUNTU_VERSION=22.04
+ARG UBUNTU_VERSION=24.04
 ARG PYTHON_VERSION=3.11
 ARG GUNICORN_WORKERS=2
 ARG GUNICORN_THREADS=4
@@ -52,16 +52,16 @@ RUN python -m pip install --upgrade pip
 # Copy requirements and install Python dependencies
 COPY requirements.txt .
 
-# Install TensorFlow with CUDA support
-RUN pip install --no-cache-dir --user tensorflow[and-cuda]>=2.15.0 tensorflow-probability>=0.23.0
+# Install TensorFlow 2.18+ with CUDA 13.0 support for RTX 50 series (Blackwell)
+RUN pip install --no-cache-dir --user "tensorflow[and-cuda]>=2.18.0" "tensorflow-probability>=0.25.0"
 
 # Install remaining dependencies
 RUN pip install --no-cache-dir --user -r requirements.txt
 
 # Production stage
-ARG CUDA_VERSION=12.3.2
+ARG CUDA_VERSION=13.0.1
 ARG CUDNN_VERSION=9
-ARG UBUNTU_VERSION=22.04
+ARG UBUNTU_VERSION=24.04
 FROM nvidia/cuda:${CUDA_VERSION}-cudnn${CUDNN_VERSION}-runtime-ubuntu${UBUNTU_VERSION}
 
 # Re-declare ARGs for production stage
