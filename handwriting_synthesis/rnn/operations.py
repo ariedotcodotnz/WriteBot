@@ -223,7 +223,20 @@ def raw_rnn(cell, loop_fn, parallel_iterations=None, swap_memory=False, scope=No
                     if cur_i.shape.ndims == 0:
                         return cand_i
                     # Otherwise propagate the old or the new value.
-                    return tf.where(elements_finished, cur_i, cand_i)
+                    # Expand elements_finished to broadcast with higher-rank tensors
+                    # elements_finished has shape [batch_size], cur_i may have shape [batch_size, ...]
+                    cond = elements_finished
+                    ndims = cur_i.shape.ndims
+                    if ndims is not None and ndims > 1:
+                        # Static shape known: add dimensions to broadcast
+                        for _ in range(ndims - 1):
+                            cond = tf.expand_dims(cond, -1)
+                    elif ndims is None:
+                        # Dynamic shape: reshape condition to match rank at runtime
+                        # Expand to rank of cur_i by adding trailing dimensions
+                        cur_rank = tf.rank(cur_i)
+                        cond = tf.reshape(cond, tf.concat([tf.shape(cond), tf.ones([cur_rank - 1], dtype=tf.int32)], axis=0))
+                    return tf.where(cond, cur_i, cand_i)
 
                 return tf.nest.map_structure(copy_fn, current, candidate)
 
