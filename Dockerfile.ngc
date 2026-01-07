@@ -1,0 +1,78 @@
+# NGC TensorFlow Dockerfile for WriteBot
+# Uses NVIDIA NGC TensorFlow container with latest GPU support (including Blackwell)
+#
+# NGC containers include TensorFlow with optimized CUDA/cuDNN for latest GPUs
+# https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tensorflow
+#
+# Usage:
+#   docker compose -f docker-compose.production.yml build
+#   (after updating dockerfile: Dockerfile.ngc in docker-compose.production.yml)
+
+#=============================================================================
+# BUILD ARGUMENTS
+#=============================================================================
+ARG NGC_VERSION=25.01
+ARG GUNICORN_WORKERS=2
+ARG GUNICORN_THREADS=4
+ARG GUNICORN_TIMEOUT=180
+
+# NGC TensorFlow container - includes TF + CUDA + cuDNN with latest GPU support
+FROM nvcr.io/nvidia/tensorflow:${NGC_VERSION}-tf2-py3
+
+# Re-declare ARGs after FROM
+ARG GUNICORN_WORKERS=2
+ARG GUNICORN_THREADS=4
+ARG GUNICORN_TIMEOUT=180
+
+# Prevent timezone prompt
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+# Set working directory
+WORKDIR /app
+
+# Install additional system dependencies
+RUN apt-get update && apt-get install -y \
+    libhdf5-dev \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install Python dependencies
+# Note: TensorFlow is already installed in NGC container, we skip it
+COPY requirements-ngc.txt .
+RUN pip install --no-cache-dir -r requirements-ngc.txt
+
+# Install tf-keras for Keras 2 compatibility (if not in NGC)
+RUN pip install --no-cache-dir "tf-keras>=2.18.0" "tensorflow-probability>=0.25.0"
+
+# Copy application code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p webapp/instance webapp/logs model/data
+
+# Set environment variables from build args
+ENV GUNICORN_WORKERS=${GUNICORN_WORKERS}
+ENV GUNICORN_THREADS=${GUNICORN_THREADS}
+ENV GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT}
+
+# Set environment variables for GPU
+ENV FLASK_ENV=production
+ENV PYTHONUNBUFFERED=1
+ENV TF_CPP_MIN_LOG_LEVEL=2
+ENV CUDA_VISIBLE_DEVICES=0
+ENV TF_FORCE_GPU_ALLOW_GROWTH=true
+ENV TF_ENABLE_TF32=1
+ENV TF_USE_LEGACY_KERAS=1
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
+# Expose port
+EXPOSE 5000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:5000/api/health', timeout=5)" || exit 1
+
+# Run database initialization and start the application
+CMD ["bash", "-c", "python webapp/init_db.py --auto && gunicorn --bind 0.0.0.0:5000 --workers ${GUNICORN_WORKERS} --threads ${GUNICORN_THREADS} --timeout ${GUNICORN_TIMEOUT} --access-logfile - --error-logfile - webapp.app:app"]

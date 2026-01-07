@@ -15,12 +15,9 @@ services:
   writebot:
     build:
       context: .
-      dockerfile: Dockerfile.gpu
+      dockerfile: Dockerfile.ngc
       args:
-        CUDA_VERSION: ${CUDA_VERSION:-12.6.3}
-        CUDNN_VERSION: ${CUDNN_VERSION:-9}
-        UBUNTU_VERSION: ${UBUNTU_VERSION:-22.04}
-        PYTHON_VERSION: ${PYTHON_VERSION:-3.11}
+        NGC_VERSION: ${NGC_VERSION:-25.01}
         GUNICORN_WORKERS: ${GUNICORN_WORKERS:-2}
         GUNICORN_THREADS: ${GUNICORN_THREADS:-4}
         GUNICORN_TIMEOUT: ${GUNICORN_TIMEOUT:-180}
@@ -52,6 +49,11 @@ services:
       - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      # Blackwell JIT compilation support
+      - TF_XLA_FLAGS=--tf_xla_auto_jit=2 --tf_xla_cpu_global_jit
+      - XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/local/cuda
+      - CUDA_CACHE_DISABLE=0
+      - CUDA_CACHE_MAXSIZE=2147483648
 
       # Application settings
       - MAX_CONTENT_LENGTH=${MAX_CONTENT_LENGTH:-16777216}
@@ -99,12 +101,9 @@ services:
   celery-worker:
     build:
       context: .
-      dockerfile: Dockerfile.gpu
+      dockerfile: Dockerfile.ngc
       args:
-        CUDA_VERSION: ${CUDA_VERSION:-12.6.3}
-        CUDNN_VERSION: ${CUDNN_VERSION:-9}
-        UBUNTU_VERSION: ${UBUNTU_VERSION:-22.04}
-        PYTHON_VERSION: ${PYTHON_VERSION:-3.11}
+        NGC_VERSION: ${NGC_VERSION:-25.01}
     image: writebot:production
     container_name: writebot-celery-worker
     restart: unless-stopped
