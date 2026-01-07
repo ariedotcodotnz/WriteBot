@@ -43,11 +43,13 @@ services:
       - CELERY_BROKER_URL=redis://${REDIS_HOST:-10.10.10.12}:${REDIS_PORT:-6379}/0
       - CELERY_RESULT_BACKEND=redis://${REDIS_HOST:-10.10.10.12}:${REDIS_PORT:-6379}/0
 
-      # GPU/CPU configuration
-      # NOTE: Blackwell (RTX 5070) not yet supported by TensorFlow - using CPU mode
+      # GPU configuration - TensorFlow 2.18+ with CUDA 12.8 for Blackwell support
       - TF_CPP_MIN_LOG_LEVEL=2
-      - CUDA_VISIBLE_DEVICES=
-      - TF_XLA_FLAGS=
+      - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
+      - TF_FORCE_GPU_ALLOW_GROWTH=true
+      - TF_ENABLE_TF32=1
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
       # Application settings
       - MAX_CONTENT_LENGTH=${MAX_CONTENT_LENGTH:-16777216}
