@@ -8,12 +8,13 @@ svgwrite>=1.1.12
 openpyxl
 
 # TensorFlow (CPU/GPU auto-detection)
-# TensorFlow 2.15.x is used for Keras 2 compatibility (required for RNNCell API)
-# TensorFlow 2.16+ uses Keras 3 which removes legacy RNN APIs
-# For GPU: Install CUDA 12.x and cuDNN 8.9+ separately
-# CPU fallback works automatically when GPU is not available
-tensorflow>=2.15.0,<2.16.0
-tensorflow-probability>=0.23.0,<0.24.0
+# NOTE: TensorFlow version is managed by Dockerfile/Dockerfile.gpu
+# - Dockerfile.gpu installs TF 2.18 + tf-keras for GPU + Keras 2 compatibility
+# - For CPU-only, TF 2.18 also works with tf-keras for Keras 2 RNN APIs
+# - TF_USE_LEGACY_KERAS=1 env var tells TF 2.16+ to use tf-keras
+tensorflow>=2.18.0,<2.19.0
+tensorflow-probability>=0.25.0,<0.26.0
+tf-keras>=2.18.0,<2.19.0
 
 # Flask dependencies
 flask>=2.3.2
