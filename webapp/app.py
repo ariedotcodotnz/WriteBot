@@ -306,7 +306,7 @@ def health():
         status = {
             "status": "ok",
             "model_ready": True,
-            "version": 1,
+            "version": 2,
         }
 
         # Add GPU status if available
