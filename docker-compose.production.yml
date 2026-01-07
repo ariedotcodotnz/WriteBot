@@ -5,6 +5,11 @@
 # Usage:
 #   docker compose -f docker-compose.production.yml build
 #   docker compose -f docker-compose.production.yml up -d
+#
+# GPU Requirements:
+#   - TensorFlow 2.18 requires CUDA 12.5+ and cuDNN 9.3+
+#   - Blackwell/RTX 50 series requires CUDA 12.8+ for native kernels
+#   - Host needs NVIDIA driver 565+ for Blackwell GPUs
 
 services:
   writebot:
@@ -12,7 +17,7 @@ services:
       context: .
       dockerfile: Dockerfile.gpu
       args:
-        CUDA_VERSION: ${CUDA_VERSION:-12.3.2}
+        CUDA_VERSION: ${CUDA_VERSION:-12.6.3}
         CUDNN_VERSION: ${CUDNN_VERSION:-9}
         UBUNTU_VERSION: ${UBUNTU_VERSION:-22.04}
         PYTHON_VERSION: ${PYTHON_VERSION:-3.11}
@@ -96,7 +101,7 @@ services:
       context: .
       dockerfile: Dockerfile.gpu
       args:
-        CUDA_VERSION: ${CUDA_VERSION:-12.3.2}
+        CUDA_VERSION: ${CUDA_VERSION:-12.6.3}
         CUDNN_VERSION: ${CUDNN_VERSION:-9}
         UBUNTU_VERSION: ${UBUNTU_VERSION:-22.04}
         PYTHON_VERSION: ${PYTHON_VERSION:-3.11}
