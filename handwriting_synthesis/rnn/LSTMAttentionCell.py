@@ -226,7 +226,7 @@ class LSTMAttentionCell(tfcompat.nn.rnn_cell.RNNCell):
         past_final_char = char_idx >= self.attention_values_lengths
         output = self.output_function(state)
         es = tf.cast(output[:, 2], tf.int32)
-        is_eos = tf.equal(es, tf.experimental.numpy.ones_like(es))
+        is_eos = tf.equal(es, tf.ones_like(es))
         return tf.logical_or(tf.logical_and(final_char, is_eos), past_final_char)
 
     def _parse_parameters(self, gmm_params, eps=1e-8, sigma_eps=1e-4):

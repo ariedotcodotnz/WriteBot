@@ -1,13 +1,13 @@
 # GPU-enabled Dockerfile for WriteBot
 # Optimized for NVIDIA RTX 50 series (Blackwell) and RTX 40/30 series GPUs
-# Uses CUDA 12.x for best performance with modern GPUs
+# Uses CUDA 13.x for RTX 50 series (Blackwell) support
 
 #=============================================================================
 # BUILD ARGUMENTS - Customize these at build time
 #=============================================================================
-ARG CUDA_VERSION=12.3.2
+ARG CUDA_VERSION=13.0.1
 ARG CUDNN_VERSION=9
-ARG UBUNTU_VERSION=22.04
+ARG UBUNTU_VERSION=24.04
 ARG PYTHON_VERSION=3.11
 ARG GUNICORN_WORKERS=2
 ARG GUNICORN_THREADS=4
@@ -52,16 +52,17 @@ RUN python -m pip install --upgrade pip
 # Copy requirements and install Python dependencies
 COPY requirements.txt .
 
-# Install TensorFlow with CUDA support
-RUN pip install --no-cache-dir --user tensorflow[and-cuda]>=2.15.0 tensorflow-probability>=0.23.0
+# Install TensorFlow 2.18+ with CUDA 13.0 support for RTX 50 series (Blackwell)
+# Also install tf-keras for Keras 2 compatibility (TF 2.16+ defaults to Keras 3)
+RUN pip install --no-cache-dir --user "tensorflow[and-cuda]>=2.18.0" "tensorflow-probability>=0.25.0" "tf-keras>=2.18.0"
 
 # Install remaining dependencies
 RUN pip install --no-cache-dir --user -r requirements.txt
 
 # Production stage
-ARG CUDA_VERSION=12.3.2
+ARG CUDA_VERSION=13.0.1
 ARG CUDNN_VERSION=9
-ARG UBUNTU_VERSION=22.04
+ARG UBUNTU_VERSION=24.04
 FROM nvidia/cuda:${CUDA_VERSION}-cudnn${CUDNN_VERSION}-runtime-ubuntu${UBUNTU_VERSION}
 
 # Re-declare ARGs for production stage
@@ -116,6 +117,8 @@ ENV CUDA_VISIBLE_DEVICES=0
 ENV TF_FORCE_GPU_ALLOW_GROWTH=true
 # Enable TensorFloat-32 for RTX 30/40/50 series
 ENV TF_ENABLE_TF32=1
+# Use Keras 2 (tf-keras) instead of Keras 3 for TF1 compat code compatibility
+ENV TF_USE_LEGACY_KERAS=1
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
