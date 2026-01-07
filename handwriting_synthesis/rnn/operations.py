@@ -13,21 +13,33 @@ from tensorflow.python.util import nest
 
 def _maybe_tensor_shape_from_tensor(shape):
     """Convert tensor or TensorShape to TensorShape for compatibility."""
-    if isinstance(shape, ops.Tensor):
+    if isinstance(shape, tf.Tensor):
         return tensor_shape.TensorShape(None)
     return tensor_shape.TensorShape(shape)
 
 
 def _concat(prefix, suffix, static=False):
     """Concat prefix and suffix, handling both static and dynamic shapes."""
-    if isinstance(prefix, ops.Tensor):
+    # Handle prefix
+    if isinstance(prefix, tf.Tensor):
         p = prefix
+    elif isinstance(prefix, tensor_shape.TensorShape):
+        p = tf.constant(prefix.as_list(), dtype=tf.int32)
+    elif isinstance(prefix, (list, tuple)):
+        p = tf.constant(list(prefix), dtype=tf.int32)
     else:
-        p = tf.constant(prefix, dtype=tf.int32) if not isinstance(prefix, list) else tf.constant([prefix], dtype=tf.int32)
-    if isinstance(suffix, ops.Tensor):
+        p = tf.constant([prefix] if not hasattr(prefix, '__iter__') else list(prefix), dtype=tf.int32)
+
+    # Handle suffix
+    if isinstance(suffix, tf.Tensor):
         s = suffix
+    elif isinstance(suffix, tensor_shape.TensorShape):
+        s = tf.constant(suffix.as_list(), dtype=tf.int32)
+    elif isinstance(suffix, (list, tuple)):
+        s = tf.constant(list(suffix), dtype=tf.int32)
     else:
-        s = tf.constant(suffix, dtype=tf.int32) if not isinstance(suffix, list) else tf.constant(suffix, dtype=tf.int32)
+        s = tf.constant([suffix] if not hasattr(suffix, '__iter__') else list(suffix), dtype=tf.int32)
+
     # Ensure both are at least 1D
     if len(p.shape) == 0:
         p = tf.expand_dims(p, 0)
@@ -121,7 +133,7 @@ def raw_rnn(cell, loop_fn, parallel_iterations=None, swap_memory=False, scope=No
         nest.assert_same_structure(initial_state, cell.state_size)
         state = initial_state
         flat_state = nest.flatten(state)
-        flat_state = [ops.convert_to_tensor(s) for s in flat_state]
+        flat_state = [tf.convert_to_tensor(s) for s in flat_state]
         state = nest.pack_sequence_as(structure=state, flat_sequence=flat_state)
 
         if emit_structure is not None:
@@ -199,8 +211,8 @@ def raw_rnn(cell, loop_fn, parallel_iterations=None, swap_memory=False, scope=No
                     if cur_i.shape.ndims == 0:
                         return cand_i
                     # Otherwise propagate the old or the new value.
-                    with ops.colocate_with(cand_i):
-                        return array_ops.where(elements_finished, cur_i, cand_i)
+                    # TF 2.18+: Use tf.device for colocation or let TF handle placement
+                    return array_ops.where(elements_finished, cur_i, cand_i)
 
                 return nest.map_structure(copy_fn, current, candidate)
 
