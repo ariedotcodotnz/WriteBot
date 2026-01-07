@@ -4,7 +4,6 @@ import warnings
 import numpy as np
 import tensorflow as tf
 import tensorflow.compat.v1 as tfcompat
-import tensorflow.compat.v1.distributions as tfd
 import tensorflow_probability as tfp
 
 from handwriting_synthesis.tf.utils import dense_layer, shape
@@ -200,8 +199,8 @@ class LSTMAttentionCell(tfcompat.nn.rnn_cell.RNNCell):
         covar_matrix = tf.reshape(covar_matrix, (self.batch_size, self.num_output_mixture_components, 2, 2))
 
         mvn = tfp.distributions.MultivariateNormalFullCovariance(loc=mus, covariance_matrix=covar_matrix)
-        b = tfd.Bernoulli(probs=es)
-        c = tfd.Categorical(probs=pis)
+        b = tfp.distributions.Bernoulli(probs=es)
+        c = tfp.distributions.Categorical(probs=pis)
 
         sampled_e = b.sample()
         sampled_coords = mvn.sample()
