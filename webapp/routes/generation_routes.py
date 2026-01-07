@@ -103,6 +103,9 @@ def api_v1_generate():
                          processing_time=processing_time, is_batch=False)
         log_activity('generate', f'Generated {lines_count} lines')
 
+        # Add generation time to meta
+        meta['generation_time_seconds'] = round(processing_time, 3)
+
         return jsonify({"svg": svg_text, "meta": meta})
     except Exception as e:
         return jsonify({"error": str(e)}), 400

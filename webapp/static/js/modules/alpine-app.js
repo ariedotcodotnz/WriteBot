@@ -312,7 +312,10 @@ document.addEventListener('alpine:init', () => {
           updateRulerForSVG(this.lastSvgText, this.lastMetadata);
         }
 
-        toastSuccess('Handwriting generated successfully');
+        // Show generation time in success message
+        const genTime = this.lastMetadata.generation_time_seconds;
+        const timeStr = genTime ? ` in ${genTime.toFixed(2)}s` : '';
+        toastSuccess(`Handwriting generated successfully${timeStr}`);
       } catch (error) {
         toastError(error.message);
       } finally {
@@ -327,7 +330,9 @@ document.addEventListener('alpine:init', () => {
       }
       const lines = this.lastMetadata.lines || {};
       const page = this.lastMetadata.page || {};
-      return `Lines: ${lines.wrapped_count || 0} (from ${lines.input_count || 0} input) | Page: ${page.width_mm || 0}×${page.height_mm || 0}mm | Orientation: ${page.orientation || 'portrait'}`;
+      const genTime = this.lastMetadata.generation_time_seconds;
+      const timeStr = genTime ? ` | Generated in ${genTime.toFixed(2)}s` : '';
+      return `Lines: ${lines.wrapped_count || 0} (from ${lines.input_count || 0} input) | Page: ${page.width_mm || 0}×${page.height_mm || 0}mm | Orientation: ${page.orientation || 'portrait'}${timeStr}`;
     },
 
     // Download as specified format using svg-exportJS (UMD standalone)
