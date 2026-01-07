@@ -64,6 +64,7 @@ services:
       - ./model/data:/app/model/data
       # Optional: Mount custom styles
       - ./model/style:/app/model/style
+    # For Docker Compose v2 (docker compose) with Swarm-like syntax
     deploy:
       resources:
         reservations:
@@ -73,6 +74,8 @@ services:
               capabilities: [gpu]
         limits:
           memory: ${MEMORY_LIMIT:-16G}
+    # For standalone Docker (also works with v2 in non-swarm mode)
+    runtime: nvidia
     healthcheck:
       test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:5000/api/health', timeout=5)"]
       interval: 30s
@@ -129,6 +132,7 @@ services:
               capabilities: [gpu]
         limits:
           memory: ${CELERY_MEMORY_LIMIT:-8G}
+    runtime: nvidia
     profiles:
       - celery
     logging:

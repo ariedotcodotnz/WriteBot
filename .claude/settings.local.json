@@ -24,7 +24,8 @@
       "Bash(npm run build:*)",
       "Bash(.venv/bin/pip:*)",
       "Bash(/home/joearie/projects/WriteBot/.venv/bin/python:*)",
-      "Bash(.venvScriptspython.exe webappapp.py)"
+      "Bash(.venvScriptspython.exe webappapp.py)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []
