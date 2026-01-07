@@ -43,18 +43,11 @@ services:
       - CELERY_BROKER_URL=redis://${REDIS_HOST:-10.10.10.12}:${REDIS_PORT:-6379}/0
       - CELERY_RESULT_BACKEND=redis://${REDIS_HOST:-10.10.10.12}:${REDIS_PORT:-6379}/0
 
-      # GPU configuration (RTX 5090/5080 Blackwell optimized)
+      # GPU/CPU configuration
+      # NOTE: Blackwell (RTX 5070) not yet supported by TensorFlow - using CPU mode
       - TF_CPP_MIN_LOG_LEVEL=2
-      - TF_FORCE_GPU_ALLOW_GROWTH=true
-      - TF_ENABLE_TF32=1
-      - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
-      # Blackwell JIT compilation support
-      - TF_XLA_FLAGS=--tf_xla_auto_jit=2 --tf_xla_cpu_global_jit
-      - XLA_FLAGS=--xla_gpu_cuda_data_dir=/usr/local/cuda
-      - CUDA_CACHE_DISABLE=0
-      - CUDA_CACHE_MAXSIZE=2147483648
+      - CUDA_VISIBLE_DEVICES=
+      - TF_XLA_FLAGS=
 
       # Application settings
       - MAX_CONTENT_LENGTH=${MAX_CONTENT_LENGTH:-16777216}
