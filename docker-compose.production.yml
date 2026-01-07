@@ -15,12 +15,10 @@ services:
   writebot:
     build:
       context: .
-      dockerfile: Dockerfile.gpu
+      dockerfile: Dockerfile.ngc
       args:
-        CUDA_VERSION: ${CUDA_VERSION:-12.8.1}
-        CUDNN_VERSION: ${CUDNN_VERSION:-9}
-        UBUNTU_VERSION: ${UBUNTU_VERSION:-22.04}
-        PYTHON_VERSION: ${PYTHON_VERSION:-3.11}
+        # NGC 25.01 has CUDA 12.8.0 with Blackwell optimization
+        NGC_VERSION: ${NGC_VERSION:-25.01}
         GUNICORN_WORKERS: ${GUNICORN_WORKERS:-2}
         GUNICORN_THREADS: ${GUNICORN_THREADS:-4}
         GUNICORN_TIMEOUT: ${GUNICORN_TIMEOUT:-180}
@@ -104,12 +102,9 @@ services:
   celery-worker:
     build:
       context: .
-      dockerfile: Dockerfile.gpu
+      dockerfile: Dockerfile.ngc
       args:
-        CUDA_VERSION: ${CUDA_VERSION:-12.8.1}
-        CUDNN_VERSION: ${CUDNN_VERSION:-9}
-        UBUNTU_VERSION: ${UBUNTU_VERSION:-22.04}
-        PYTHON_VERSION: ${PYTHON_VERSION:-3.11}
+        NGC_VERSION: ${NGC_VERSION:-25.01}
     image: writebot:production
     container_name: writebot-celery-worker
     restart: unless-stopped

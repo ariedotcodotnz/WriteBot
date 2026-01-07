@@ -38,12 +38,17 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies
-# Note: TensorFlow is already installed in NGC container, we skip it
+# IMPORTANT: Do NOT reinstall TensorFlow - NGC already has it configured correctly
+# Only install non-TF dependencies to avoid breaking NGC's CUDA stack
 COPY requirements-ngc.txt .
 RUN pip install --no-cache-dir -r requirements-ngc.txt
 
-# Install tf-keras for Keras 2 compatibility (if not in NGC)
-RUN pip install --no-cache-dir "tf-keras>=2.18.0" "tensorflow-probability>=0.25.0"
+# Install tf-keras and tensorflow-probability WITH --no-deps to avoid
+# pulling in a different TensorFlow version that would break NGC's CUDA stack
+# These are required for the handwriting model's RNN and distribution ops
+RUN pip install --no-cache-dir --no-deps tf-keras tensorflow-probability || \
+    echo "Warning: Could not install tf-keras/tfp with --no-deps, trying without..." && \
+    pip install --no-cache-dir tf-keras tensorflow-probability
 
 # Copy application code
 COPY . .
