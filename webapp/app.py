@@ -59,6 +59,16 @@ except ImportError:
     get_gpu_config = None
     initialize_gpu = None
 
+# Import Redis for health checks
+try:
+    import redis
+    from webapp.celery_app import REDIS_URL
+    _redis_available = True
+except ImportError:
+    _redis_available = False
+    redis = None
+    REDIS_URL = None
+
 # Import route blueprints
 from webapp.routes import generation_bp, batch_bp, style_bp, presets_bp
 
@@ -300,7 +310,7 @@ def health():
     Health check endpoint (cached for 60 seconds).
 
     Returns:
-        JSON status response with GPU info.
+        JSON status response with database, Redis, and GPU info.
     """
     def _get_health_status():
         status = {
@@ -308,6 +318,26 @@ def health():
             "model_ready": True,
             "version": 2,
         }
+
+        # Check database status
+        try:
+            db.session.execute(db.text('SELECT 1'))
+            status["database"] = {"status": "ok"}
+        except Exception as e:
+            status["database"] = {"status": "error", "message": str(e)}
+            status["status"] = "degraded"
+
+        # Check Redis status
+        if _redis_available and REDIS_URL:
+            try:
+                r = redis.from_url(REDIS_URL, socket_timeout=2)
+                r.ping()
+                status["redis"] = {"status": "ok"}
+            except Exception as e:
+                status["redis"] = {"status": "error", "message": str(e)}
+                status["status"] = "degraded"
+        else:
+            status["redis"] = {"status": "unavailable", "message": "Redis not configured"}
 
         # Add GPU status if available
         if _gpu_available and get_gpu_config:
@@ -385,6 +415,57 @@ def serve_docs(filename='index.html'):
         }), 404
 
     return send_from_directory(docs_dir, filename)
+
+
+# Custom error handlers
+@app.errorhandler(400)
+def bad_request(e):
+    """Handle 400 Bad Request errors."""
+    return render_template('error.html',
+        error_code=400,
+        error_title="Bad Request",
+        error_message="The server could not understand your request. Please check your input and try again."
+    ), 400
+
+
+@app.errorhandler(403)
+def forbidden(e):
+    """Handle 403 Forbidden errors."""
+    return render_template('error.html',
+        error_code=403,
+        error_title="Access Denied",
+        error_message="You don't have permission to access this resource. Please contact an administrator if you believe this is an error."
+    ), 403
+
+
+@app.errorhandler(404)
+def not_found(e):
+    """Handle 404 Not Found errors."""
+    return render_template('error.html',
+        error_code=404,
+        error_title="Page Not Found",
+        error_message="The page you're looking for doesn't exist or has been moved."
+    ), 404
+
+
+@app.errorhandler(500)
+def internal_error(e):
+    """Handle 500 Internal Server errors."""
+    return render_template('error.html',
+        error_code=500,
+        error_title="Internal Server Error",
+        error_message="Something went wrong on our end. Please try again later or contact support if the problem persists."
+    ), 500
+
+
+@app.errorhandler(503)
+def service_unavailable(e):
+    """Handle 503 Service Unavailable errors."""
+    return render_template('error.html',
+        error_code=503,
+        error_title="Service Unavailable",
+        error_message="The service is temporarily unavailable. Please try again in a few moments."
+    ), 503
 
 
 if __name__ == "__main__":
