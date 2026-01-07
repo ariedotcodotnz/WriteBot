@@ -8,13 +8,12 @@ svgwrite>=1.1.12
 openpyxl
 
 # TensorFlow (CPU/GPU auto-detection)
-# NOTE: TensorFlow version is managed by Dockerfile/Dockerfile.gpu
-# - Dockerfile.gpu installs TF 2.18 + tf-keras for GPU + Keras 2 compatibility
-# - For CPU-only, TF 2.18 also works with tf-keras for Keras 2 RNN APIs
-# - TF_USE_LEGACY_KERAS=1 env var tells TF 2.16+ to use tf-keras
-tensorflow>=2.18.0,<2.19.0
-tensorflow-probability>=0.25.0,<0.26.0
-tf-keras>=2.18.0,<2.19.0
+# Using latest TensorFlow for best GPU support (including Blackwell/RTX 50 series)
+# tf-keras provides Keras 2 compatibility for legacy RNN APIs
+# TF_USE_LEGACY_KERAS=1 env var tells TF 2.16+ to use tf-keras
+tensorflow[and-cuda]>=2.19.0
+tensorflow-probability>=0.25.0
+tf-keras>=2.18.0
 
 # Flask dependencies
 flask>=2.3.2
