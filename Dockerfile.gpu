@@ -52,9 +52,10 @@ RUN python -m pip install --upgrade pip
 # Copy requirements and install Python dependencies
 COPY requirements.txt .
 
-# Install TensorFlow 2.18+ with CUDA 13.0 support for RTX 50 series (Blackwell)
+# Install TensorFlow 2.18.x with CUDA support for RTX 50 series (Blackwell)
+# Pin to 2.18.x for stability - 2.19+ has breaking changes
 # Also install tf-keras for Keras 2 compatibility (TF 2.16+ defaults to Keras 3)
-RUN pip install --no-cache-dir --user "tensorflow[and-cuda]>=2.18.0" "tensorflow-probability>=0.25.0" "tf-keras>=2.18.0"
+RUN pip install --no-cache-dir --user "tensorflow[and-cuda]>=2.18.0,<2.19.0" "tensorflow-probability>=0.25.0,<0.26.0" "tf-keras>=2.18.0,<2.19.0"
 
 # Install remaining dependencies
 RUN pip install --no-cache-dir --user -r requirements.txt
