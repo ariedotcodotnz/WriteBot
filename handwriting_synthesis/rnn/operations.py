@@ -8,10 +8,43 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.ops import tensor_array_ops
 from tensorflow.python.ops import variable_scope as vs
-from tensorflow.python.ops.rnn import _maybe_tensor_shape_from_tensor
-from tensorflow.python.ops.rnn_cell_impl import _concat, assert_like_rnncell
-from tensorflow.python.util import is_in_graph_mode
 from tensorflow.python.util import nest
+
+
+def _maybe_tensor_shape_from_tensor(shape):
+    """Convert tensor or TensorShape to TensorShape for compatibility."""
+    if isinstance(shape, ops.Tensor):
+        return tensor_shape.TensorShape(None)
+    return tensor_shape.TensorShape(shape)
+
+
+def _concat(prefix, suffix, static=False):
+    """Concat prefix and suffix, handling both static and dynamic shapes."""
+    if isinstance(prefix, ops.Tensor):
+        p = prefix
+    else:
+        p = tf.constant(prefix, dtype=tf.int32) if not isinstance(prefix, list) else tf.constant([prefix], dtype=tf.int32)
+    if isinstance(suffix, ops.Tensor):
+        s = suffix
+    else:
+        s = tf.constant(suffix, dtype=tf.int32) if not isinstance(suffix, list) else tf.constant(suffix, dtype=tf.int32)
+    # Ensure both are at least 1D
+    if len(p.shape) == 0:
+        p = tf.expand_dims(p, 0)
+    if len(s.shape) == 0:
+        s = tf.expand_dims(s, 0)
+    return tf.concat([p, s], axis=0)
+
+
+def assert_like_rnncell(name, cell):
+    """Check that cell behaves like an RNNCell (compatibility shim for TF 2.x)."""
+    conditions = [
+        hasattr(cell, "output_size"),
+        hasattr(cell, "state_size"),
+        hasattr(cell, "__call__") or callable(cell),
+    ]
+    if not all(conditions):
+        raise TypeError(f"{name} is not an RNNCell: {type(cell)}")
 
 
 def raw_rnn(cell, loop_fn, parallel_iterations=None, swap_memory=False, scope=None):
@@ -56,7 +89,8 @@ def raw_rnn(cell, loop_fn, parallel_iterations=None, swap_memory=False, scope=No
     # determined by the parent scope, or is set to place the cached
     # Variable using the same placement as for the rest of the RNN.
     with vs.variable_scope(scope or "rnn") as varscope:
-        if is_in_graph_mode.IS_IN_GRAPH_MODE():
+        # TF 2.x compatibility: check if we're in graph mode (not eager)
+        if not tf.executing_eagerly():
             if varscope.caching_device is None:
                 varscope.set_caching_device(lambda op: op.device)
 
