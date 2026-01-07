@@ -43,12 +43,10 @@ RUN apt-get update && apt-get install -y \
 COPY requirements-ngc.txt .
 RUN pip install --no-cache-dir -r requirements-ngc.txt
 
-# Install tf-keras and tensorflow-probability WITH --no-deps to avoid
-# pulling in a different TensorFlow version that would break NGC's CUDA stack
-# These are required for the handwriting model's RNN and distribution ops
-RUN pip install --no-cache-dir --no-deps tf-keras tensorflow-probability || \
-    echo "Warning: Could not install tf-keras/tfp with --no-deps, trying without..." && \
-    pip install --no-cache-dir tf-keras tensorflow-probability
+# Install tf-keras and tensorflow-probability compatible with NGC's TF 2.17
+# TFP 0.24.x is compatible with TF 2.17, TFP 0.25+ requires TF 2.18+
+# Use --no-deps to avoid pulling in a different TensorFlow version
+RUN pip install --no-cache-dir --no-deps "tf-keras>=2.17.0,<2.18.0" "tensorflow-probability>=0.24.0,<0.25.0"
 
 # Copy application code
 COPY . .
