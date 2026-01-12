@@ -17,6 +17,7 @@ tf-keras>=2.18.0
 
 # Flask dependencies
 flask>=2.3.2
+itsdangerous>=2.1.0  # Signed URL tokens for secure file downloads
 python-dotenv>=1.0.0
 Flask-Login>=0.6.2
 Flask-SQLAlchemy>=3.0.0
