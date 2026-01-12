@@ -79,12 +79,17 @@ def create_user():
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '')
         full_name = request.form.get('full_name', '').strip()
+        email = request.form.get('email', '').strip()
         role = request.form.get('role', 'user')
         is_active = request.form.get('is_active') == 'on'
 
         # Validation
         if not username:
             flash('Username is required.', 'error')
+            return render_template('admin/user_form.html', user=None, action='create')
+
+        if not email:
+            flash('Email is required.', 'error')
             return render_template('admin/user_form.html', user=None, action='create')
 
         if not password:
@@ -95,6 +100,10 @@ def create_user():
             flash(f'Username "{username}" already exists.', 'error')
             return render_template('admin/user_form.html', user=None, action='create')
 
+        if User.query.filter_by(email=email).first():
+            flash(f'Email "{email}" is already in use.', 'error')
+            return render_template('admin/user_form.html', user=None, action='create')
+
         if role not in ['user', 'admin']:
             flash('Invalid role selected.', 'error')
             return render_template('admin/user_form.html', user=None, action='create')
@@ -103,6 +112,7 @@ def create_user():
         new_user = User(
             username=username,
             full_name=full_name,
+            email=email,
             role=role,
             is_active=is_active
         )
@@ -132,6 +142,7 @@ def edit_user(user_id):
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         full_name = request.form.get('full_name', '').strip()
+        email = request.form.get('email', '').strip()
         role = request.form.get('role', 'user')
         is_active = request.form.get('is_active') == 'on'
         password = request.form.get('password', '')
@@ -141,10 +152,20 @@ def edit_user(user_id):
             flash('Username is required.', 'error')
             return render_template('admin/user_form.html', user=user, action='edit')
 
+        if not email:
+            flash('Email is required.', 'error')
+            return render_template('admin/user_form.html', user=user, action='edit')
+
         # Check if username is taken by another user
         existing_user = User.query.filter_by(username=username).first()
         if existing_user and existing_user.id != user_id:
             flash(f'Username "{username}" already exists.', 'error')
+            return render_template('admin/user_form.html', user=user, action='edit')
+
+        # Check if email is taken by another user
+        existing_email = User.query.filter_by(email=email).first()
+        if existing_email and existing_email.id != user_id:
+            flash(f'Email "{email}" is already in use.', 'error')
             return render_template('admin/user_form.html', user=user, action='edit')
 
         if role not in ['user', 'admin']:
@@ -154,6 +175,7 @@ def edit_user(user_id):
         # Update user
         user.username = username
         user.full_name = full_name
+        user.email = email
         user.role = role
         user.is_active = is_active
 

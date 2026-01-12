@@ -14,8 +14,39 @@ warnings.filterwarnings('ignore', category=DeprecationWarning, module='tensorflo
 
 tfcompat.disable_v2_behavior()
 
+# Handle Keras 3 compatibility - RNNCell and LSTMCell moved to different location
+try:
+    # Try the TF1 compat path first
+    _RNNCellBase = tfcompat.nn.rnn_cell.RNNCell
+    _LSTMCell = tfcompat.nn.rnn_cell.LSTMCell
+except AttributeError:
+    try:
+        # Fallback for Keras 3 / newer TensorFlow
+        from tensorflow.python.ops.rnn_cell_impl import RNNCell as _RNNCellBase
+        from tensorflow.python.ops.rnn_cell_impl import LSTMCell as _LSTMCell
+    except ImportError:
+        try:
+            # Try tf_keras legacy cells
+            from tf_keras.src.layers.rnn.legacy_cells import RNNCell as _RNNCellBase
+            from tf_keras.src.layers.rnn.legacy_cells import LSTMCell as _LSTMCell
+        except ImportError:
+            # Last resort - use minimal base class and basic LSTM
+            class _RNNCellBase:
+                """Minimal RNNCell base for Keras 3 compatibility."""
+                @property
+                def state_size(self):
+                    raise NotImplementedError
 
-# from tf_utils import dense_layer, shape
+                @property
+                def output_size(self):
+                    raise NotImplementedError
+
+                def __call__(self, inputs, state, scope=None):
+                    raise NotImplementedError
+
+            # Use tf.keras LSTM as fallback
+            _LSTMCell = tf.keras.layers.LSTMCell
+
 
 LSTMAttentionCellState = namedtuple(
     'LSTMAttentionCellState',
@@ -23,7 +54,7 @@ LSTMAttentionCellState = namedtuple(
 )
 
 
-class LSTMAttentionCell(tfcompat.nn.rnn_cell.RNNCell):
+class LSTMAttentionCell(_RNNCellBase):
     """
     Custom LSTM cell with attention mechanism for handwriting synthesis.
 
@@ -66,9 +97,9 @@ class LSTMAttentionCell(tfcompat.nn.rnn_cell.RNNCell):
         self.bias = bias
 
         # Create LSTM cells once during initialization to avoid deprecation warnings
-        self.cell1 = tfcompat.nn.rnn_cell.LSTMCell(self.lstm_size)
-        self.cell2 = tfcompat.nn.rnn_cell.LSTMCell(self.lstm_size)
-        self.cell3 = tfcompat.nn.rnn_cell.LSTMCell(self.lstm_size)
+        self.cell1 = _LSTMCell(self.lstm_size)
+        self.cell2 = _LSTMCell(self.lstm_size)
+        self.cell3 = _LSTMCell(self.lstm_size)
 
     @property
     def state_size(self):

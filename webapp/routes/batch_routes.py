@@ -11,6 +11,7 @@ import uuid
 from typing import List, Tuple, Dict, Any
 from flask import Blueprint, jsonify, request, send_file, Response, stream_with_context
 from flask_login import login_required
+from werkzeug.utils import secure_filename
 
 # Ensure project root is in sys.path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -19,6 +20,13 @@ if PROJECT_ROOT not in sys.path:
 
 from handwriting_synthesis.hand.Hand import Hand
 from webapp.utils.generation_utils import parse_generation_params, generate_handwriting_to_file
+from webapp.utils.secure_urls import (
+    sign_batch_result,
+    sign_batch_file,
+    require_signed_url,
+    verify_signed_url,
+    generate_signed_url
+)
 
 
 # Create blueprint
@@ -753,12 +761,17 @@ def batch_stream():
                 generated_files.append(out_path)
                 log_lines.append(f'[✓] Row {row_num}: {filename} - SUCCESS (took {row_time:.2f}s)')
 
+                # Generate signed URL for preview (valid for 2 hours)
+                preview_token = sign_batch_file(job_id, filename, expiry=7200)
+                preview_url = f"/api/batch/result/{job_id}/file/{filename}?token={preview_token}"
+
                 yield _sse({
                     "type": "row",
                     "status": "ok",
                     "row": int(row_num),
                     "file": filename,
                     "job_id": job_id,
+                    "preview_url": preview_url,
                 })
             except Exception as e:
                 print(f"ERROR: Row {row_num} failed: {e}")
@@ -814,7 +827,9 @@ def batch_stream():
             # Add processing log
             zf.write(log_path, arcname="processing_log.txt")
 
-        download_url = f"/api/batch/result/{job_id}"
+        # Generate signed download URL (valid for 2 hours)
+        download_token = sign_batch_result(job_id, expiry=7200)
+        download_url = f"/api/batch/result/{job_id}?token={download_token}"
         yield _sse({
             "type": "done",
             "job_id": job_id,
@@ -834,9 +849,12 @@ def batch_stream():
 
 @batch_bp.route("/api/batch/result/<job_id>", methods=["GET"])
 @login_required
+@require_signed_url(resource_type='batch_result', id_param='job_id')
 def batch_result(job_id: str):
     """
     Download batch processing results (ZIP file).
+
+    Requires a valid signed URL token for security.
 
     Args:
         job_id: The ID of the batch job.
@@ -860,6 +878,8 @@ def batch_result_file(job_id: str, filename: str):
     """
     Serve an individual generated file from a batch job for live preview.
 
+    Requires a valid signed URL token for security.
+
     Args:
         job_id: The ID of the batch job.
         filename: The name of the file to retrieve.
@@ -867,6 +887,18 @@ def batch_result_file(job_id: str, filename: str):
     Returns:
         File content.
     """
+    # Verify signed URL token
+    token = request.args.get('token')
+    expected_resource = f"{job_id}:{secure_filename(filename)}"
+    is_valid, payload, error = verify_signed_url(
+        token=token,
+        resource_type='batch_file',
+        expected_resource_id=expected_resource,
+        require_user=True
+    )
+    if not is_valid:
+        return jsonify({"error": error or "Invalid security token"}), 403
+
     job_dir = os.path.normpath(os.path.join(JOBS_ROOT, job_id))
     # Make sure job_dir is still under JOBS_ROOT
     if not job_dir.startswith(os.path.abspath(JOBS_ROOT) + os.sep):
@@ -874,9 +906,15 @@ def batch_result_file(job_id: str, filename: str):
     out_dir = os.path.join(job_dir, "out")
     if not os.path.isdir(out_dir):
         return jsonify({"error": "Job not found or expired"}), 404
-    # Prevent path traversal
-    safe_name = os.path.basename(filename)
-    file_path = os.path.join(out_dir, safe_name)
+    # Sanitize filename using werkzeug's secure_filename to prevent path traversal
+    safe_name = secure_filename(filename)
+    if not safe_name:
+        return jsonify({"error": "Invalid filename"}), 400
+    # Build path and verify it stays within out_dir using normpath
+    base_path = os.path.normpath(out_dir)
+    file_path = os.path.normpath(os.path.join(base_path, safe_name))
+    if not file_path.startswith(base_path + os.sep) and file_path != base_path:
+        return jsonify({"error": "Invalid filename"}), 400
     if not os.path.isfile(file_path):
         return jsonify({"error": "File not found"}), 404
     # Guess mimetype by extension (default to SVG for .svg)

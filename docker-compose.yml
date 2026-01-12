@@ -13,13 +13,22 @@ services:
       - FLASK_ENV=production
       - SECRET_KEY=${SECRET_KEY}
       - DATABASE_URL=${DATABASE_URL:-sqlite:///instance/writebot.db}
-      - CACHE_TYPE=${CACHE_TYPE:-simple}
-      - RATELIMIT_STORAGE_URL=${RATELIMIT_STORAGE_URL:-memory://}
+      - CACHE_TYPE=${CACHE_TYPE:-redis}
+      - CACHE_REDIS_URL=redis://redis:6379/1
+      - RATELIMIT_STORAGE_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - REDIS_URL=redis://redis:6379/0
+      # Job queue settings
+      - JOB_FILES_DIR=/app/webapp/job_storage
+      - JOB_RETENTION_DAYS=${JOB_RETENTION_DAYS:-30}
     volumes:
       # Persist database and uploads
       - ./webapp/instance:/app/webapp/instance
       - ./webapp/logs:/app/webapp/logs
       - ./model/data:/app/model/data
+      # Job storage for batch processing
+      - job-storage:/app/webapp/job_storage
     depends_on:
       - redis
     networks:
@@ -30,6 +39,54 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  # Celery worker for background job processing
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: writebot-celery-worker
+    restart: unless-stopped
+    command: celery -A webapp.celery_app:celery_app worker --loglevel=info --concurrency=1 -P solo
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///instance/writebot.db}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - JOB_FILES_DIR=/app/webapp/job_storage
+    volumes:
+      - ./webapp/instance:/app/webapp/instance
+      - ./webapp/logs:/app/webapp/logs
+      - ./model/data:/app/model/data
+      - job-storage:/app/webapp/job_storage
+    depends_on:
+      - redis
+      - writebot
+    networks:
+      - writebot-network
+
+  # Celery beat for scheduled tasks
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: writebot-celery-beat
+    restart: unless-stopped
+    command: celery -A webapp.celery_app:celery_app beat --loglevel=info
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///instance/writebot.db}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./webapp/instance:/app/webapp/instance
+    depends_on:
+      - redis
+      - celery-worker
+    networks:
+      - writebot-network
 
   redis:
     image: redis:7-alpine
@@ -71,6 +128,8 @@ services:
 
 volumes:
   redis-data:
+    driver: local
+  job-storage:
     driver: local
 
 networks:

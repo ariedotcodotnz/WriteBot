@@ -2,14 +2,6 @@
 
 {% block content %}
     <div class="bx--grid" x-data="generationApp" x-cloak>
-      <!-- Loading Overlay (Alpine controlled) -->
-      <div class="overlay" :class="{ 'visible': loading }">
-        <div class="loading-container">
-          <div class="loading-spinner"></div>
-          <div class="loading-text">Processing...</div>
-        </div>
-      </div>
-
       <!-- Main Configuration Panel -->
       <div class="bx--row">
         <div class="bx--col-lg-16">
@@ -628,7 +620,7 @@ Use \\ on its own line to insert blank space."></textarea>
       </div>
 
       <!-- Batch Processing Section -->
-      <div class="bx--row mt-3">
+      <div id="batch-section" class="bx--row mt-3">
         <div class="bx--col-lg-16 bx--col-md-10">
           <div class="section-header">
             <h2 class="section-title">Batch Processing</h2>
@@ -650,22 +642,79 @@ Use \\ on its own line to insert blank space."></textarea>
               </div>
             </form>
 
+            <!-- Queue Options (collapsible) -->
+            <details class="queue-options-details">
+              <summary class="details-summary">
+                <i data-feather="settings" class="icon-sm"></i>
+                Queue Options
+              </summary>
+              <div class="queue-options-form">
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label for="queueJobTitle" class="bx--label">Job Title</label>
+                    <input id="queueJobTitle" class="bx--text-input" type="text" placeholder="Auto-generated from filename" x-model="queueJobTitle" />
+                  </div>
+                  <div class="form-group">
+                    <label for="queuePriority" class="bx--label">Priority</label>
+                    <div class="bx--select">
+                      <select id="queuePriority" class="bx--select-input" x-model="queuePriority">
+                        <option value="1">Low</option>
+                        <option value="3" selected>Normal</option>
+                        <option value="4">High</option>
+                        <option value="5">Critical</option>
+                      </select>
+                      <i data-feather="chevron-down" class="bx--select__arrow"></i>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="queueScheduledAt" class="bx--label label-with-tooltip">
+                      Schedule For (Optional)
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Leave empty to process immediately. Set a date/time to delay processing.</span>
+                      </span>
+                    </label>
+                    <input id="queueScheduledAt" class="bx--text-input" type="datetime-local" x-model="queueScheduledAt" />
+                  </div>
+                  <div class="form-group">
+                    <label class="flex-label mt-4">
+                      <input type="checkbox" x-model="queueIsPrivate" class="checkbox-auto" />
+                      <span class="bx--label m-0">Private (only visible to you)</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </details>
+
             <div class="actions-bar">
-              <button class="bx--btn bx--btn--primary" @click="batchGenerateStream()" :disabled="loading">
-                <i data-feather="layers" class="icon-md"></i>
-                Start Batch Processing
+              <button class="bx--btn bx--btn--primary" @click="batchGenerateStream()" :disabled="loading || !csvFile">
+                <i data-feather="zap" class="icon-md"></i>
+                Generate Now
               </button>
-              <a href="/api/template-xlsx" class="bx--btn bx--btn--secondary" title="Download an XLSX template with all columns, dropdowns, and tooltips">
+              <button class="bx--btn bx--btn--secondary" @click="addToQueue()" :disabled="queueSubmitting || !csvFile">
+                <template x-if="!queueSubmitting">
+                  <span style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-feather="plus-circle" class="icon-md"></i>
+                    Add to Queue
+                  </span>
+                </template>
+                <template x-if="queueSubmitting">
+                  <span style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span class="btn-spinner"></span>
+                    Queuing...
+                  </span>
+                </template>
+              </button>
+              <a href="{{ url_for('jobs.jobs_page') }}" class="bx--btn bx--btn--ghost" title="View and manage queued jobs">
+                <i data-feather="list" class="icon-md"></i>
+                View Queue
+              </a>
+              <a href="/api/template-xlsx" class="bx--btn bx--btn--tertiary" title="Download an XLSX template with all columns, dropdowns, and tooltips">
                 <i data-feather="download" class="icon-md"></i>
-                Download XLSX Template
+                XLSX Template
               </a>
               <a href="/api/template-csv" class="bx--btn bx--btn--tertiary" title="Download a basic CSV template with column headers">
                 <i data-feather="file" class="icon-md"></i>
                 CSV Template
-              </a>
-              <a href="/api/sample-xlsx" class="bx--btn bx--btn--tertiary" title="Download an XLSX file with example data to learn from">
-                <i data-feather="book-open" class="icon-md"></i>
-                Sample XLSX
               </a>
               <div class="actions-secondary">
                 <label class="flex-label-spaced label-with-tooltip">
@@ -817,6 +866,20 @@ Use \\ on its own line to insert blank space."></textarea>
     {% assets "js_generator" %}
         <script src="{{ ASSET_URL }}"></script>
     {% endassets %}
+<style>
+  @keyframes flash-highlight {
+    0% { box-shadow: 0 0 0 0 rgba(15, 98, 254, 0); }
+    20% { box-shadow: 0 0 0 8px rgba(15, 98, 254, 0.3); }
+    40% { box-shadow: 0 0 0 4px rgba(15, 98, 254, 0.15); }
+    60% { box-shadow: 0 0 0 8px rgba(15, 98, 254, 0.3); }
+    80% { box-shadow: 0 0 0 4px rgba(15, 98, 254, 0.15); }
+    100% { box-shadow: 0 0 0 0 rgba(15, 98, 254, 0); }
+  }
+  .highlight-flash {
+    animation: flash-highlight 1.5s ease-out;
+    border-radius: 4px;
+  }
+</style>
 <script>
   // Initialize Feather icons and SVG ruler after page load
   document.addEventListener('DOMContentLoaded', () => {
@@ -825,6 +888,27 @@ Use \\ on its own line to insert blank space."></textarea>
     // Initialize SVG ruler system
     if (typeof initSVGRuler === 'function') {
       initSVGRuler();
+    }
+
+    // Handle hash-based scroll and highlight (e.g., from Jobs page "New Job" button)
+    if (window.location.hash === '#batch-section') {
+      const batchSection = document.getElementById('batch-section');
+      if (batchSection) {
+        // Small delay to ensure page is fully rendered
+        setTimeout(() => {
+          batchSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Add highlight flash after scroll completes
+          setTimeout(() => {
+            batchSection.classList.add('highlight-flash');
+            // Remove class after animation completes
+            setTimeout(() => {
+              batchSection.classList.remove('highlight-flash');
+              // Clear hash from URL without triggering scroll
+              history.replaceState(null, '', window.location.pathname);
+            }, 1500);
+          }, 500);
+        }, 100);
+      }
     }
   });
 

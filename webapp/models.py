@@ -29,6 +29,7 @@ class User(UserMixin, db.Model):
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     last_login = db.Column(db.DateTime)
+    email = db.Column(db.String(255), nullable=False, unique=True)  # Required for job notifications
 
     # User settings
     default_style = db.Column(db.Integer, default=9)
@@ -327,3 +328,79 @@ class TemplatePreset(db.Model):
 
     def __repr__(self):
         return f'<TemplatePreset {self.name}>'
+
+
+class BatchJob(db.Model):
+    """
+    Batch job queue model for tracking async batch processing.
+
+    Tracks batch processing jobs with scheduling, priority, and notifications.
+    """
+    __tablename__ = 'batch_jobs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    title = db.Column(db.String(255), nullable=False)
+
+    # Status: pending, queued, processing, completed, failed, cancelled
+    status = db.Column(db.String(20), nullable=False, default='pending', index=True)
+    priority = db.Column(db.Integer, nullable=False, default=3, index=True)  # 1-5 (higher = more urgent)
+    is_private = db.Column(db.Boolean, nullable=False, default=False)
+
+    # Scheduling
+    scheduled_at = db.Column(db.DateTime, nullable=True, index=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    started_at = db.Column(db.DateTime, nullable=True)
+    completed_at = db.Column(db.DateTime, nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Files
+    input_file_path = db.Column(db.String(500), nullable=True)
+    output_file_path = db.Column(db.String(500), nullable=True)
+
+    # Stats
+    row_count = db.Column(db.Integer, default=0)
+    success_count = db.Column(db.Integer, default=0)
+    error_count = db.Column(db.Integer, default=0)
+
+    # Tracking
+    error_message = db.Column(db.Text, nullable=True)
+    processing_log = db.Column(db.Text, nullable=True)
+    celery_task_id = db.Column(db.String(100), nullable=True, index=True)
+    parameters = db.Column(db.Text, nullable=True)  # JSON string of generation params
+    email_notification_sent = db.Column(db.Boolean, default=False)
+
+    # Relationships
+    user = db.relationship('User', backref=db.backref('batch_jobs', lazy='dynamic'))
+
+    def to_dict(self, current_user_id=None):
+        """Convert to dictionary for API responses."""
+        # Safely get submitter username
+        submitter = None
+        if not self.is_private:
+            try:
+                submitter = self.user.username if self.user else None
+            except Exception:
+                submitter = None
+
+        return {
+            'id': self.id,
+            'title': self.title,
+            'status': self.status,
+            'priority': self.priority,
+            'is_private': self.is_private,
+            'scheduled_at': self.scheduled_at.isoformat() if self.scheduled_at else None,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'started_at': self.started_at.isoformat() if self.started_at else None,
+            'completed_at': self.completed_at.isoformat() if self.completed_at else None,
+            'row_count': self.row_count or 0,
+            'success_count': self.success_count or 0,
+            'error_count': self.error_count or 0,
+            'error_message': self.error_message,
+            'submitter': submitter,
+            'is_owner': current_user_id == self.user_id if current_user_id else False,
+            'can_download': self.status == 'completed' and self.output_file_path is not None
+        }
+
+    def __repr__(self):
+        return f'<BatchJob {self.id}: {self.title} ({self.status})>'

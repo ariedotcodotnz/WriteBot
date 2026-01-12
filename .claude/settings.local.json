@@ -25,7 +25,11 @@
       "Bash(.venv/bin/pip:*)",
       "Bash(/home/joearie/projects/WriteBot/.venv/bin/python:*)",
       "Bash(.venvScriptspython.exe webappapp.py)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Skill(frontend-design)",
+      "Bash(FLASK_DEBUG=1 python:*)",
+      "Bash(docker compose:*)"
     ],
     "deny": [],
     "ask": []
