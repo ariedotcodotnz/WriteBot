@@ -41,7 +41,7 @@ ENV PATH=/root/.local/bin:$PATH
 COPY . .
 
 # Create necessary directories
-RUN mkdir -p webapp/instance webapp/logs model/data
+RUN mkdir -p webapp/instance webapp/logs webapp/job_storage model/data
 
 # Set environment variables
 ENV FLASK_ENV=production

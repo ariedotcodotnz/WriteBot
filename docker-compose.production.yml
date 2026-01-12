@@ -57,6 +57,10 @@ services:
       - SESSION_COOKIE_HTTPONLY=True
       - SESSION_COOKIE_SAMESITE=Lax
 
+      # Job queue settings
+      - JOB_FILES_DIR=/app/webapp/job_storage
+      - JOB_RETENTION_DAYS=${JOB_RETENTION_DAYS:-30}
+
       # Gunicorn (can override build-time defaults)
       - GUNICORN_WORKERS=${GUNICORN_WORKERS:-2}
       - GUNICORN_THREADS=${GUNICORN_THREADS:-4}
@@ -67,6 +71,8 @@ services:
       - ./model/data:/app/model/data
       # Optional: Mount custom styles
       - ./model/style:/app/model/style
+      # Job storage for batch processing
+      - job-storage:/app/webapp/job_storage
     # For Docker Compose v2 (docker compose) with Swarm-like syntax
     deploy:
       resources:
@@ -93,7 +99,7 @@ services:
     networks:
       - writebot-production
 
-  # Optional: Celery worker for background batch processing
+  # Celery worker for background batch processing
   celery-worker:
     build:
       context: .
@@ -110,6 +116,7 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-writebot}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-10.10.10.11}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-writebot}
       - CELERY_BROKER_URL=redis://${REDIS_HOST:-10.10.10.12}:${REDIS_PORT:-6379}/0
       - CELERY_RESULT_BACKEND=redis://${REDIS_HOST:-10.10.10.12}:${REDIS_PORT:-6379}/0
+      - JOB_FILES_DIR=/app/webapp/job_storage
       - TF_CPP_MIN_LOG_LEVEL=2
       - TF_FORCE_GPU_ALLOW_GROWTH=true
       - TF_ENABLE_TF32=1
@@ -120,6 +127,7 @@ services:
       - ./webapp/logs:/app/webapp/logs
       - ./model/data:/app/model/data
       - ./model/style:/app/model/style
+      - job-storage:/app/webapp/job_storage
     depends_on:
       writebot:
         condition: service_healthy
@@ -142,6 +150,39 @@ services:
         max-file: "3"
     networks:
       - writebot-production
+
+  # Celery beat for scheduled tasks (job cleanup, scheduled jobs)
+  celery-beat:
+    build:
+      context: .
+      dockerfile: Dockerfile.ngc
+      args:
+        NGC_VERSION: ${NGC_VERSION:-25.01}
+    image: writebot:production
+    container_name: writebot-celery-beat
+    restart: unless-stopped
+    command: celery -A webapp.celery_app:celery_app beat --loglevel=info
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-writebot}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-10.10.10.11}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-writebot}
+      - CELERY_BROKER_URL=redis://${REDIS_HOST:-10.10.10.12}:${REDIS_PORT:-6379}/0
+      - CELERY_RESULT_BACKEND=redis://${REDIS_HOST:-10.10.10.12}:${REDIS_PORT:-6379}/0
+    depends_on:
+      - celery-worker
+    profiles:
+      - celery
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - writebot-production
+
+volumes:
+  job-storage:
+    driver: local
 
 networks:
   writebot-production:
