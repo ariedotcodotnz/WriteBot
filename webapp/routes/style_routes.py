@@ -46,6 +46,26 @@ def _iter_style_ids(style_dir: str) -> List[int]:
     return sorted(set(ids))
 
 
+def _placeholder_svg(style_id: int) -> str:
+    """Generate a placeholder SVG for a style preview."""
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40">
+  <rect width="120" height="40" fill="#f4f4f4"/>
+  <text x="60" y="22" font-family="Arial, sans-serif" font-size="12" fill="#525252" text-anchor="middle">
+    Style {style_id}
+  </text>
+</svg>'''
+
+
+def _error_svg() -> str:
+    """Generate an error placeholder SVG."""
+    return '''<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40">
+  <rect width="120" height="40" fill="#ffefef"/>
+  <text x="60" y="22" font-family="Arial, sans-serif" font-size="10" fill="#da1e28" text-anchor="middle">
+    Error loading preview
+  </text>
+</svg>'''
+
+
 @style_bp.route("/api/styles", methods=["GET"])
 @login_required
 def list_styles():
@@ -110,37 +130,33 @@ def get_style_preview(style_id: int):
     Serve SVG preview image for a specific style.
 
     Args:
-        style_id: The style ID to get preview for.
+        style_id: The style ID to get preview for (validated as integer by Flask).
 
     Returns:
         SVG file content with 'image/svg+xml' mimetype, or a placeholder/error SVG if not found.
     """
     try:
-        # Look for SVG preview file
-        svg_path = os.path.join(STYLE_DIR, f"style-{style_id}.svg")
-        # Normalize path and check it remains within STYLE_DIR
-        normalized_svg_path = os.path.normpath(os.path.abspath(svg_path))
-        style_dir_abs = os.path.abspath(STYLE_DIR)
+        # Validate style_id is a positive integer (Flask already validates it's an int)
+        if style_id < 0 or style_id > 999999:
+            return Response(_placeholder_svg(style_id), mimetype='image/svg+xml')
 
-        # Use os.path.commonpath to ensure the file is within STYLE_DIR
-        if os.path.commonpath([style_dir_abs, normalized_svg_path]) == style_dir_abs and os.path.isfile(normalized_svg_path):
-            return send_file(normalized_svg_path, mimetype='image/svg+xml')
+        # Construct safe filename - only digits allowed in style_id due to <int:> route
+        safe_filename = f"style-{style_id}.svg"
+
+        # Build and normalize paths
+        base_path = os.path.normpath(os.path.abspath(STYLE_DIR))
+        file_path = os.path.normpath(os.path.join(base_path, safe_filename))
+
+        # Verify path stays within base directory (defense in depth)
+        if not file_path.startswith(base_path + os.sep) and file_path != base_path:
+            return Response(_placeholder_svg(style_id), mimetype='image/svg+xml')
+
+        if os.path.isfile(file_path):
+            return send_file(file_path, mimetype='image/svg+xml')
 
         # If no preview exists, return a placeholder SVG
-        placeholder_svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40">
-  <rect width="120" height="40" fill="#f4f4f4"/>
-  <text x="60" y="22" font-family="Arial, sans-serif" font-size="12" fill="#525252" text-anchor="middle">
-    Style {style_id}
-  </text>
-</svg>'''
-        return Response(placeholder_svg, mimetype='image/svg+xml')
+        return Response(_placeholder_svg(style_id), mimetype='image/svg+xml')
 
-    except Exception as e:
+    except Exception:
         # Return error placeholder
-        error_svg = '''<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40">
-  <rect width="120" height="40" fill="#ffefef"/>
-  <text x="60" y="22" font-family="Arial, sans-serif" font-size="10" fill="#da1e28" text-anchor="middle">
-    Error loading preview
-  </text>
-</svg>'''
-        return Response(error_svg, mimetype='image/svg+xml')
+        return Response(_error_svg(), mimetype='image/svg+xml')

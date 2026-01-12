@@ -29,6 +29,7 @@ services:
       - "${APP_PORT:-5000}:5000"
     environment:
       # Flask configuration
+      - FLASK_APP=webapp.app:app
       - FLASK_ENV=production
       - SECRET_KEY=${SECRET_KEY:?SECRET_KEY is required}
       - DEBUG=False
@@ -111,6 +112,7 @@ services:
     restart: unless-stopped
     command: celery -A webapp.celery_app:celery_app worker --loglevel=info --concurrency=1 --max-tasks-per-child=50
     environment:
+      - FLASK_APP=webapp.app:app
       - FLASK_ENV=production
       - SECRET_KEY=${SECRET_KEY}
       - DATABASE_URL=postgresql://${POSTGRES_USER:-writebot}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-10.10.10.11}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-writebot}
@@ -163,6 +165,7 @@ services:
     restart: unless-stopped
     command: celery -A webapp.celery_app:celery_app beat --loglevel=info
     environment:
+      - FLASK_APP=webapp.app:app
       - FLASK_ENV=production
       - SECRET_KEY=${SECRET_KEY}
       - DATABASE_URL=postgresql://${POSTGRES_USER:-writebot}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-10.10.10.11}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-writebot}
