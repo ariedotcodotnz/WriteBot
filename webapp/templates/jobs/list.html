@@ -236,8 +236,8 @@
               <!-- Actions -->
               <td class="jobs-table__td jobs-table__td--actions" @click.stop>
                 <div class="action-group">
-                  <template x-if="job.can_download">
-                    <a :href="`/jobs/api/jobs/${job.id}/download`" class="action-btn action-btn--success" title="Download" @click.stop>
+                  <template x-if="job.can_download && job.download_url">
+                    <a :href="job.download_url" class="action-btn action-btn--success" title="Download" @click.stop>
                       <i data-feather="download"></i>
                     </a>
                   </template>
@@ -404,8 +404,8 @@
       <!-- Modal Footer -->
       <footer class="modal-panel__footer">
         <button class="jobs-btn jobs-btn--ghost" @click="jobDetailsModalOpen = false">Close</button>
-        <template x-if="selectedJob?.can_download">
-          <a :href="`/jobs/api/jobs/${selectedJob?.id}/download`" class="jobs-btn jobs-btn--primary">
+        <template x-if="selectedJob?.can_download && selectedJob?.download_url">
+          <a :href="selectedJob.download_url" class="jobs-btn jobs-btn--primary">
             <i data-feather="download" class="jobs-btn__icon"></i>
             Download Results
           </a>

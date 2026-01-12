@@ -708,6 +708,7 @@ document.addEventListener('alpine:init', () => {
                   if (payload.file && this.batchLiveItems.length < this.liveLimit) {
                     this.batchLiveItems.unshift({
                       filename: payload.file,
+                      preview_url: payload.preview_url,  // Signed URL from server
                       status: 'generating',
                       svg: null
                     });
@@ -732,13 +733,17 @@ document.addEventListener('alpine:init', () => {
 
                 toastSuccess(`Batch processing complete: ${this.batchOk} successful, ${this.batchErr} errors`);
 
-                const jobId = payload.job_id;
-                if (jobId) {
-                  for (const item of this.batchLiveItems) {
+                // Fetch SVG previews using signed URLs
+                for (const item of this.batchLiveItems) {
+                  if (item.preview_url) {
                     try {
-                      const svgRes = await fetch(`/api/batch/result/${jobId}/file/${encodeURIComponent(item.filename)}`);
-                      item.svg = await svgRes.text();
-                      item.status = 'complete';
+                      const svgRes = await fetch(item.preview_url);
+                      if (svgRes.ok) {
+                        item.svg = await svgRes.text();
+                        item.status = 'complete';
+                      } else {
+                        item.status = 'error';
+                      }
                     } catch (e) {
                       item.status = 'error';
                     }

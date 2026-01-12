@@ -15,8 +15,26 @@ from werkzeug.utils import secure_filename
 from sqlalchemy.orm import joinedload
 from webapp.models import db, BatchJob
 from webapp.utils.auth_utils import log_activity
+from webapp.utils.secure_urls import sign_job_download, require_signed_url
 
 jobs_bp = Blueprint('jobs', __name__, url_prefix='/jobs')
+
+
+def add_signed_download_url(job_dict, job_id):
+    """
+    Add signed download URL to job dictionary if downloadable.
+
+    Args:
+        job_dict: Job dictionary from to_dict().
+        job_id: The job ID.
+
+    Returns:
+        Job dictionary with download_url added if applicable.
+    """
+    if job_dict.get('can_download'):
+        token = sign_job_download(job_id, expiry=3600)  # 1 hour expiry
+        job_dict['download_url'] = f'/jobs/api/jobs/{job_id}/download?token={token}'
+    return job_dict
 
 
 # ============================================================================
@@ -81,8 +99,14 @@ def list_jobs():
         # Paginate
         jobs_page = query.paginate(page=page, per_page=per_page, error_out=False)
 
+        # Add signed download URLs to job dicts
+        jobs_with_urls = [
+            add_signed_download_url(job.to_dict(current_user_id=current_user.id), job.id)
+            for job in jobs_page.items
+        ]
+
         return jsonify({
-            'jobs': [job.to_dict(current_user_id=current_user.id) for job in jobs_page.items],
+            'jobs': jobs_with_urls,
             'pagination': {
                 'page': jobs_page.page,
                 'per_page': jobs_page.per_page,
@@ -195,7 +219,7 @@ def create_job():
                 # Job stays in queued status, will be picked up when Celery is available
                 return jsonify({
                     'message': 'Job created (queued - worker not available)',
-                    'job': job.to_dict(current_user_id=current_user.id)
+                    'job': add_signed_download_url(job.to_dict(current_user_id=current_user.id), job.id)
                 }), 201
 
             # Dispatch to Celery
@@ -222,7 +246,7 @@ def create_job():
 
     return jsonify({
         'message': 'Job created successfully',
-        'job': job.to_dict(current_user_id=current_user.id)
+        'job': add_signed_download_url(job.to_dict(current_user_id=current_user.id), job.id)
     }), 201
 
 
@@ -245,7 +269,7 @@ def get_job(job_id):
         if job.is_private and job.user_id != current_user.id:
             abort(403)
 
-    return jsonify({'job': job.to_dict(current_user_id=current_user.id)})
+    return jsonify({'job': add_signed_download_url(job.to_dict(current_user_id=current_user.id), job.id)})
 
 
 @jobs_bp.route('/api/jobs/<int:job_id>', methods=['DELETE'])
@@ -301,9 +325,12 @@ def delete_job(job_id):
 
 @jobs_bp.route('/api/jobs/<int:job_id>/download', methods=['GET'])
 @login_required
+@require_signed_url(resource_type='job_download', id_param='job_id')
 def download_job(job_id):
     """
     Download completed job results.
+
+    Requires a valid signed URL token for security.
 
     Args:
         job_id: The job ID.
