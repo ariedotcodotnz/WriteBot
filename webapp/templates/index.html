@@ -653,14 +653,14 @@ Use \\ on its own line to insert blank space."></textarea>
             <!-- Queue Options (collapsible) -->
             <details class="queue-options-details">
               <summary class="details-summary">
-                <i data-feather="clock" class="icon-sm"></i>
-                Queue Options (Add to Job Queue)
+                <i data-feather="settings" class="icon-sm"></i>
+                Queue Options
               </summary>
               <div class="queue-options-form">
                 <div class="form-grid">
                   <div class="form-group">
                     <label for="queueJobTitle" class="bx--label">Job Title</label>
-                    <input id="queueJobTitle" class="bx--text-input" type="text" placeholder="My Batch Job" x-model="queueJobTitle" />
+                    <input id="queueJobTitle" class="bx--text-input" type="text" placeholder="Auto-generated from filename" x-model="queueJobTitle" />
                   </div>
                   <div class="form-group">
                     <label for="queuePriority" class="bx--label">Priority</label>
@@ -678,7 +678,7 @@ Use \\ on its own line to insert blank space."></textarea>
                     <label for="queueScheduledAt" class="bx--label label-with-tooltip">
                       Schedule For (Optional)
                       <span class="tooltip-icon">
-                        <span class="tooltip-text">Leave empty to process immediately when queued. Set a date/time to delay processing.</span>
+                        <span class="tooltip-text">Leave empty to process immediately. Set a date/time to delay processing.</span>
                       </span>
                     </label>
                     <input id="queueScheduledAt" class="bx--text-input" type="datetime-local" x-model="queueScheduledAt" />
@@ -686,49 +686,43 @@ Use \\ on its own line to insert blank space."></textarea>
                   <div class="form-group">
                     <label class="flex-label mt-4">
                       <input type="checkbox" x-model="queueIsPrivate" class="checkbox-auto" />
-                      <span class="bx--label m-0">Private (only you can see)</span>
+                      <span class="bx--label m-0">Private (only visible to you)</span>
                     </label>
                   </div>
-                </div>
-                <div class="queue-actions mt-2">
-                  <button class="bx--btn bx--btn--secondary" @click="addToQueue()" :disabled="queueSubmitting || !csvFile">
-                    <template x-if="!queueSubmitting">
-                      <span style="display: flex; align-items: center; gap: 0.5rem;">
-                        <i data-feather="plus-circle" class="icon-md"></i>
-                        Add to Queue
-                      </span>
-                    </template>
-                    <template x-if="queueSubmitting">
-                      <span style="display: flex; align-items: center; gap: 0.5rem;">
-                        <span class="btn-spinner"></span>
-                        Submitting...
-                      </span>
-                    </template>
-                  </button>
-                  <a href="{{ url_for('jobs.jobs_page') }}" class="bx--btn bx--btn--ghost">
-                    <i data-feather="list" class="icon-md"></i>
-                    View Job Queue
-                  </a>
                 </div>
               </div>
             </details>
 
             <div class="actions-bar">
-              <button class="bx--btn bx--btn--primary" @click="batchGenerateStream()" :disabled="loading">
-                <i data-feather="layers" class="icon-md"></i>
+              <button class="bx--btn bx--btn--primary" @click="batchGenerateStream()" :disabled="loading || !csvFile">
+                <i data-feather="zap" class="icon-md"></i>
                 Generate Now
               </button>
-              <a href="/api/template-xlsx" class="bx--btn bx--btn--secondary" title="Download an XLSX template with all columns, dropdowns, and tooltips">
+              <button class="bx--btn bx--btn--secondary" @click="addToQueue()" :disabled="queueSubmitting || !csvFile">
+                <template x-if="!queueSubmitting">
+                  <span style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-feather="plus-circle" class="icon-md"></i>
+                    Add to Queue
+                  </span>
+                </template>
+                <template x-if="queueSubmitting">
+                  <span style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span class="btn-spinner"></span>
+                    Queuing...
+                  </span>
+                </template>
+              </button>
+              <a href="{{ url_for('jobs.jobs_page') }}" class="bx--btn bx--btn--ghost" title="View and manage queued jobs">
+                <i data-feather="list" class="icon-md"></i>
+                View Queue
+              </a>
+              <a href="/api/template-xlsx" class="bx--btn bx--btn--tertiary" title="Download an XLSX template with all columns, dropdowns, and tooltips">
                 <i data-feather="download" class="icon-md"></i>
-                Download XLSX Template
+                XLSX Template
               </a>
               <a href="/api/template-csv" class="bx--btn bx--btn--tertiary" title="Download a basic CSV template with column headers">
                 <i data-feather="file" class="icon-md"></i>
                 CSV Template
-              </a>
-              <a href="/api/sample-xlsx" class="bx--btn bx--btn--tertiary" title="Download an XLSX file with example data to learn from">
-                <i data-feather="book-open" class="icon-md"></i>
-                Sample XLSX
               </a>
               <div class="actions-secondary">
                 <label class="flex-label-spaced label-with-tooltip">

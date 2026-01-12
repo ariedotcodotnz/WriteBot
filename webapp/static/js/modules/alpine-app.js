@@ -832,7 +832,7 @@ document.addEventListener('alpine:init', () => {
         if (res.ok) {
           const jobTitle = this.queueJobTitle || this.csvFile.name || 'Batch Job';
           const scheduledMsg = this.queueScheduledAt ? ' (scheduled)' : '';
-          toastSuccess(`Job "${jobTitle}" added to queue${scheduledMsg}. Processing in background.`);
+          toastSuccess(`Job "${jobTitle}" added to queue${scheduledMsg}`);
           // Reset queue options
           this.queueJobTitle = '';
           this.queueScheduledAt = '';
@@ -842,6 +842,11 @@ document.addEventListener('alpine:init', () => {
           // Reset file input if exists
           const fileInput = document.getElementById('csvFile');
           if (fileInput) fileInput.value = '';
+          // Clear the dropzone if it exists
+          const dropzone = document.getElementById('csvDropzoneForm');
+          if (dropzone && dropzone.dropzone) {
+            dropzone.dropzone.removeAllFiles(true);
+          }
         } else {
           toastError(data.error || 'Failed to add job to queue');
         }

@@ -311,7 +311,7 @@
 
 /* Stat Tile Variants */
 .stat-tile--highlight {
-  border-left: 3px solid var(--carbon-blue-60);
+  /* No special styling */
 }
 
 .stat-tile--scheduled .stat-tile__icon { color: var(--carbon-yellow-30); }
@@ -581,17 +581,7 @@
 }
 
 .jobs-table__row--mine {
-  position: relative;
-}
-
-.jobs-table__row--mine::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: var(--carbon-blue-60);
+  /* No special styling */
 }
 
 .jobs-table__td {
@@ -603,7 +593,6 @@
 
 .jobs-table__td--title {
   font-weight: 500;
-  max-width: 0; /* Forces text-overflow to work with table-layout: fixed */
 }
 
 .jobs-table__td--actions {
