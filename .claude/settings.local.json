@@ -27,7 +27,8 @@
       "Bash(.venvScriptspython.exe webappapp.py)",
       "Bash(ls:*)",
       "Bash(find:*)",
-      "Skill(frontend-design)"
+      "Skill(frontend-design)",
+      "Bash(FLASK_DEBUG=1 python:*)"
     ],
     "deny": [],
     "ask": []
