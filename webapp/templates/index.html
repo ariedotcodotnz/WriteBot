@@ -691,9 +691,19 @@ Use \\ on its own line to insert blank space."></textarea>
                   </div>
                 </div>
                 <div class="queue-actions mt-2">
-                  <button class="bx--btn bx--btn--secondary" @click="addToQueue()" :disabled="loading || !csvFile">
-                    <i data-feather="plus-circle" class="icon-md"></i>
-                    Add to Queue
+                  <button class="bx--btn bx--btn--secondary" @click="addToQueue()" :disabled="queueSubmitting || !csvFile">
+                    <template x-if="!queueSubmitting">
+                      <span style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-feather="plus-circle" class="icon-md"></i>
+                        Add to Queue
+                      </span>
+                    </template>
+                    <template x-if="queueSubmitting">
+                      <span style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="btn-spinner"></span>
+                        Submitting...
+                      </span>
+                    </template>
                   </button>
                   <a href="{{ url_for('jobs.jobs_page') }}" class="bx--btn bx--btn--ghost">
                     <i data-feather="list" class="icon-md"></i>

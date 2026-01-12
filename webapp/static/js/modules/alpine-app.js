@@ -105,6 +105,7 @@ document.addEventListener('alpine:init', () => {
     queuePriority: '3',
     queueIsPrivate: false,
     queueScheduledAt: '',
+    queueSubmitting: false,
 
     // Initialize
     async init() {
@@ -756,14 +757,18 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
-    // Add batch job to queue
+    // Add batch job to queue (non-blocking - job processes in background on server)
     async addToQueue() {
       if (!this.csvFile) {
         toastError('Please select a CSV or XLSX file first');
         return;
       }
 
-      this.loading = true;
+      if (this.queueSubmitting) {
+        return; // Prevent double submission
+      }
+
+      this.queueSubmitting = true;
 
       try {
         const formData = new FormData();
@@ -825,11 +830,18 @@ document.addEventListener('alpine:init', () => {
         const data = await res.json();
 
         if (res.ok) {
-          toastSuccess('Job added to queue' + (this.queueScheduledAt ? ' (scheduled)' : ''));
+          const jobTitle = this.queueJobTitle || this.csvFile.name || 'Batch Job';
+          const scheduledMsg = this.queueScheduledAt ? ' (scheduled)' : '';
+          toastSuccess(`Job "${jobTitle}" added to queue${scheduledMsg}. Processing in background.`);
           // Reset queue options
           this.queueJobTitle = '';
           this.queueScheduledAt = '';
           this.queueIsPrivate = false;
+          // Clear file selection after successful queue
+          this.csvFile = null;
+          // Reset file input if exists
+          const fileInput = document.getElementById('csvFile');
+          if (fileInput) fileInput.value = '';
         } else {
           toastError(data.error || 'Failed to add job to queue');
         }
@@ -837,7 +849,7 @@ document.addEventListener('alpine:init', () => {
         console.error('Failed to add job to queue:', error);
         toastError('Failed to add job to queue: ' + error.message);
       } finally {
-        this.loading = false;
+        this.queueSubmitting = false;
       }
     },
 
