@@ -11,6 +11,7 @@ import uuid
 from typing import List, Tuple, Dict, Any
 from flask import Blueprint, jsonify, request, send_file, Response, stream_with_context
 from flask_login import login_required
+from werkzeug.utils import secure_filename
 
 # Ensure project root is in sys.path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -874,9 +875,15 @@ def batch_result_file(job_id: str, filename: str):
     out_dir = os.path.join(job_dir, "out")
     if not os.path.isdir(out_dir):
         return jsonify({"error": "Job not found or expired"}), 404
-    # Prevent path traversal
-    safe_name = os.path.basename(filename)
-    file_path = os.path.join(out_dir, safe_name)
+    # Sanitize filename using werkzeug's secure_filename to prevent path traversal
+    safe_name = secure_filename(filename)
+    if not safe_name:
+        return jsonify({"error": "Invalid filename"}), 400
+    # Build path and verify it stays within out_dir using normpath
+    base_path = os.path.normpath(out_dir)
+    file_path = os.path.normpath(os.path.join(base_path, safe_name))
+    if not file_path.startswith(base_path + os.sep) and file_path != base_path:
+        return jsonify({"error": "Invalid filename"}), 400
     if not os.path.isfile(file_path):
         return jsonify({"error": "File not found"}), 404
     # Guess mimetype by extension (default to SVG for .svg)

@@ -1,6 +1,7 @@
 """
 Authentication routes for login and logout.
 """
+from urllib.parse import urlparse
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from webapp.models import db, User
@@ -51,9 +52,13 @@ def login():
         user.update_last_login()
         log_activity('login', f'User {username} logged in successfully')
 
-        # Redirect to next page or index
-        next_page = request.args.get('next')
-        if next_page and next_page.startswith('/'):
+        # Redirect to next page or index (with safe URL validation)
+        next_page = request.args.get('next', '')
+        # Remove backslashes that browsers may interpret as forward slashes
+        next_page = next_page.replace('\\', '')
+        # Only allow relative paths without scheme or host to prevent open redirect
+        parsed = urlparse(next_page)
+        if next_page and not parsed.netloc and not parsed.scheme:
             return redirect(next_page)
         return redirect(url_for('index'))
 
