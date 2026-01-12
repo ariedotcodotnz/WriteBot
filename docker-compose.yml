@@ -10,6 +10,7 @@ services:
     ports:
       - "5000:5000"
     environment:
+      - FLASK_APP=webapp.app:app
       - FLASK_ENV=production
       - SECRET_KEY=${SECRET_KEY}
       - DATABASE_URL=${DATABASE_URL:-sqlite:///instance/writebot.db}
@@ -49,6 +50,7 @@ services:
     restart: unless-stopped
     command: celery -A webapp.celery_app:celery_app worker --loglevel=info --concurrency=1 -P solo
     environment:
+      - FLASK_APP=webapp.app:app
       - FLASK_ENV=production
       - SECRET_KEY=${SECRET_KEY}
       - DATABASE_URL=${DATABASE_URL:-sqlite:///instance/writebot.db}
@@ -75,6 +77,7 @@ services:
     restart: unless-stopped
     command: celery -A webapp.celery_app:celery_app beat --loglevel=info
     environment:
+      - FLASK_APP=webapp.app:app
       - FLASK_ENV=production
       - SECRET_KEY=${SECRET_KEY}
       - DATABASE_URL=${DATABASE_URL:-sqlite:///instance/writebot.db}
