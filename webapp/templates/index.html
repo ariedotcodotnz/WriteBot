@@ -2,14 +2,6 @@
 
 {% block content %}
     <div class="bx--grid" x-data="generationApp" x-cloak>
-      <!-- Loading Overlay (Alpine controlled) -->
-      <div class="overlay" :class="{ 'visible': loading }">
-        <div class="loading-container">
-          <div class="loading-spinner"></div>
-          <div class="loading-text">Processing...</div>
-        </div>
-      </div>
-
       <!-- Main Configuration Panel -->
       <div class="bx--row">
         <div class="bx--col-lg-16">
@@ -628,7 +620,7 @@ Use \\ on its own line to insert blank space."></textarea>
       </div>
 
       <!-- Batch Processing Section -->
-      <div class="bx--row mt-3">
+      <div id="batch-section" class="bx--row mt-3">
         <div class="bx--col-lg-16 bx--col-md-10">
           <div class="section-header">
             <h2 class="section-title">Batch Processing</h2>
@@ -874,6 +866,20 @@ Use \\ on its own line to insert blank space."></textarea>
     {% assets "js_generator" %}
         <script src="{{ ASSET_URL }}"></script>
     {% endassets %}
+<style>
+  @keyframes flash-highlight {
+    0% { box-shadow: 0 0 0 0 rgba(15, 98, 254, 0); }
+    20% { box-shadow: 0 0 0 8px rgba(15, 98, 254, 0.3); }
+    40% { box-shadow: 0 0 0 4px rgba(15, 98, 254, 0.15); }
+    60% { box-shadow: 0 0 0 8px rgba(15, 98, 254, 0.3); }
+    80% { box-shadow: 0 0 0 4px rgba(15, 98, 254, 0.15); }
+    100% { box-shadow: 0 0 0 0 rgba(15, 98, 254, 0); }
+  }
+  .highlight-flash {
+    animation: flash-highlight 1.5s ease-out;
+    border-radius: 4px;
+  }
+</style>
 <script>
   // Initialize Feather icons and SVG ruler after page load
   document.addEventListener('DOMContentLoaded', () => {
@@ -882,6 +888,27 @@ Use \\ on its own line to insert blank space."></textarea>
     // Initialize SVG ruler system
     if (typeof initSVGRuler === 'function') {
       initSVGRuler();
+    }
+
+    // Handle hash-based scroll and highlight (e.g., from Jobs page "New Job" button)
+    if (window.location.hash === '#batch-section') {
+      const batchSection = document.getElementById('batch-section');
+      if (batchSection) {
+        // Small delay to ensure page is fully rendered
+        setTimeout(() => {
+          batchSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Add highlight flash after scroll completes
+          setTimeout(() => {
+            batchSection.classList.add('highlight-flash');
+            // Remove class after animation completes
+            setTimeout(() => {
+              batchSection.classList.remove('highlight-flash');
+              // Clear hash from URL without triggering scroll
+              history.replaceState(null, '', window.location.pathname);
+            }, 1500);
+          }, 500);
+        }, 100);
+      }
     }
   });
 
