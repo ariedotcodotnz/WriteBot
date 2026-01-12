@@ -434,7 +434,7 @@ class BaseModel(object):
         saver = self.saver_averaged if averaged else self.saver
         checkpoint_dir = self.checkpoint_dir_averaged if averaged else self.checkpoint_dir
         if not step:
-            model_path = tf.train.latest_checkpoint(checkpoint_dir)
+            model_path = tfcompat.train.latest_checkpoint(checkpoint_dir)
             if model_path is None:
                 raise ValueError(
                     f'No checkpoint found in directory: {checkpoint_dir}. '
@@ -538,7 +538,7 @@ class BaseModel(object):
             The TensorFlow graph.
         """
         with tf.Graph().as_default() as graph:
-            self.ema = tf.train.ExponentialMovingAverage(decay=0.99)
+            self.ema = tfcompat.train.ExponentialMovingAverage(decay=0.99)
             self.global_step = tf.Variable(0, trainable=False)
             self.learning_rate_var = tf.Variable(0.0, trainable=False)
             self.beta1_decay_var = tf.Variable(0.0, trainable=False)
