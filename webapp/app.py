@@ -73,6 +73,14 @@ except ImportError:
 # Import database and models
 from webapp.models import db, User
 
+# Import Flask-Migrate for database migrations
+try:
+    from flask_migrate import Migrate
+    _migrate_available = True
+except ImportError:
+    Migrate = None
+    _migrate_available = False
+
 # Import extensions module
 from webapp.extensions import init_extensions
 
@@ -127,6 +135,11 @@ app.config['RATELIMIT_HEADERS_ENABLED'] = True  # Enable rate limit headers in r
 
 # Initialize database
 db.init_app(app)
+
+# Initialize Flask-Migrate for database migrations
+migrate = None
+if _migrate_available:
+    migrate = Migrate(app, db)
 
 # Initialize Flask-Login
 login_manager = LoginManager()
