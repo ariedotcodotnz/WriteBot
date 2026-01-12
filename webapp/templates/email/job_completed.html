@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Completed - WriteBot</title>
+  <style>
+    body {
+      font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #161616;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #ffffff;
+    }
+    .header {
+      background: #0f62fe;
+      color: white;
+      padding: 24px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 400;
+    }
+    .content {
+      padding: 32px 24px;
+    }
+    .content h2 {
+      margin: 0 0 16px 0;
+      font-size: 20px;
+      color: #0f62fe;
+    }
+    .content p {
+      margin: 0 0 16px 0;
+    }
+    .stats {
+      display: flex;
+      margin: 24px 0;
+      text-align: center;
+    }
+    .stat {
+      flex: 1;
+      padding: 16px;
+      background: #f4f4f4;
+      margin: 0 4px;
+    }
+    .stat:first-child { margin-left: 0; }
+    .stat:last-child { margin-right: 0; }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 600;
+      color: #0f62fe;
+      display: block;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: #525252;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .stat--success .stat-value { color: #24a148; }
+    .stat--error .stat-value { color: #da1e28; }
+    .button {
+      display: inline-block;
+      background: #0f62fe;
+      color: white;
+      padding: 14px 28px;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: 500;
+      margin: 16px 0;
+    }
+    .button:hover {
+      background: #0043ce;
+    }
+    .note {
+      background: #f4f4f4;
+      padding: 16px;
+      border-left: 3px solid #0f62fe;
+      margin: 24px 0;
+      font-size: 14px;
+      color: #525252;
+    }
+    .footer {
+      padding: 24px;
+      text-align: center;
+      font-size: 12px;
+      color: #8d8d8d;
+      border-top: 1px solid #e0e0e0;
+    }
+    .footer a {
+      color: #0f62fe;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>WriteBot</h1>
+    </div>
+    <div class="content">
+      <h2>Job Completed Successfully</h2>
+      <p>Hi {{ user.full_name or user.username }},</p>
+      <p>Great news! Your batch job "<strong>{{ job.title }}</strong>" has been completed successfully.</p>
+
+      <div class="stats">
+        <div class="stat stat--success">
+          <span class="stat-value">{{ job.success_count }}</span>
+          <span class="stat-label">Successful</span>
+        </div>
+        <div class="stat stat--error">
+          <span class="stat-value">{{ job.error_count }}</span>
+          <span class="stat-label">Errors</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ job.row_count }}</span>
+          <span class="stat-label">Total</span>
+        </div>
+      </div>
+
+      <p style="text-align: center;">
+        <a href="{{ url_for('jobs.download_job', job_id=job.id, _external=True) }}" class="button">
+          Download Results
+        </a>
+      </p>
+
+      <div class="note">
+        Your results will be available for download for {{ config.get('JOB_RETENTION_DAYS', 30) }} days.
+        After that, they will be automatically deleted.
+      </div>
+
+      <p>Thank you for using WriteBot!</p>
+    </div>
+    <div class="footer">
+      <p>This is an automated message from WriteBot. Please do not reply to this email.</p>
+      <p><a href="{{ url_for('jobs.jobs_page', _external=True) }}">View all jobs</a></p>
+    </div>
+  </div>
+</body>
+</html>
