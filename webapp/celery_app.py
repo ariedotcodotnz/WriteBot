@@ -7,6 +7,7 @@ concurrent handwriting generation without server crashes.
 
 import os
 from celery import Celery
+from celery.schedules import crontab
 
 # Redis connection URL (defaults to localhost for development)
 REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
@@ -77,6 +78,24 @@ celery_app.conf.update(
     task_routes={
         'webapp.tasks.generate_handwriting_task': {'queue': 'generation'},
         'webapp.tasks.generate_batch_task': {'queue': 'batch'},
+        'webapp.tasks.process_batch_job': {'queue': 'batch'},
+    },
+
+    # Celery Beat schedule for periodic tasks
+    beat_schedule={
+        'check-scheduled-jobs': {
+            'task': 'webapp.tasks.check_scheduled_jobs',
+            'schedule': 60.0,  # Every 60 seconds
+        },
+        'cleanup-old-jobs': {
+            'task': 'webapp.tasks.cleanup_old_jobs',
+            'schedule': crontab(hour=2, minute=0),  # Daily at 2:00 AM UTC
+        },
+        'cleanup-old-task-results': {
+            'task': 'webapp.tasks.cleanup_old_results',
+            'schedule': crontab(hour=3, minute=0),  # Daily at 3:00 AM UTC
+            'kwargs': {'max_age_hours': 48},
+        },
     },
 )
 

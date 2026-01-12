@@ -27,6 +27,13 @@
         </div>
 
         <div class="form-group">
+            <label for="email">Email *</label>
+            <input type="email" id="email" name="email" required
+                   value="{{ user.email if user else '' }}">
+            <div class="help-text">Email is used for job completion notifications.</div>
+        </div>
+
+        <div class="form-group">
             <label for="password">Password {{ '*' if action == 'create' else '' }}</label>
             <input type="password" id="password" name="password"
                    {{ 'required' if action == 'create' else '' }}>

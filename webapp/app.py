@@ -44,6 +44,32 @@ except Exception:
     Environment = None
     Bundle = None
 
+# Import Flask-Mailman for email notifications
+try:
+    from flask_mailman import Mail
+    _mail_available = True
+except ImportError:
+    Mail = None
+    _mail_available = False
+
+# Import Sentry for error tracking
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.flask import FlaskIntegration
+    from sentry_sdk.integrations.celery import CeleryIntegration
+    _sentry_available = True
+except ImportError:
+    sentry_sdk = None
+    _sentry_available = False
+
+# Import structlog for structured logging
+try:
+    import structlog
+    _structlog_available = True
+except ImportError:
+    structlog = None
+    _structlog_available = False
+
 # Import database and models
 from webapp.models import db, User
 
@@ -62,12 +88,13 @@ except ImportError:
 # Import Redis for health checks
 try:
     import redis
-    from webapp.celery_app import REDIS_URL
     _redis_available = True
 except ImportError:
     _redis_available = False
     redis = None
-    REDIS_URL = None
+
+# Redis URL from environment (same as celery_app.py)
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
 
 # Import route blueprints
 from webapp.routes import generation_bp, batch_bp, style_bp, presets_bp
@@ -236,6 +263,55 @@ if Environment is not None and Bundle is not None:
         print(f"Flask-Assets initialization failed: {e}")
         pass
 
+# Initialize Sentry for error tracking
+if _sentry_available and os.environ.get('SENTRY_DSN'):
+    sentry_sdk.init(
+        dsn=os.environ['SENTRY_DSN'],
+        integrations=[FlaskIntegration(), CeleryIntegration()],
+        traces_sample_rate=0.1,
+        profiles_sample_rate=0.1,
+    )
+
+# Initialize Flask-Mailman for email notifications
+mail = None
+if _mail_available:
+    app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+    app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
+    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+    app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'true').lower() == 'true'
+    app.config['MAIL_USE_SSL'] = os.environ.get('MAIL_USE_SSL', 'false').lower() == 'true'
+    app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
+    try:
+        mail = Mail(app)
+    except Exception as e:
+        print(f"Flask-Mailman initialization failed: {e}")
+        mail = None
+
+# Initialize structlog for structured logging
+if _structlog_available:
+    structlog.configure(
+        processors=[
+            structlog.stdlib.filter_by_level,
+            structlog.stdlib.add_logger_name,
+            structlog.stdlib.add_log_level,
+            structlog.processors.TimeStamper(fmt="iso"),
+            structlog.processors.StackInfoRenderer(),
+            structlog.processors.format_exc_info,
+            structlog.processors.JSONRenderer()
+        ],
+        wrapper_class=structlog.stdlib.BoundLogger,
+        context_class=dict,
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        cache_logger_on_first_use=True,
+    )
+
+# Job storage configuration
+app.config['JOB_FILES_DIR'] = os.environ.get('JOB_FILES_DIR',
+    os.path.join(os.path.dirname(__file__), 'job_storage'))
+app.config['JOB_RETENTION_DAYS'] = int(os.environ.get('JOB_RETENTION_DAYS', 30))
+os.makedirs(app.config['JOB_FILES_DIR'], exist_ok=True)
+
 # Enable compression if available
 if Compress is not None:
     try:
@@ -263,6 +339,10 @@ app.register_blueprint(admin_bp)
 # Import and register character override blueprint
 from webapp.routes.character_override_routes import character_override_bp
 app.register_blueprint(character_override_bp)
+
+# Import and register jobs blueprint
+from webapp.routes.job_routes import jobs_bp
+app.register_blueprint(jobs_bp)
 
 # Public API endpoint for character override collections (not under admin prefix)
 @app.route('/api/collections')

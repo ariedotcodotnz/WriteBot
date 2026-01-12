@@ -11,7 +11,12 @@
             Home
           </a>
         </li>
-                  {% if current_user.is_admin() %}
+        <li>
+          <a class="bx--header__menu-item" href="{{ url_for('jobs.jobs_page') }}" title="Jobs">
+            Jobs
+          </a>
+        </li>
+        {% if current_user.is_admin() %}
         <li>
           <a class="bx--header__menu-item" href="{{ url_for('admin.dashboard') }}" title="Admin">
             Admin

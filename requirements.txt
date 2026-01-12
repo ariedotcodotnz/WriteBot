@@ -33,3 +33,12 @@ alembic>=1.13.0
 gunicorn>=21.2.0
 psycopg2-binary>=2.9.9
 redis>=5.0.0
+
+# Job Queue & Email
+Flask-Mailman>=1.0.0
+celery[redis]>=5.3.0
+
+# Monitoring & Logging
+structlog>=24.0.0
+sentry-sdk[flask,celery]>=2.0.0
+flower>=2.0.0

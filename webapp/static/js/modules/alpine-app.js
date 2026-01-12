@@ -100,6 +100,12 @@ document.addEventListener('alpine:init', () => {
     // Zoom
     zoom: 100,
 
+    // Job Queue
+    queueJobTitle: '',
+    queuePriority: '3',
+    queueIsPrivate: false,
+    queueScheduledAt: '',
+
     // Initialize
     async init() {
       await Promise.all([
@@ -745,6 +751,91 @@ document.addEventListener('alpine:init', () => {
         }
       } catch (error) {
         toastError(error.message);
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Add batch job to queue
+    async addToQueue() {
+      if (!this.csvFile) {
+        toastError('Please select a CSV or XLSX file first');
+        return;
+      }
+
+      this.loading = true;
+
+      try {
+        const formData = new FormData();
+        formData.append('file', this.csvFile);
+        formData.append('title', this.queueJobTitle || this.csvFile.name || 'Batch Job');
+        formData.append('priority', this.queuePriority);
+        formData.append('is_private', this.queueIsPrivate ? 'true' : 'false');
+
+        if (this.queueScheduledAt) {
+          formData.append('scheduled_at', new Date(this.queueScheduledAt).toISOString());
+        }
+
+        // Build parameters JSON with current form settings
+        const pageDimensions = this.getPageDimensions();
+        const params = {
+          styles: this.selectedStyleId,
+          legibility: this.legibility,
+          character_override_collection_id: this.characterOverrideCollection || null,
+          page_size: this.resolvePageSize(),
+          orientation: this.orientation,
+          units: this.units,
+          align: this.align,
+          background: this.background || null,
+          page_width: pageDimensions.width || null,
+          page_height: pageDimensions.height || null,
+          margin_top: this.marginTop || null,
+          margin_right: this.marginRight || null,
+          margin_bottom: this.marginBottom || null,
+          margin_left: this.marginLeft || null,
+          line_height: this.lineHeight || null,
+          empty_line_spacing: this.emptyLineSpacing || null,
+          global_scale: this.globalScale || null,
+          auto_size: this.autoSize,
+          manual_size_scale: this.manualSizeScale || null,
+          biases: this.biases || null,
+          stroke_colors: this.strokeColors || null,
+          stroke_widths: this.strokeWidths || null,
+          x_stretch: this.xStretch || null,
+          denoise: this.denoise,
+          margin_jitter_frac: this.marginJitterFrac || null,
+          margin_jitter_coherence: this.marginJitterCoherence || null,
+          wrap_char_px: this.wrapCharPx || null,
+          wrap_ratio: this.wrapRatio || null,
+          wrap_utilization: this.wrapUtil || null,
+          use_chunked: this.useChunked,
+          adaptive_chunking: this.adaptiveChunking,
+          adaptive_strategy: this.adaptiveStrategy || null,
+          words_per_chunk: this.wordsPerChunk || null,
+          chunk_spacing: this.chunkSpacing || null,
+          max_line_width: this.maxLineWidth || null
+        };
+        formData.append('parameters', JSON.stringify(params));
+
+        const res = await fetch('/jobs/api/jobs', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          toastSuccess('Job added to queue' + (this.queueScheduledAt ? ' (scheduled)' : ''));
+          // Reset queue options
+          this.queueJobTitle = '';
+          this.queueScheduledAt = '';
+          this.queueIsPrivate = false;
+        } else {
+          toastError(data.error || 'Failed to add job to queue');
+        }
+      } catch (error) {
+        console.error('Failed to add job to queue:', error);
+        toastError('Failed to add job to queue: ' + error.message);
       } finally {
         this.loading = false;
       }
