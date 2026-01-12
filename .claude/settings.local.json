@@ -26,7 +26,8 @@
       "Bash(/home/joearie/projects/WriteBot/.venv/bin/python:*)",
       "Bash(.venvScriptspython.exe webappapp.py)",
       "Bash(ls:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Skill(frontend-design)"
     ],
     "deny": [],
     "ask": []

@@ -12,6 +12,7 @@ from flask import Blueprint, jsonify, request, render_template, send_file, abort
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 
+from sqlalchemy.orm import joinedload
 from webapp.models import db, BatchJob
 from webapp.utils.auth_utils import log_activity
 
@@ -57,7 +58,8 @@ def list_jobs():
     per_page = min(request.args.get('per_page', 20, type=int), 100)
     status = request.args.get('status', '').strip()
 
-    query = BatchJob.query
+    # Eager load user relationship to avoid N+1 queries
+    query = BatchJob.query.options(joinedload(BatchJob.user))
 
     # Access control: non-admin users see only their own jobs + public jobs
     if not current_user.is_admin():
@@ -75,18 +77,22 @@ def list_jobs():
     # Order by priority (desc) then created_at (desc)
     query = query.order_by(BatchJob.priority.desc(), BatchJob.created_at.desc())
 
-    # Paginate
-    jobs_page = query.paginate(page=page, per_page=per_page, error_out=False)
+    try:
+        # Paginate
+        jobs_page = query.paginate(page=page, per_page=per_page, error_out=False)
 
-    return jsonify({
-        'jobs': [job.to_dict(current_user_id=current_user.id) for job in jobs_page.items],
-        'pagination': {
-            'page': jobs_page.page,
-            'per_page': jobs_page.per_page,
-            'total': jobs_page.total,
-            'pages': jobs_page.pages
-        }
-    })
+        return jsonify({
+            'jobs': [job.to_dict(current_user_id=current_user.id) for job in jobs_page.items],
+            'pagination': {
+                'page': jobs_page.page,
+                'per_page': jobs_page.per_page,
+                'total': jobs_page.total,
+                'pages': jobs_page.pages
+            }
+        })
+    except Exception as e:
+        current_app.logger.error(f'Error loading jobs: {str(e)}')
+        return jsonify({'error': 'Failed to load jobs', 'details': str(e)}), 500
 
 
 @jobs_bp.route('/api/jobs', methods=['POST'])
@@ -106,8 +112,6 @@ def create_job():
     Returns:
         JSON response with created job details.
     """
-    from webapp.tasks import process_batch_job
-
     # Validate file upload
     if 'file' not in request.files:
         return jsonify({'error': 'File is required'}), 400
@@ -175,17 +179,39 @@ def create_job():
     # Queue immediately if not scheduled
     if not scheduled_at:
         try:
+            # Import here to avoid circular imports and check availability
+            from webapp.tasks import process_batch_job
+            from webapp.celery_app import celery_app
+
+            # Quick check if Redis is reachable (with 2 second timeout)
+            # This prevents blocking if Redis is down
+            try:
+                # Try to ping the broker with a short timeout
+                conn = celery_app.connection()
+                conn.ensure_connection(max_retries=1, timeout=2)
+                conn.release()
+            except Exception as conn_err:
+                current_app.logger.warning(f'Celery broker not available, job stays queued: {conn_err}')
+                # Job stays in queued status, will be picked up when Celery is available
+                return jsonify({
+                    'message': 'Job created (queued - worker not available)',
+                    'job': job.to_dict(current_user_id=current_user.id)
+                }), 201
+
+            # Dispatch to Celery
             task = process_batch_job.apply_async(
                 args=[job.id],
-                priority=priority
+                priority=priority,
+                ignore_result=True,  # Don't wait for result
+                expires=3600,  # Task expires after 1 hour if not picked up
             )
             job.celery_task_id = task.id
             db.session.commit()
         except Exception as e:
-            job.status = 'failed'
-            job.error_message = f'Failed to queue job: {str(e)}'
-            db.session.commit()
-            return jsonify({'error': 'Failed to queue job', 'details': str(e)}), 500
+            # Log the error but don't fail the job creation
+            # The job will stay in 'queued' status and can be picked up by scheduled task checker
+            current_app.logger.warning(f'Failed to dispatch job to Celery (job will stay queued): {str(e)}')
+            # Don't return error - job is still created, just not dispatched yet
 
     log_activity('job_created', f'Created batch job: {title} (ID: {job.id})', {
         'job_id': job.id,
@@ -325,24 +351,28 @@ def job_stats():
     Returns:
         JSON response with job counts by status.
     """
-    if current_user.is_admin():
-        base_query = BatchJob.query
-    else:
-        base_query = BatchJob.query.filter(
-            db.or_(
-                BatchJob.user_id == current_user.id,
-                BatchJob.is_private == False
+    try:
+        if current_user.is_admin():
+            base_query = BatchJob.query
+        else:
+            base_query = BatchJob.query.filter(
+                db.or_(
+                    BatchJob.user_id == current_user.id,
+                    BatchJob.is_private == False
+                )
             )
-        )
 
-    stats = {
-        'pending': base_query.filter(BatchJob.status == 'pending').count(),
-        'queued': base_query.filter(BatchJob.status == 'queued').count(),
-        'processing': base_query.filter(BatchJob.status == 'processing').count(),
-        'completed': base_query.filter(BatchJob.status == 'completed').count(),
-        'failed': base_query.filter(BatchJob.status == 'failed').count(),
-        'cancelled': base_query.filter(BatchJob.status == 'cancelled').count(),
-    }
-    stats['total'] = sum(stats.values())
+        stats = {
+            'pending': base_query.filter(BatchJob.status == 'pending').count(),
+            'queued': base_query.filter(BatchJob.status == 'queued').count(),
+            'processing': base_query.filter(BatchJob.status == 'processing').count(),
+            'completed': base_query.filter(BatchJob.status == 'completed').count(),
+            'failed': base_query.filter(BatchJob.status == 'failed').count(),
+            'cancelled': base_query.filter(BatchJob.status == 'cancelled').count(),
+        }
+        stats['total'] = sum(stats.values())
 
-    return jsonify(stats)
+        return jsonify(stats)
+    except Exception as e:
+        current_app.logger.error(f'Error loading job stats: {str(e)}')
+        return jsonify({'error': 'Failed to load stats', 'pending': 0, 'queued': 0, 'processing': 0, 'completed': 0, 'failed': 0, 'cancelled': 0, 'total': 0}), 500

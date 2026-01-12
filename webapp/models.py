@@ -375,6 +375,14 @@ class BatchJob(db.Model):
 
     def to_dict(self, current_user_id=None):
         """Convert to dictionary for API responses."""
+        # Safely get submitter username
+        submitter = None
+        if not self.is_private:
+            try:
+                submitter = self.user.username if self.user else None
+            except Exception:
+                submitter = None
+
         return {
             'id': self.id,
             'title': self.title,
@@ -385,11 +393,11 @@ class BatchJob(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'started_at': self.started_at.isoformat() if self.started_at else None,
             'completed_at': self.completed_at.isoformat() if self.completed_at else None,
-            'row_count': self.row_count,
-            'success_count': self.success_count,
-            'error_count': self.error_count,
+            'row_count': self.row_count or 0,
+            'success_count': self.success_count or 0,
+            'error_count': self.error_count or 0,
             'error_message': self.error_message,
-            'submitter': self.user.username if not self.is_private else None,
+            'submitter': submitter,
             'is_owner': current_user_id == self.user_id if current_user_id else False,
             'can_download': self.status == 'completed' and self.output_file_path is not None
         }

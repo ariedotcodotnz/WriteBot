@@ -7,270 +7,451 @@
 {% endblock %}
 
 {% block content %}
-<div class="bx--grid" x-data="jobsApp" x-cloak>
-  <div class="bx--row">
-    <div class="bx--col-lg-16">
-      <div class="section-header">
-        <h1 class="section-title">Job Queue</h1>
-        <p class="section-subtitle">Manage your batch processing jobs</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Stats Cards -->
-  <div class="bx--row mb-4">
-    <div class="bx--col-lg-16">
-      <div class="stats-row">
-        <div class="stat-card stat-card--processing">
-          <div class="stat-value" x-text="stats.processing || 0"></div>
-          <div class="stat-label">Processing</div>
+<div class="jobs-page" x-data="jobsApp" x-cloak>
+  <!-- Page Header -->
+  <header class="jobs-header">
+    <div class="jobs-header__content">
+      <div class="jobs-header__title-group">
+        <div class="jobs-header__icon">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="6" width="24" height="4" rx="1" fill="currentColor" opacity="0.3"/>
+            <rect x="4" y="14" width="24" height="4" rx="1" fill="currentColor" opacity="0.6"/>
+            <rect x="4" y="22" width="24" height="4" rx="1" fill="currentColor"/>
+          </svg>
         </div>
-        <div class="stat-card stat-card--queued">
-          <div class="stat-value" x-text="stats.queued || 0"></div>
-          <div class="stat-label">Queued</div>
-        </div>
-        <div class="stat-card stat-card--pending">
-          <div class="stat-value" x-text="stats.pending || 0"></div>
-          <div class="stat-label">Scheduled</div>
-        </div>
-        <div class="stat-card stat-card--completed">
-          <div class="stat-value" x-text="stats.completed || 0"></div>
-          <div class="stat-label">Completed</div>
-        </div>
-        <div class="stat-card stat-card--failed">
-          <div class="stat-value" x-text="stats.failed || 0"></div>
-          <div class="stat-label">Failed</div>
+        <div>
+          <h1 class="jobs-header__title">Job Queue</h1>
+          <p class="jobs-header__subtitle">Monitor and manage batch processing jobs</p>
         </div>
       </div>
-    </div>
-  </div>
-
-  <!-- Filter Bar -->
-  <div class="bx--row">
-    <div class="bx--col-lg-16">
-      <div class="card filter-card">
-        <div class="filter-bar">
-          <div class="filter-group">
-            <label class="bx--label" for="statusFilter">Status</label>
-            <div class="bx--select bx--select--inline">
-              <select id="statusFilter" class="bx--select-input" x-model="statusFilter" @change="loadJobs()">
-                <option value="">All Jobs</option>
-                <option value="pending">Scheduled</option>
-                <option value="queued">Queued</option>
-                <option value="processing">Processing</option>
-                <option value="completed">Completed</option>
-                <option value="failed">Failed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </div>
-          </div>
-          <div class="filter-actions">
-            <button class="bx--btn bx--btn--ghost bx--btn--sm" @click="loadJobs(); loadStats();" title="Refresh">
-              <i data-feather="refresh-cw" class="icon-sm"></i>
-              <span>Refresh</span>
-            </button>
-          </div>
-        </div>
+      <div class="jobs-header__actions">
+        <button class="jobs-btn jobs-btn--ghost" @click="loadJobs(); loadStats();" title="Refresh">
+          <svg class="jobs-btn__icon" viewBox="0 0 16 16" fill="none">
+            <path d="M13.65 2.35A7.96 7.96 0 0 0 8 0a8 8 0 1 0 8 8h-2a6 6 0 1 1-1.76-4.24l-2.12 2.12H16V0l-2.35 2.35z" fill="currentColor"/>
+          </svg>
+          <span>Refresh</span>
+        </button>
+        <a href="{{ url_for('main.index') }}" class="jobs-btn jobs-btn--primary">
+          <svg class="jobs-btn__icon" viewBox="0 0 16 16" fill="none">
+            <path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z" fill="currentColor"/>
+          </svg>
+          <span>New Job</span>
+        </a>
       </div>
     </div>
-  </div>
+  </header>
 
-  <!-- Jobs Table -->
-  <div class="bx--row">
-    <div class="bx--col-lg-16">
-      <div class="card"
-           hx-get="/jobs/api/jobs"
-           hx-trigger="every 15s"
-           hx-swap="none"
-           @htmx:after-request="updateJobsFromHtmx($event)">
+  <!-- Stats Dashboard -->
+  <section class="stats-dashboard">
+    <div class="stats-grid">
+      <!-- Active Jobs Card -->
+      <div class="stat-tile stat-tile--highlight">
+        <div class="stat-tile__header">
+          <span class="stat-tile__label">Active</span>
+          <div class="stat-tile__indicator stat-tile__indicator--pulse"></div>
+        </div>
+        <div class="stat-tile__value" x-text="(stats.processing || 0) + (stats.queued || 0)">0</div>
+        <div class="stat-tile__breakdown">
+          <span class="stat-tile__sub">
+            <span class="stat-dot stat-dot--processing"></span>
+            <span x-text="stats.processing || 0">0</span> processing
+          </span>
+          <span class="stat-tile__sub">
+            <span class="stat-dot stat-dot--queued"></span>
+            <span x-text="stats.queued || 0">0</span> queued
+          </span>
+        </div>
+      </div>
 
-        <div class="table-container">
-          <table class="bx--data-table">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Status</th>
-                <th>Priority</th>
-                <th>Progress</th>
-                <th>Submitter</th>
-                <th>Created</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <template x-for="job in jobs" :key="job.id">
-                <tr :class="{ 'job-row--processing': job.status === 'processing', 'job-row--mine': job.is_owner }">
-                  <td>
-                    <div class="job-title">
-                      <span x-text="job.title"></span>
-                      <span x-show="job.is_private" class="private-badge" title="Private">
-                        <i data-feather="lock" class="icon-xs"></i>
+      <!-- Scheduled Card -->
+      <div class="stat-tile stat-tile--scheduled">
+        <div class="stat-tile__header">
+          <span class="stat-tile__label">Scheduled</span>
+          <svg class="stat-tile__icon" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <path d="M8 4v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="stat-tile__value" x-text="stats.pending || 0">0</div>
+        <div class="stat-tile__footer">Waiting to run</div>
+      </div>
+
+      <!-- Completed Card -->
+      <div class="stat-tile stat-tile--completed">
+        <div class="stat-tile__header">
+          <span class="stat-tile__label">Completed</span>
+          <svg class="stat-tile__icon" viewBox="0 0 16 16" fill="none">
+            <path d="M13.5 4.5L6 12 2.5 8.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="stat-tile__value" x-text="stats.completed || 0">0</div>
+        <div class="stat-tile__footer">Successfully finished</div>
+      </div>
+
+      <!-- Failed Card -->
+      <div class="stat-tile stat-tile--failed">
+        <div class="stat-tile__header">
+          <span class="stat-tile__label">Failed</span>
+          <svg class="stat-tile__icon" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <path d="M8 4v5M8 11v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="stat-tile__value" x-text="stats.failed || 0">0</div>
+        <div class="stat-tile__footer">Need attention</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <section class="jobs-content">
+    <!-- Toolbar -->
+    <div class="jobs-toolbar">
+      <div class="jobs-toolbar__filters">
+        <div class="filter-chip-group">
+          <button class="filter-chip" :class="{ 'filter-chip--active': statusFilter === '' }" @click="statusFilter = ''; loadJobs()">
+            All
+          </button>
+          <button class="filter-chip" :class="{ 'filter-chip--active': statusFilter === 'processing' }" @click="statusFilter = 'processing'; loadJobs()">
+            <span class="filter-chip__dot filter-chip__dot--processing"></span>
+            Processing
+          </button>
+          <button class="filter-chip" :class="{ 'filter-chip--active': statusFilter === 'queued' }" @click="statusFilter = 'queued'; loadJobs()">
+            <span class="filter-chip__dot filter-chip__dot--queued"></span>
+            Queued
+          </button>
+          <button class="filter-chip" :class="{ 'filter-chip--active': statusFilter === 'pending' }" @click="statusFilter = 'pending'; loadJobs()">
+            <span class="filter-chip__dot filter-chip__dot--pending"></span>
+            Scheduled
+          </button>
+          <button class="filter-chip" :class="{ 'filter-chip--active': statusFilter === 'completed' }" @click="statusFilter = 'completed'; loadJobs()">
+            <span class="filter-chip__dot filter-chip__dot--completed"></span>
+            Completed
+          </button>
+          <button class="filter-chip" :class="{ 'filter-chip--active': statusFilter === 'failed' }" @click="statusFilter = 'failed'; loadJobs()">
+            <span class="filter-chip__dot filter-chip__dot--failed"></span>
+            Failed
+          </button>
+        </div>
+      </div>
+      <div class="jobs-toolbar__meta">
+        <span class="jobs-toolbar__count" x-show="!loading">
+          <span x-text="pagination.total">0</span> jobs
+        </span>
+      </div>
+    </div>
+
+    <!-- Jobs Table -->
+    <div class="jobs-table-wrapper"
+         hx-get="/jobs/api/jobs"
+         hx-trigger="every 15s"
+         hx-swap="none"
+         @htmx:after-request="updateJobsFromHtmx($event)">
+
+      <!-- Loading State -->
+      <div class="jobs-loading" x-show="loading">
+        <div class="jobs-loading__spinner"></div>
+        <p class="jobs-loading__text">Loading jobs...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div class="jobs-empty" x-show="!loading && jobs.length === 0">
+        <div class="jobs-empty__icon">
+          <svg viewBox="0 0 64 64" fill="none">
+            <rect x="8" y="12" width="48" height="8" rx="2" fill="currentColor" opacity="0.1"/>
+            <rect x="8" y="24" width="48" height="8" rx="2" fill="currentColor" opacity="0.15"/>
+            <rect x="8" y="36" width="48" height="8" rx="2" fill="currentColor" opacity="0.1"/>
+            <rect x="8" y="48" width="48" height="8" rx="2" fill="currentColor" opacity="0.05"/>
+          </svg>
+        </div>
+        <h3 class="jobs-empty__title">No jobs found</h3>
+        <p class="jobs-empty__text">Jobs you create will appear here. Start by uploading a batch file.</p>
+        <a href="{{ url_for('main.index') }}" class="jobs-btn jobs-btn--primary">
+          Create your first job
+        </a>
+      </div>
+
+      <!-- Jobs Table -->
+      <table class="jobs-table" x-show="!loading && jobs.length > 0">
+        <thead class="jobs-table__head">
+          <tr>
+            <th class="jobs-table__th jobs-table__th--title">Job</th>
+            <th class="jobs-table__th">Status</th>
+            <th class="jobs-table__th">Progress</th>
+            <th class="jobs-table__th">Priority</th>
+            <th class="jobs-table__th">Created</th>
+            <th class="jobs-table__th jobs-table__th--actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="jobs-table__body">
+          <template x-for="job in jobs" :key="job.id">
+            <tr class="jobs-table__row"
+                :class="{
+                  'jobs-table__row--processing': job.status === 'processing',
+                  'jobs-table__row--mine': job.is_owner,
+                  'jobs-table__row--failed': job.status === 'failed'
+                }">
+              <!-- Job Info -->
+              <td class="jobs-table__td jobs-table__td--title">
+                <div class="job-info">
+                  <div class="job-info__title">
+                    <span x-text="job.title"></span>
+                    <span x-show="job.is_private" class="job-info__private" title="Private">
+                      <svg viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M12 6V5a4 4 0 0 0-8 0v1H3v8h10V6h-1zM6 5a2 2 0 1 1 4 0v1H6V5z"/>
+                      </svg>
+                    </span>
+                  </div>
+                  <div class="job-info__meta">
+                    <span x-show="job.submitter" x-text="job.submitter"></span>
+                    <span x-show="job.is_private && !job.submitter">Private</span>
+                    <span x-show="job.row_count > 0" class="job-info__rows">
+                      &middot; <span x-text="job.row_count"></span> rows
+                    </span>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Status -->
+              <td class="jobs-table__td">
+                <div class="status-tag" :class="`status-tag--${job.status}`">
+                  <span class="status-tag__dot"></span>
+                  <span class="status-tag__text" x-text="formatStatus(job.status)"></span>
+                </div>
+              </td>
+
+              <!-- Progress -->
+              <td class="jobs-table__td">
+                <template x-if="job.row_count > 0 && (job.status === 'processing' || job.status === 'completed' || job.status === 'failed')">
+                  <div class="progress-indicator">
+                    <div class="progress-indicator__bar">
+                      <div class="progress-indicator__fill"
+                           :class="{ 'progress-indicator__fill--error': job.error_count > 0 }"
+                           :style="`width: ${((job.success_count + job.error_count) / job.row_count) * 100}%`"></div>
+                    </div>
+                    <div class="progress-indicator__stats">
+                      <span class="progress-indicator__success" x-text="job.success_count"></span>
+                      <span x-show="job.error_count > 0" class="progress-indicator__errors">
+                        / <span x-text="job.error_count"></span> errors
                       </span>
                     </div>
-                  </td>
-                  <td>
-                    <span class="status-badge" :class="`status-badge--${job.status}`" x-text="formatStatus(job.status)"></span>
-                  </td>
-                  <td>
-                    <span class="priority-badge" :class="`priority-badge--${job.priority}`" x-text="getPriorityLabel(job.priority)"></span>
-                  </td>
-                  <td>
-                    <template x-if="job.row_count > 0">
-                      <div class="progress-cell">
-                        <span class="progress-text" x-text="`${job.success_count}/${job.row_count}`"></span>
-                        <div class="progress-bar-mini">
-                          <div class="progress-fill-mini" :style="`width: ${(job.success_count/job.row_count)*100}%`"></div>
-                        </div>
-                        <span x-show="job.error_count > 0" class="error-count" x-text="`${job.error_count} errors`"></span>
-                      </div>
-                    </template>
-                    <template x-if="job.row_count === 0">
-                      <span class="text-muted">-</span>
-                    </template>
-                  </td>
-                  <td>
-                    <span x-text="job.submitter || (job.is_private ? 'Private' : '-')"></span>
-                  </td>
-                  <td>
-                    <span x-text="formatDate(job.created_at)"></span>
-                  </td>
-                  <td>
-                    <div class="action-buttons">
-                      <button class="bx--btn bx--btn--ghost bx--btn--sm"
-                              @click="viewJobDetails(job.id)"
-                              title="View Details">
-                        <i data-feather="eye" class="icon-sm"></i>
-                      </button>
-                      <template x-if="job.can_download">
-                        <a :href="`/jobs/api/jobs/${job.id}/download`"
-                           class="bx--btn bx--btn--ghost bx--btn--sm"
-                           title="Download Results">
-                          <i data-feather="download" class="icon-sm"></i>
-                        </a>
-                      </template>
-                      <template x-if="job.is_owner && (job.status === 'queued' || job.status === 'pending' || job.status === 'processing')">
-                        <button class="bx--btn bx--btn--danger--ghost bx--btn--sm"
-                                @click="cancelJob(job.id)"
-                                title="Cancel Job">
-                          <i data-feather="x" class="icon-sm"></i>
-                        </button>
-                      </template>
-                      <template x-if="job.is_owner && (job.status === 'completed' || job.status === 'failed' || job.status === 'cancelled')">
-                        <button class="bx--btn bx--btn--danger--ghost bx--btn--sm"
-                                @click="deleteJob(job.id)"
-                                title="Delete Job">
-                          <i data-feather="trash-2" class="icon-sm"></i>
-                        </button>
-                      </template>
-                    </div>
-                  </td>
-                </tr>
-              </template>
-              <tr x-show="jobs.length === 0 && !loading">
-                <td colspan="7" class="text-center text-muted py-4">
-                  <i data-feather="inbox" class="icon-lg mb-2"></i>
-                  <p>No jobs found</p>
-                </td>
-              </tr>
-              <tr x-show="loading">
-                <td colspan="7" class="text-center py-4">
-                  <div class="loading-spinner"></div>
-                  <p>Loading jobs...</p>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </template>
+                <template x-if="job.row_count === 0 || (job.status !== 'processing' && job.status !== 'completed' && job.status !== 'failed')">
+                  <span class="jobs-table__muted">—</span>
+                </template>
+              </td>
 
-        <!-- Pagination -->
-        <div class="pagination" x-show="pagination.pages > 1">
-          <button class="bx--btn bx--btn--ghost bx--btn--sm"
-                  :disabled="pagination.page <= 1"
-                  @click="loadJobs(pagination.page - 1)">
-            <i data-feather="chevron-left" class="icon-sm"></i>
-            Previous
-          </button>
-          <span class="pagination-info" x-text="`Page ${pagination.page} of ${pagination.pages}`"></span>
-          <button class="bx--btn bx--btn--ghost bx--btn--sm"
-                  :disabled="pagination.page >= pagination.pages"
-                  @click="loadJobs(pagination.page + 1)">
-            Next
-            <i data-feather="chevron-right" class="icon-sm"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+              <!-- Priority -->
+              <td class="jobs-table__td">
+                <span class="priority-tag" :class="`priority-tag--${job.priority}`" x-text="getPriorityLabel(job.priority)"></span>
+              </td>
 
-  <!-- Job Details Modal -->
-  <div class="modal-overlay"
-       :class="{ 'active': jobDetailsModalOpen }"
-       @click.self="jobDetailsModalOpen = false"
-       x-show="jobDetailsModalOpen"
-       x-transition:enter="transition ease-out duration-200"
-       x-transition:enter-start="opacity-0"
-       x-transition:enter-end="opacity-100"
-       x-transition:leave="transition ease-in duration-150"
-       x-transition:leave-start="opacity-100"
-       x-transition:leave-end="opacity-0">
-    <div class="modal-content modal-content--lg">
-      <div class="modal-header">
-        <h3 class="modal-title" x-text="selectedJob?.title || 'Job Details'"></h3>
-        <button class="modal-close" @click="jobDetailsModalOpen = false">
-          <i data-feather="x"></i>
+              <!-- Created -->
+              <td class="jobs-table__td">
+                <div class="time-display">
+                  <span class="time-display__date" x-text="formatDate(job.created_at)"></span>
+                  <span class="time-display__time" x-text="formatTime(job.created_at)"></span>
+                </div>
+              </td>
+
+              <!-- Actions -->
+              <td class="jobs-table__td jobs-table__td--actions">
+                <div class="action-group">
+                  <button class="action-btn" @click="viewJobDetails(job.id)" title="View Details">
+                    <svg viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M8 3C4.5 3 1.5 5.5 0 8c1.5 2.5 4.5 5 8 5s6.5-2.5 8-5c-1.5-2.5-4.5-5-8-5zm0 8a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0-4.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/>
+                    </svg>
+                  </button>
+                  <template x-if="job.can_download">
+                    <a :href="`/jobs/api/jobs/${job.id}/download`" class="action-btn action-btn--success" title="Download">
+                      <svg viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 10l4-4H9V0H7v6H4l4 4zm6 2H2v2h12v-2z"/>
+                      </svg>
+                    </a>
+                  </template>
+                  <template x-if="job.is_owner && (job.status === 'queued' || job.status === 'pending' || job.status === 'processing')">
+                    <button class="action-btn action-btn--danger" @click="cancelJob(job.id)" title="Cancel">
+                      <svg viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M12.2 3.8L8 8l4.2 4.2-1.4 1.4L6.6 9.4 2.4 13.6 1 12.2 5.2 8 1 3.8 2.4 2.4l4.2 4.2 4.2-4.2 1.4 1.4z"/>
+                      </svg>
+                    </button>
+                  </template>
+                  <template x-if="job.is_owner && (job.status === 'completed' || job.status === 'failed' || job.status === 'cancelled')">
+                    <button class="action-btn action-btn--danger" @click="deleteJob(job.id)" title="Delete">
+                      <svg viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M5 2V1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1h4v2H1V2h4zm1 0h4V1H6v1zM2 5h12l-1 11H3L2 5z"/>
+                      </svg>
+                    </button>
+                  </template>
+                </div>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      <div class="jobs-pagination" x-show="!loading && pagination.pages > 1">
+        <button class="jobs-pagination__btn"
+                :disabled="pagination.page <= 1"
+                @click="loadJobs(pagination.page - 1)">
+          <svg viewBox="0 0 16 16" fill="currentColor">
+            <path d="M10.3 12.3L6 8l4.3-4.3 1.4 1.4L8.8 8l2.9 2.9-1.4 1.4z"/>
+          </svg>
+          Previous
+        </button>
+        <div class="jobs-pagination__pages">
+          <template x-for="p in getPaginationRange()" :key="p">
+            <button class="jobs-pagination__page"
+                    :class="{ 'jobs-pagination__page--active': p === pagination.page }"
+                    @click="loadJobs(p)"
+                    x-text="p"></button>
+          </template>
+        </div>
+        <button class="jobs-pagination__btn"
+                :disabled="pagination.page >= pagination.pages"
+                @click="loadJobs(pagination.page + 1)">
+          Next
+          <svg viewBox="0 0 16 16" fill="currentColor">
+            <path d="M5.7 3.7L10 8l-4.3 4.3-1.4-1.4L7.2 8 4.3 5.1l1.4-1.4z"/>
+          </svg>
         </button>
       </div>
-      <div class="modal-body" x-show="selectedJob">
-        <div class="job-details-grid">
-          <div class="detail-row">
-            <span class="detail-label">Status</span>
-            <span class="status-badge" :class="`status-badge--${selectedJob?.status}`" x-text="formatStatus(selectedJob?.status)"></span>
+    </div>
+  </section>
+
+  <!-- Job Details Modal -->
+  <div class="modal-backdrop"
+       x-show="jobDetailsModalOpen"
+       x-transition:enter="modal-enter"
+       x-transition:enter-start="modal-enter-start"
+       x-transition:enter-end="modal-enter-end"
+       x-transition:leave="modal-leave"
+       x-transition:leave-start="modal-leave-end"
+       x-transition:leave-end="modal-leave-start"
+       @click.self="jobDetailsModalOpen = false">
+    <div class="modal-panel" @click.stop>
+      <!-- Modal Header -->
+      <header class="modal-panel__header">
+        <div class="modal-panel__title-group">
+          <h2 class="modal-panel__title" x-text="selectedJob?.title || 'Job Details'"></h2>
+          <div class="status-tag" :class="`status-tag--${selectedJob?.status}`" x-show="selectedJob">
+            <span class="status-tag__dot"></span>
+            <span class="status-tag__text" x-text="formatStatus(selectedJob?.status)"></span>
           </div>
-          <div class="detail-row">
-            <span class="detail-label">Priority</span>
-            <span class="priority-badge" :class="`priority-badge--${selectedJob?.priority}`" x-text="getPriorityLabel(selectedJob?.priority)"></span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Created</span>
-            <span x-text="formatDateTime(selectedJob?.created_at)"></span>
-          </div>
-          <div class="detail-row" x-show="selectedJob?.scheduled_at">
-            <span class="detail-label">Scheduled For</span>
-            <span x-text="formatDateTime(selectedJob?.scheduled_at)"></span>
-          </div>
-          <div class="detail-row" x-show="selectedJob?.started_at">
-            <span class="detail-label">Started</span>
-            <span x-text="formatDateTime(selectedJob?.started_at)"></span>
-          </div>
-          <div class="detail-row" x-show="selectedJob?.completed_at">
-            <span class="detail-label">Completed</span>
-            <span x-text="formatDateTime(selectedJob?.completed_at)"></span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Progress</span>
-            <span x-text="`${selectedJob?.success_count || 0} success, ${selectedJob?.error_count || 0} errors of ${selectedJob?.row_count || 0} total`"></span>
-          </div>
-          <div class="detail-row" x-show="selectedJob?.submitter">
-            <span class="detail-label">Submitted By</span>
-            <span x-text="selectedJob?.submitter"></span>
-          </div>
-          <div class="detail-row detail-row--full" x-show="selectedJob?.error_message">
-            <span class="detail-label">Error</span>
-            <div class="error-box">
-              <span x-text="selectedJob?.error_message"></span>
+        </div>
+        <button class="modal-panel__close" @click="jobDetailsModalOpen = false">
+          <svg viewBox="0 0 16 16" fill="currentColor">
+            <path d="M12.2 3.8L8 8l4.2 4.2-1.4 1.4L6.6 9.4 2.4 13.6 1 12.2 5.2 8 1 3.8 2.4 2.4l4.2 4.2 4.2-4.2 1.4 1.4z"/>
+          </svg>
+        </button>
+      </header>
+
+      <!-- Modal Body -->
+      <div class="modal-panel__body" x-show="selectedJob">
+        <!-- Progress Section -->
+        <div class="modal-section" x-show="selectedJob?.row_count > 0">
+          <h3 class="modal-section__title">Progress</h3>
+          <div class="progress-card">
+            <div class="progress-card__bar">
+              <div class="progress-card__fill"
+                   :style="`width: ${selectedJob?.row_count > 0 ? ((selectedJob?.success_count + selectedJob?.error_count) / selectedJob?.row_count) * 100 : 0}%`"></div>
+            </div>
+            <div class="progress-card__stats">
+              <div class="progress-card__stat">
+                <span class="progress-card__stat-value progress-card__stat-value--success" x-text="selectedJob?.success_count || 0"></span>
+                <span class="progress-card__stat-label">Successful</span>
+              </div>
+              <div class="progress-card__stat">
+                <span class="progress-card__stat-value progress-card__stat-value--error" x-text="selectedJob?.error_count || 0"></span>
+                <span class="progress-card__stat-label">Errors</span>
+              </div>
+              <div class="progress-card__stat">
+                <span class="progress-card__stat-value" x-text="selectedJob?.row_count || 0"></span>
+                <span class="progress-card__stat-label">Total</span>
+              </div>
             </div>
           </div>
         </div>
+
+        <!-- Timeline Section -->
+        <div class="modal-section">
+          <h3 class="modal-section__title">Timeline</h3>
+          <div class="timeline">
+            <div class="timeline__item timeline__item--done">
+              <div class="timeline__marker"></div>
+              <div class="timeline__content">
+                <span class="timeline__label">Created</span>
+                <span class="timeline__value" x-text="formatDateTime(selectedJob?.created_at)"></span>
+              </div>
+            </div>
+            <div class="timeline__item" :class="{ 'timeline__item--done': selectedJob?.scheduled_at }" x-show="selectedJob?.scheduled_at">
+              <div class="timeline__marker"></div>
+              <div class="timeline__content">
+                <span class="timeline__label">Scheduled</span>
+                <span class="timeline__value" x-text="formatDateTime(selectedJob?.scheduled_at)"></span>
+              </div>
+            </div>
+            <div class="timeline__item" :class="{ 'timeline__item--done': selectedJob?.started_at, 'timeline__item--active': selectedJob?.status === 'processing' }">
+              <div class="timeline__marker"></div>
+              <div class="timeline__content">
+                <span class="timeline__label">Started</span>
+                <span class="timeline__value" x-text="selectedJob?.started_at ? formatDateTime(selectedJob?.started_at) : 'Pending'"></span>
+              </div>
+            </div>
+            <div class="timeline__item" :class="{ 'timeline__item--done': selectedJob?.completed_at, 'timeline__item--error': selectedJob?.status === 'failed' }">
+              <div class="timeline__marker"></div>
+              <div class="timeline__content">
+                <span class="timeline__label" x-text="selectedJob?.status === 'failed' ? 'Failed' : 'Completed'"></span>
+                <span class="timeline__value" x-text="selectedJob?.completed_at ? formatDateTime(selectedJob?.completed_at) : 'Pending'"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Details Section -->
+        <div class="modal-section">
+          <h3 class="modal-section__title">Details</h3>
+          <dl class="details-list">
+            <div class="details-list__item">
+              <dt class="details-list__label">Priority</dt>
+              <dd class="details-list__value">
+                <span class="priority-tag" :class="`priority-tag--${selectedJob?.priority}`" x-text="getPriorityLabel(selectedJob?.priority)"></span>
+              </dd>
+            </div>
+            <div class="details-list__item" x-show="selectedJob?.submitter">
+              <dt class="details-list__label">Submitted by</dt>
+              <dd class="details-list__value" x-text="selectedJob?.submitter"></dd>
+            </div>
+            <div class="details-list__item">
+              <dt class="details-list__label">Job ID</dt>
+              <dd class="details-list__value details-list__value--mono" x-text="selectedJob?.id"></dd>
+            </div>
+          </dl>
+        </div>
+
+        <!-- Error Section -->
+        <div class="modal-section" x-show="selectedJob?.error_message">
+          <h3 class="modal-section__title modal-section__title--error">Error Details</h3>
+          <div class="error-panel">
+            <pre class="error-panel__message" x-text="selectedJob?.error_message"></pre>
+          </div>
+        </div>
       </div>
-      <div class="modal-footer">
+
+      <!-- Modal Footer -->
+      <footer class="modal-panel__footer">
+        <button class="jobs-btn jobs-btn--ghost" @click="jobDetailsModalOpen = false">Close</button>
         <template x-if="selectedJob?.can_download">
-          <a :href="`/jobs/api/jobs/${selectedJob?.id}/download`" class="bx--btn bx--btn--primary">
-            <i data-feather="download" class="icon-sm"></i>
+          <a :href="`/jobs/api/jobs/${selectedJob?.id}/download`" class="jobs-btn jobs-btn--primary">
+            <svg class="jobs-btn__icon" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 10l4-4H9V0H7v6H4l4 4zm6 2H2v2h12v-2z"/>
+            </svg>
             Download Results
           </a>
         </template>
-        <button class="bx--btn bx--btn--secondary" @click="jobDetailsModalOpen = false">Close</button>
-      </div>
+      </footer>
     </div>
   </div>
 </div>
@@ -290,9 +471,6 @@ document.addEventListener('alpine:init', () => {
 
     async init() {
       await Promise.all([this.loadJobs(), this.loadStats()]);
-      this.$nextTick(() => {
-        if (typeof feather !== 'undefined') feather.replace();
-      });
     },
 
     async loadJobs(page = 1) {
@@ -304,25 +482,40 @@ document.addEventListener('alpine:init', () => {
         const res = await fetch(`/jobs/api/jobs?${params}`);
         const data = await res.json();
 
-        this.jobs = data.jobs || [];
-        this.pagination = data.pagination || this.pagination;
+        if (!res.ok) {
+          console.error('Jobs API error:', data.error || 'Unknown error');
+          if (typeof toastError !== 'undefined') toastError(data.error || 'Failed to load jobs');
+          this.jobs = [];
+        } else {
+          this.jobs = data.jobs || [];
+          this.pagination = data.pagination || this.pagination;
+        }
       } catch (error) {
         console.error('Failed to load jobs:', error);
         if (typeof toastError !== 'undefined') toastError('Failed to load jobs');
+        this.jobs = [];
       } finally {
         this.loading = false;
-        this.$nextTick(() => {
-          if (typeof feather !== 'undefined') feather.replace();
-        });
       }
     },
 
     async loadStats() {
       try {
         const res = await fetch('/jobs/api/jobs/stats');
-        this.stats = await res.json();
+        const data = await res.json();
+        // Even if there's an error, data will have the default stats
+        this.stats = {
+          pending: data.pending || 0,
+          queued: data.queued || 0,
+          processing: data.processing || 0,
+          completed: data.completed || 0,
+          failed: data.failed || 0,
+          cancelled: data.cancelled || 0,
+          total: data.total || 0
+        };
       } catch (error) {
         console.error('Failed to load stats:', error);
+        this.stats = { pending: 0, queued: 0, processing: 0, completed: 0, failed: 0, cancelled: 0, total: 0 };
       }
     },
 
@@ -333,9 +526,6 @@ document.addEventListener('alpine:init', () => {
           this.jobs = data.jobs || [];
           this.pagination = data.pagination || this.pagination;
           this.loadStats();
-          this.$nextTick(() => {
-            if (typeof feather !== 'undefined') feather.replace();
-          });
         } catch (e) {
           console.error('Failed to parse HTMX response:', e);
         }
@@ -362,13 +552,35 @@ document.addEventListener('alpine:init', () => {
     formatDate(isoString) {
       if (!isoString) return '-';
       const date = new Date(isoString);
-      return date.toLocaleDateString();
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      if (date.toDateString() === today.toDateString()) return 'Today';
+      if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    },
+
+    formatTime(isoString) {
+      if (!isoString) return '';
+      return new Date(isoString).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
     },
 
     formatDateTime(isoString) {
       if (!isoString) return '-';
       const date = new Date(isoString);
-      return date.toLocaleString();
+      return date.toLocaleString('en-US', {
+        month: 'short', day: 'numeric', year: 'numeric',
+        hour: 'numeric', minute: '2-digit'
+      });
+    },
+
+    getPaginationRange() {
+      const range = [];
+      const start = Math.max(1, this.pagination.page - 2);
+      const end = Math.min(this.pagination.pages, start + 4);
+      for (let i = start; i <= end; i++) range.push(i);
+      return range;
     },
 
     async viewJobDetails(jobId) {
@@ -377,9 +589,6 @@ document.addEventListener('alpine:init', () => {
         const data = await res.json();
         this.selectedJob = data.job;
         this.jobDetailsModalOpen = true;
-        this.$nextTick(() => {
-          if (typeof feather !== 'undefined') feather.replace();
-        });
       } catch (error) {
         console.error('Failed to load job details:', error);
         if (typeof toastError !== 'undefined') toastError('Failed to load job details');
@@ -424,11 +633,6 @@ document.addEventListener('alpine:init', () => {
       }
     }
   }));
-});
-
-// Initialize feather icons on page load
-document.addEventListener('DOMContentLoaded', () => {
-  if (typeof feather !== 'undefined') feather.replace();
 });
 </script>
 {% endblock %}
