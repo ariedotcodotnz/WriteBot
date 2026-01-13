@@ -1,7 +1,10 @@
 """
 Admin routes for user management and statistics.
 """
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
+import os
+import re
+import glob
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
 from flask_login import login_required, current_user
 from webapp.models import db, User, UserActivity, UsageStatistics, PageSizePreset, TemplatePreset
 from webapp.utils.auth_utils import admin_required, log_activity, get_user_statistics, get_user_activities, get_all_user_statistics
@@ -760,3 +763,205 @@ def delete_template(template_id):
     log_activity('admin_action', f'Deleted template preset: {name} (ID: {template_id})')
     flash(f'Template preset "{name}" deleted successfully.', 'success')
     return redirect(url_for('admin.templates'))
+
+
+# ============================================================================
+# Error Logs Management
+# ============================================================================
+
+def strip_ansi_codes(text):
+    """Remove ANSI escape codes from text."""
+    ansi_pattern = re.compile(r'\x1b\[[0-9;]*m')
+    return ansi_pattern.sub('', text)
+
+
+def parse_log_line(line):
+    """Parse a log line and extract level and content."""
+    clean_line = strip_ansi_codes(line)
+
+    # Determine log level based on content
+    level = 'info'
+    if 'ERROR' in clean_line.upper() or '500' in clean_line:
+        level = 'error'
+    elif 'WARNING' in clean_line.upper() or '400' in clean_line or '404' in clean_line:
+        level = 'warning'
+    elif 'DEBUG' in clean_line.upper():
+        level = 'debug'
+
+    return {
+        'raw': line,
+        'clean': clean_line,
+        'level': level
+    }
+
+
+@admin_bp.route('/logs')
+@login_required
+@admin_required
+def error_logs():
+    """
+    View application error logs.
+
+    Displays log files with filtering and search capabilities.
+    """
+    # Get logs directory
+    logs_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
+
+    # Get list of available log files
+    log_files = []
+    if os.path.exists(logs_dir):
+        for filename in sorted(os.listdir(logs_dir), reverse=True):
+            if filename.endswith('.txt') or filename.endswith('.log'):
+                filepath = os.path.join(logs_dir, filename)
+                stat = os.stat(filepath)
+                log_files.append({
+                    'name': filename,
+                    'size': stat.st_size,
+                    'modified': datetime.fromtimestamp(stat.st_mtime),
+                    'size_human': f"{stat.st_size / 1024:.1f} KB" if stat.st_size < 1024 * 1024 else f"{stat.st_size / (1024 * 1024):.1f} MB"
+                })
+
+    # Get selected log file (default to most recent)
+    selected_file = request.args.get('file', '')
+    if not selected_file and log_files:
+        selected_file = log_files[0]['name']
+
+    # Get filter parameters
+    level_filter = request.args.get('level', 'all')
+    search_query = request.args.get('search', '').strip()
+    lines_limit = request.args.get('limit', 500, type=int)
+
+    # Read log file contents
+    log_entries = []
+    total_lines = 0
+    error_count = 0
+    warning_count = 0
+
+    if selected_file:
+        filepath = os.path.join(logs_dir, selected_file)
+        # Security check: ensure the file is within logs_dir
+        real_logs_dir = os.path.realpath(logs_dir)
+        real_filepath = os.path.realpath(filepath)
+        if not real_filepath.startswith(real_logs_dir):
+            flash('Invalid log file path.', 'error')
+            return redirect(url_for('admin.error_logs'))
+
+        if os.path.exists(filepath):
+            try:
+                with open(filepath, 'r', encoding='utf-8', errors='replace') as f:
+                    lines = f.readlines()
+
+                total_lines = len(lines)
+
+                # Process lines in reverse order (newest first)
+                for line in reversed(lines):
+                    if not line.strip():
+                        continue
+
+                    entry = parse_log_line(line)
+
+                    # Update counts
+                    if entry['level'] == 'error':
+                        error_count += 1
+                    elif entry['level'] == 'warning':
+                        warning_count += 1
+
+                    # Apply filters
+                    if level_filter != 'all' and entry['level'] != level_filter:
+                        continue
+
+                    if search_query and search_query.lower() not in entry['clean'].lower():
+                        continue
+
+                    log_entries.append(entry)
+
+                    # Limit entries
+                    if len(log_entries) >= lines_limit:
+                        break
+
+            except Exception as e:
+                current_app.logger.exception(f'Error reading log file: {selected_file}')
+                flash(f'Error reading log file.', 'error')
+
+    log_activity('admin_action', f'Viewed error logs: {selected_file}')
+
+    return render_template('admin/logs.html',
+                           active_nav='logs',
+                           log_files=log_files,
+                           selected_file=selected_file,
+                           log_entries=log_entries,
+                           total_lines=total_lines,
+                           error_count=error_count,
+                           warning_count=warning_count,
+                           level_filter=level_filter,
+                           search_query=search_query,
+                           lines_limit=lines_limit)
+
+
+@admin_bp.route('/logs/download/<filename>')
+@login_required
+@admin_required
+def download_log(filename):
+    """
+    Download a log file.
+
+    Args:
+        filename: Name of the log file to download.
+    """
+    from flask import send_file
+
+    logs_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
+    filepath = os.path.join(logs_dir, filename)
+
+    # Security check: ensure the file is within logs_dir
+    real_logs_dir = os.path.realpath(logs_dir)
+    real_filepath = os.path.realpath(filepath)
+    if not real_filepath.startswith(real_logs_dir):
+        flash('Invalid log file path.', 'error')
+        return redirect(url_for('admin.error_logs'))
+
+    if not os.path.exists(filepath):
+        flash('Log file not found.', 'error')
+        return redirect(url_for('admin.error_logs'))
+
+    log_activity('admin_action', f'Downloaded log file: {filename}')
+
+    return send_file(filepath, as_attachment=True, download_name=filename)
+
+
+@admin_bp.route('/logs/clear/<filename>', methods=['POST'])
+@login_required
+@admin_required
+def clear_log(filename):
+    """
+    Clear (truncate) a log file.
+
+    Args:
+        filename: Name of the log file to clear.
+    """
+    logs_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
+    filepath = os.path.join(logs_dir, filename)
+
+    # Security check: ensure the file is within logs_dir
+    real_logs_dir = os.path.realpath(logs_dir)
+    real_filepath = os.path.realpath(filepath)
+    if not real_filepath.startswith(real_logs_dir):
+        flash('Invalid log file path.', 'error')
+        return redirect(url_for('admin.error_logs'))
+
+    if not os.path.exists(filepath):
+        flash('Log file not found.', 'error')
+        return redirect(url_for('admin.error_logs'))
+
+    try:
+        # Truncate the file
+        with open(filepath, 'w') as f:
+            f.write(f'# Log cleared by {current_user.username} at {datetime.now().isoformat()}\n')
+
+        log_activity('admin_action', f'Cleared log file: {filename}')
+        flash(f'Log file "{filename}" has been cleared.', 'success')
+    except Exception as e:
+        current_app.logger.exception(f'Error clearing log file: {filename}')
+        flash('Error clearing log file.', 'error')
+
+    return redirect(url_for('admin.error_logs', file=filename))
