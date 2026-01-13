@@ -4,7 +4,7 @@ import os
 import sys
 import re
 from typing import List, Dict, Any
-from flask import Blueprint, jsonify, send_file, Response
+from flask import Blueprint, jsonify, send_from_directory, Response, current_app
 from flask_login import login_required
 import numpy as np
 
@@ -120,7 +120,8 @@ def list_styles():
         return jsonify({"styles": styles})
 
     except Exception as e:
-        return jsonify({"styles": [], "error": str(e)}), 200
+        current_app.logger.exception('Error loading styles')
+        return jsonify({"styles": [], "error": "Failed to load styles"}), 200
 
 
 @style_bp.route("/api/style-preview/<int:style_id>", methods=["GET"])
@@ -136,26 +137,29 @@ def get_style_preview(style_id: int):
         SVG file content with 'image/svg+xml' mimetype, or a placeholder/error SVG if not found.
     """
     try:
-        # Validate style_id is a positive integer (Flask already validates it's an int)
+        # Validate style_id range (Flask already validates it's an int via <int:> route)
         if style_id < 0 or style_id > 999999:
             return Response(_placeholder_svg(style_id), mimetype='image/svg+xml')
 
-        # Construct safe filename - only digits allowed in style_id due to <int:> route
-        safe_filename = f"style-{style_id}.svg"
+        # Construct safe filename - style_id is guaranteed to be an integer by Flask route
+        # Using string formatting with validated integer prevents path traversal
+        safe_filename = f"style-{style_id:d}.svg"
 
-        # Build and normalize paths
-        base_path = os.path.normpath(os.path.abspath(STYLE_DIR))
-        file_path = os.path.normpath(os.path.join(base_path, safe_filename))
+        # Get the absolute base directory (constant, not user-controlled)
+        base_directory = os.path.abspath(STYLE_DIR)
 
-        # Verify path stays within base directory (defense in depth)
-        if not file_path.startswith(base_path + os.sep) and file_path != base_path:
+        # Check if the file exists before attempting to serve
+        file_path = os.path.join(base_directory, safe_filename)
+        if not os.path.isfile(file_path):
             return Response(_placeholder_svg(style_id), mimetype='image/svg+xml')
 
-        if os.path.isfile(file_path):
-            return send_file(file_path, mimetype='image/svg+xml')
-
-        # If no preview exists, return a placeholder SVG
-        return Response(_placeholder_svg(style_id), mimetype='image/svg+xml')
+        # Use send_from_directory for secure file serving
+        # This is Flask's safe way to serve files from a directory
+        return send_from_directory(
+            base_directory,
+            safe_filename,
+            mimetype='image/svg+xml'
+        )
 
     except Exception:
         # Return error placeholder

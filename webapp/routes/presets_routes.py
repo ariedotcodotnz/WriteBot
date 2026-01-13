@@ -1,7 +1,7 @@
 """
 API endpoints for page size and template presets.
 """
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 from flask_login import login_required, current_user
 from webapp.models import PageSizePreset, TemplatePreset, db
 from webapp.utils.auth_utils import admin_required, log_activity
@@ -29,7 +29,8 @@ def list_page_sizes():
             'page_sizes': [ps.to_dict() for ps in page_sizes]
         })
     except Exception as e:
-        return jsonify({'page_sizes': [], 'error': str(e)}), 500
+        current_app.logger.exception('Error loading page sizes')
+        return jsonify({'page_sizes': [], 'error': 'Failed to load page sizes'}), 500
 
 
 @presets_bp.route('/api/templates', methods=['GET'])
@@ -50,7 +51,8 @@ def list_templates():
             'templates': [t.to_dict() for t in templates]
         })
     except Exception as e:
-        return jsonify({'templates': [], 'error': str(e)}), 500
+        current_app.logger.exception('Error loading templates')
+        return jsonify({'templates': [], 'error': 'Failed to load templates'}), 500
 
 
 @presets_bp.route('/api/templates/<int:template_id>', methods=['GET'])
@@ -72,7 +74,8 @@ def get_template(template_id):
             'template': template.to_dict()
         })
     except Exception as e:
-        return jsonify({'error': str(e)}), 404
+        current_app.logger.exception(f'Error loading template {template_id}')
+        return jsonify({'error': 'Template not found or error loading template'}), 404
 
 
 @presets_bp.route('/api/templates/<int:template_id>', methods=['PATCH'])
@@ -123,7 +126,8 @@ def update_template_status(template_id):
 
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception(f'Error updating template {template_id}')
+        return jsonify({'error': 'Failed to update template'}), 500
 
 
 @presets_bp.route('/api/templates', methods=['POST'])
@@ -223,7 +227,10 @@ def create_template_from_form():
         }), 201
 
     except ValueError as e:
-        return jsonify({'error': f'Invalid value: {str(e)}'}), 400
+        # ValueError is a controlled validation error, safe to show message
+        current_app.logger.warning(f'Invalid value when creating template: {e}')
+        return jsonify({'error': 'Invalid value provided'}), 400
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception('Error creating template')
+        return jsonify({'error': 'Failed to create template'}), 500

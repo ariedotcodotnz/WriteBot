@@ -115,8 +115,10 @@ def list_jobs():
             }
         })
     except Exception as e:
-        current_app.logger.error(f'Error loading jobs: {str(e)}')
-        return jsonify({'error': 'Failed to load jobs', 'details': str(e)}), 500
+        # Log full exception details server-side for debugging
+        current_app.logger.exception('Error loading jobs')
+        # Return generic error message to user without internal details
+        return jsonify({'error': 'Failed to load jobs'}), 500
 
 
 @jobs_bp.route('/api/jobs', methods=['POST'])
@@ -401,5 +403,7 @@ def job_stats():
 
         return jsonify(stats)
     except Exception as e:
-        current_app.logger.error(f'Error loading job stats: {str(e)}')
+        # Log full exception details server-side (including stack trace)
+        current_app.logger.exception('Error loading job stats')
+        # Return generic error with default stats to keep UI functional
         return jsonify({'error': 'Failed to load stats', 'pending': 0, 'queued': 0, 'processing': 0, 'completed': 0, 'failed': 0, 'cancelled': 0, 'total': 0}), 500
