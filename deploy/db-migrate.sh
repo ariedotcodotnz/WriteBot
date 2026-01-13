@@ -52,7 +52,7 @@ fi
 case $COMMAND in
     upgrade)
         log_info "Applying pending migrations..."
-        docker exec ${CONTAINER} flask db upgrade
+        docker exec -e FLASK_APP=webapp.app:app ${CONTAINER} flask db upgrade
         log_info "Migrations applied successfully"
         ;;
 
@@ -60,7 +60,7 @@ case $COMMAND in
         log_warn "This will revert the last migration!"
         read -p "Are you sure? (y/N) " confirm
         if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
-            docker exec ${CONTAINER} flask db downgrade
+            docker exec -e FLASK_APP=webapp.app:app ${CONTAINER} flask db downgrade
             log_info "Migration reverted"
         else
             log_info "Cancelled"
@@ -69,36 +69,52 @@ case $COMMAND in
 
     current)
         log_info "Current migration version:"
-        docker exec ${CONTAINER} flask db current
+        docker exec -e FLASK_APP=webapp.app:app ${CONTAINER} flask db current
         ;;
 
     history)
         log_info "Migration history:"
-        docker exec ${CONTAINER} flask db history
+        docker exec -e FLASK_APP=webapp.app:app ${CONTAINER} flask db history
         ;;
 
     migrate)
         MESSAGE="${2:-Auto-generated migration}"
         log_info "Generating new migration: ${MESSAGE}"
-        docker exec ${CONTAINER} flask db migrate -m "${MESSAGE}"
+        docker exec -e FLASK_APP=webapp.app:app ${CONTAINER} flask db migrate -m "${MESSAGE}"
         log_warn "Review the generated migration before applying!"
         log_info "Apply with: $0 upgrade"
         ;;
 
     heads)
         log_info "Current head revisions:"
-        docker exec ${CONTAINER} flask db heads
+        docker exec -e FLASK_APP=webapp.app:app ${CONTAINER} flask db heads
         ;;
 
     init)
         log_info "Initializing migrations directory..."
-        docker exec ${CONTAINER} flask db init
+        docker exec -e FLASK_APP=webapp.app:app ${CONTAINER} flask db init
         ;;
 
     stamp)
         REVISION="${2:-head}"
         log_info "Stamping database with revision: ${REVISION}"
-        docker exec ${CONTAINER} flask db stamp ${REVISION}
+        docker exec -e FLASK_APP=webapp.app:app ${CONTAINER} flask db stamp ${REVISION}
+        ;;
+
+    check)
+        log_info "Checking Flask-Migrate installation..."
+        echo ""
+        echo "1. Checking if Flask-Migrate is installed:"
+        docker exec ${CONTAINER} pip show flask-migrate 2>/dev/null || log_error "Flask-Migrate NOT installed!"
+        echo ""
+        echo "2. Checking available Flask commands:"
+        docker exec -e FLASK_APP=webapp.app:app ${CONTAINER} flask --help 2>&1 | grep -E "(db|Commands)" || true
+        echo ""
+        echo "3. Checking FLASK_APP environment:"
+        docker exec ${CONTAINER} printenv | grep FLASK || log_warn "FLASK_APP not in container env"
+        echo ""
+        echo "4. Checking migrations directory:"
+        docker exec ${CONTAINER} ls -la /app/migrations 2>/dev/null || log_error "Migrations directory not found!"
         ;;
 
     *)
@@ -113,6 +129,7 @@ case $COMMAND in
         echo "  heads       Show current head revisions"
         echo "  init        Initialize migrations (first time only)"
         echo "  stamp       Mark database at specific revision"
+        echo "  check       Verify Flask-Migrate installation and setup"
         echo ""
         echo "Options:"
         echo "  --production  Use production container"
