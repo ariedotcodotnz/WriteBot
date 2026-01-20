@@ -302,11 +302,18 @@ def _render_strokes_with_overrides(
             exclusion_range = None  # Expanded range for excluding transition strokes
 
             if use_precise_indices:
+                # DEBUG: Show what we're looking for vs what's available
+                unique_indices = np.unique(char_indices)
+                print(f"DEBUG: Looking for char_idx={char_idx} in char_indices")
+                print(f"DEBUG:   char_indices unique values: {unique_indices}")
+                print(f"DEBUG:   char_indices range: [{char_indices.min()}, {char_indices.max()}]")
+
                 matching_strokes = np.where(char_indices == char_idx)[0]
                 if len(matching_strokes) > 0:
                     start_idx = matching_strokes[0]
                     end_idx = matching_strokes[-1]
                     stroke_range = (start_idx, end_idx)
+                    print(f"DEBUG:   FOUND {len(matching_strokes)} matching strokes at indices [{start_idx}, {end_idx}]")
 
                     # SIMPLIFIED EXCLUSION: Only exclude the space placeholder strokes
                     # Don't aggressively cut into adjacent characters - this was causing
@@ -327,8 +334,9 @@ def _render_strokes_with_overrides(
                           f"strokes [{expanded_start}, {expanded_end}] ({num_excluded} strokes)")
 
                     insertion_x = ls[start_idx, 0]
+                    print(f"DEBUG:   Insertion X position: {insertion_x:.2f}")
                 else:
-                    print(f"DEBUG: No matching strokes for char_idx={char_idx}, falling back to position estimate")
+                    print(f"DEBUG:   NOT FOUND! char_idx={char_idx} not in char_indices. Falling back to position estimate.")
                     insertion_x = stroke_min_x + (char_idx * avg_char_width)
                     exclusion_range = None
             else:

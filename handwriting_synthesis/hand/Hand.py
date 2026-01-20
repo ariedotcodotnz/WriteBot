@@ -458,7 +458,22 @@ class Hand(object):
                                 f"Valid character set is {valid_char_set}"
                             )
 
-                # STEP 4: Generate strokes for modified chunks WITH char_indices
+                # STEP 4: Calculate style offset (char_indices are offset when styles are used)
+                # When styles are used, text is prepended: "style_chars" + " " + actual_text
+                # So char_indices for actual text start at len(style_chars) + 1
+                style_char_offset = 0
+                if styles is not None:
+                    try:
+                        from handwriting_synthesis.config import style_path
+                        style_id = styles if not isinstance(styles, list) else styles[0]
+                        style_chars = np.load(f"{style_path}/style-{style_id}-chars.npy").tostring().decode('utf-8')
+                        style_char_offset = len(style_chars) + 1  # +1 for the space separator
+                        print(f"DEBUG: Style priming active, char_indices offset = {style_char_offset}")
+                    except Exception as e:
+                        print(f"DEBUG: Could not determine style offset: {e}")
+                        style_char_offset = 0
+
+                # STEP 5: Generate strokes for modified chunks WITH char_indices
                 chunk_strokes, chunk_char_indices = self._sample(
                     modified_chunks,
                     biases=[biases] * len(modified_chunks) if biases is not None else None,
@@ -468,7 +483,7 @@ class Hand(object):
 
                 print(f"DEBUG: Generated {len(modified_chunks)} chunks with char_indices")
 
-                # STEP 5: Build segment data with override info for each chunk
+                # STEP 6: Build segment data with override info for each chunk
                 # Stitch chunks into lines based on actual widths
                 current_line_stroke = np.empty((0, 3))
                 current_line_text = []
@@ -479,9 +494,16 @@ class Hand(object):
                     zip(original_chunks, modified_chunks, chunk_strokes, chunk_char_indices, chunk_override_info)
                 ):
                     has_overrides = len(chunk_overrides) > 0
-                    print(f"DEBUG: Processing chunk {chunk_idx} '{modified_chunk}': has_overrides={has_overrides}, positions={chunk_overrides}")
+
+                    # Adjust override positions for style offset
+                    # char_indices from the model include the style prime, so we need to add the offset
+                    adjusted_overrides = [(local_idx + style_char_offset, char) for local_idx, char in chunk_overrides]
+
+                    print(f"DEBUG: Processing chunk {chunk_idx} '{modified_chunk}': has_overrides={has_overrides}")
+                    print(f"DEBUG:   Original positions: {chunk_overrides}")
+                    print(f"DEBUG:   Adjusted positions (with style offset {style_char_offset}): {adjusted_overrides}")
                     if has_overrides:
-                        print(f"DEBUG:   char_indices range: [{char_indices.min()}, {char_indices.max()}], len={len(char_indices)}")
+                        print(f"DEBUG:   char_indices range: [{char_indices.min()}, {char_indices.max()}], unique values: {np.unique(char_indices)[:20]}...")
 
                     # Calculate chunk width (including estimated override widths)
                     chunk_width = get_stroke_width(chunk_stroke)
@@ -505,14 +527,14 @@ class Hand(object):
 
                     # Build segment data
                     # NOTE: 'text' is the MODIFIED chunk (what was generated)
-                    # override_positions are LOCAL indices within this chunk
+                    # override_positions are ADJUSTED for style offset (to match char_indices)
                     segment = {
                         'type': 'generated',
                         'text': modified_chunk,  # Text that was generated (with spaces)
                         'original_text': original_chunk,  # Original text (with override chars)
                         'strokes': chunk_stroke,
                         'char_indices': char_indices,  # Attention-based character indices
-                        'override_positions': chunk_overrides,  # [(local_idx, char), ...]
+                        'override_positions': adjusted_overrides,  # [(adjusted_idx, char), ...] - ADJUSTED for style offset
                     }
 
                     if potential_width <= max_line_width or current_line_width == 0:
