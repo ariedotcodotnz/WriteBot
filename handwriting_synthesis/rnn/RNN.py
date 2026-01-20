@@ -58,6 +58,7 @@ class RNN(BaseModel):
         self.initial_state = None
         self.final_state = None
         self.sampled_sequence = None
+        self.sampled_char_indices = None
         self.lstm_size = lstm_size
         self.output_mixture_components = output_mixture_components
         self.output_units = self.output_mixture_components * 6 + 1
@@ -149,20 +150,26 @@ class RNN(BaseModel):
             cell: The RNN cell to use for sampling.
 
         Returns:
-            Sampled sequence tensor.
+            Tuple of (sampled_sequence, char_indices) where:
+            - sampled_sequence: The stroke outputs
+            - char_indices: Character index per timestep from attention (argmax of phi)
         """
         initial_state = cell.zero_state(self.num_samples, dtype=tf.float32)
         initial_input = tf.concat([
             tf.zeros([self.num_samples, 2]),
             tf.ones([self.num_samples, 1]),
         ], axis=1)
-        return rnn_free_run(
+        states, outputs, final_state = rnn_free_run(
             cell=cell,
             sequence_length=self.sample_tsteps,
             initial_state=initial_state,
             initial_input=initial_input,
             scope='rnn'
-        )[1]
+        )
+        # Extract char_indices from phi: states.phi has shape [batch, timesteps, char_len]
+        # argmax gives us which character the model is attending to at each timestep
+        char_indices = tf.argmax(states.phi, axis=2)  # [batch, timesteps]
+        return outputs, char_indices
 
     def primed_sample(self, cell):
         """
@@ -172,7 +179,9 @@ class RNN(BaseModel):
             cell: The RNN cell to use for sampling.
 
         Returns:
-            Sampled sequence tensor.
+            Tuple of (sampled_sequence, char_indices) where:
+            - sampled_sequence: The stroke outputs
+            - char_indices: Character index per timestep from attention (argmax of phi)
         """
         initial_state = cell.zero_state(self.num_samples, dtype=tf.float32)
         primed_state = tfcompat.nn.dynamic_rnn(
@@ -183,12 +192,15 @@ class RNN(BaseModel):
             initial_state=initial_state,
             scope='rnn'
         )[1]
-        return rnn_free_run(
+        states, outputs, final_state = rnn_free_run(
             cell=cell,
             sequence_length=self.sample_tsteps,
             initial_state=primed_state,
             scope='rnn'
-        )[1]
+        )
+        # Extract char_indices from phi: states.phi has shape [batch, timesteps, char_len]
+        char_indices = tf.argmax(states.phi, axis=2)  # [batch, timesteps]
+        return outputs, char_indices
 
     def calculate_loss(self):
         """
@@ -236,9 +248,18 @@ class RNN(BaseModel):
         pis, mus, sigmas, rhos, es = self.parse_parameters(params)
         sequence_loss, self.loss = self.nll(self.y, self.x_len, pis, mus, sigmas, rhos, es)
 
+        # Sample returns (outputs, char_indices) - use tf.cond on each
+        primed_outputs, primed_char_indices = self.primed_sample(cell)
+        unprimed_outputs, unprimed_char_indices = self.sample(cell)
+
         self.sampled_sequence = tf.cond(
             self.prime,
-            lambda: self.primed_sample(cell),
-            lambda: self.sample(cell)
+            lambda: primed_outputs,
+            lambda: unprimed_outputs
+        )
+        self.sampled_char_indices = tf.cond(
+            self.prime,
+            lambda: primed_char_indices,
+            lambda: unprimed_char_indices
         )
         return self.loss

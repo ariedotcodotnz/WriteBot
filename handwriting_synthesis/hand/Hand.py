@@ -211,18 +211,27 @@ class Hand(object):
             print(f"DEBUG: Modified lines (with placeholders): {modified_lines}")
             print(f"DEBUG: Override positions: {override_positions}")
 
-            # Generate strokes for FULL lines (like non-override path)
-            # This preserves RNN context - the key improvement!
-            generated_strokes = self._sample(modified_lines, biases=biases, styles=styles)
+            # Generate strokes for FULL lines with CHAR INDICES from attention
+            # This gives us precise knowledge of where each character was written!
+            generated_strokes, char_indices_list = self._sample(
+                modified_lines, biases=biases, styles=styles, return_char_indices=True
+            )
+
+            print(f"DEBUG: Got char_indices for {len(char_indices_list)} lines")
+            for i, ci in enumerate(char_indices_list):
+                print(f"DEBUG:   Line {i}: {len(ci)} char indices, range [{ci.min() if len(ci) > 0 else 'N/A'}, {ci.max() if len(ci) > 0 else 'N/A'}]")
 
             # Convert to line_segments format (single segment per line, like non-override)
             line_segments = []
-            for line_idx, (original_line, strokes) in enumerate(zip(lines, generated_strokes)):
+            for line_idx, (original_line, strokes, char_indices) in enumerate(
+                zip(lines, generated_strokes, char_indices_list)
+            ):
                 line_segments.append([{
                     'type': 'generated',
                     'text': original_line,  # Keep original text for reference
                     'modified_text': modified_lines[line_idx],  # Text that was actually generated
                     'strokes': strokes,
+                    'char_indices': char_indices,  # NEW: Character index per stroke from attention
                     'line_idx': line_idx,
                     'override_positions': override_positions[line_idx]  # [(char_idx, char), ...]
                 }])
@@ -271,7 +280,7 @@ class Hand(object):
             margin_jitter_coherence=margin_jitter_coherence,
         )
 
-    def _sample(self, lines, biases=None, styles=None):
+    def _sample(self, lines, biases=None, styles=None, return_char_indices=False):
         """
         Sample stroke sequences from the RNN.
 
@@ -279,11 +288,19 @@ class Hand(object):
             lines: List of text lines
             biases: Optional biases
             styles: Optional styles
+            return_char_indices: If True, also return character indices per stroke
+                                (from the attention mechanism)
 
         Returns:
-            List of stroke sequences
+            If return_char_indices is False:
+                List of stroke sequences
+            If return_char_indices is True:
+                Tuple of (strokes_list, char_indices_list)
         """
-        return sample_strokes(self.nn.session, self.nn, lines, biases, styles)
+        return sample_strokes(
+            self.nn.session, self.nn, lines, biases, styles,
+            return_char_indices=return_char_indices
+        )
 
     def write_chunked(
         self,

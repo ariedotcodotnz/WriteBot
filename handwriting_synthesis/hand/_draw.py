@@ -127,20 +127,22 @@ def _compute_inter_segment_spacing(prev_segment, current_segment, reference_heig
 def _render_strokes_with_overrides(
     dwg, ls, original_text, override_positions, overrides_dict,
     cursor_x, line_offset_y, s_global, x_stretch, line_scale_x,
-    color, width, target_h
+    color, width, target_h, char_indices=None
 ):
     """
-    Render generated strokes with override SVGs inserted at calculated positions.
+    Render generated strokes with override SVGs inserted at precise positions.
 
-    SPACE PLACEHOLDER + CLIPPING APPROACH:
+    MODEL-LEVEL CHAR INDEX APPROACH WITH GAP CREATION:
     The text was generated with SPACES where override characters should be.
-    We CLIP OUT any stroke points that fall within the override character zones,
-    then insert override SVGs at those positions.
+    We use the model's attention-based char_indices to know EXACTLY which
+    strokes correspond to each character. Since spaces create minimal horizontal
+    movement, we SHIFT subsequent strokes to CREATE ROOM for the override.
 
     This ensures:
     1. Full RNN context for surrounding text (space is a valid character)
-    2. No artifacts from placeholder strokes (we clip them out)
-    3. Clean override insertion
+    2. PRECISE cuts based on model's internal knowledge
+    3. PROPER SPACING by shifting strokes to make room for overrides
+    4. Clean override insertion at natural positions
 
     Args:
         dwg: SVG drawing object
@@ -156,6 +158,8 @@ def _render_strokes_with_overrides(
         color: Stroke color
         width: Stroke width
         target_h: Target height for scaling overrides
+        char_indices: Array of character indices per stroke (from model attention).
+                      If provided, uses precise cutting; otherwise falls back to estimation.
 
     Returns:
         Final cursor_x position after rendering
@@ -171,62 +175,38 @@ def _render_strokes_with_overrides(
     total_stroke_width = stroke_max_x - stroke_min_x
     stroke_height = ls[:, 1].max()
     num_chars = len(original_text) if original_text else 1
-    avg_char_width = total_stroke_width / max(1, num_chars)
 
-    print(f"DEBUG render_with_overrides: text='{original_text}', num_chars={num_chars}, total_w={total_stroke_width:.2f}, avg_char_w={avg_char_width:.2f}")
-
-    # Sort override positions by character index
+    # Sort override positions by character index (process left to right)
     sorted_overrides = sorted(override_positions, key=lambda x: x[0])
 
-    # Build exclusion zones (X ranges to clip out) for each override position
-    exclusion_zones = []
+    # Determine if we can use precise char_indices
+    use_precise_indices = (
+        char_indices is not None and
+        len(char_indices) == ls.shape[0]
+    )
+
+    # Calculate average character width for sizing overrides
+    # Exclude override positions from calculation
+    if use_precise_indices:
+        non_override_chars = set(range(num_chars)) - set(ci for ci, _ in sorted_overrides)
+        char_widths = []
+        for ci in non_override_chars:
+            matching = np.where(char_indices == ci)[0]
+            if len(matching) > 1:
+                w = ls[matching[-1], 0] - ls[matching[0], 0]
+                if w > 0:
+                    char_widths.append(w)
+        avg_char_width = np.mean(char_widths) if char_widths else total_stroke_width / max(1, num_chars)
+    else:
+        avg_char_width = total_stroke_width / max(1, num_chars)
+
+    print(f"DEBUG render_with_overrides: avg_char_width={avg_char_width:.2f}")
+
+    # STEP 1: Calculate override widths and insertion points
+    override_info = []  # List of override details
+
     for char_idx, override_char in sorted_overrides:
-        # Zone where placeholder strokes should be clipped
-        zone_start = char_idx * avg_char_width
-        zone_end = (char_idx + 1) * avg_char_width
-        exclusion_zones.append((zone_start, zone_end))
-        print(f"DEBUG exclusion zone for '{override_char}': char_idx={char_idx}, zone=[{zone_start:.2f}, {zone_end:.2f}]")
-
-    # STEP 1: Render strokes, CLIPPING OUT points within exclusion zones
-    ls_render = ls.copy()
-    ls_render[:, 0] += cursor_x - stroke_min_x  # Shift to cursor_x
-    ls_render[:, 1] += line_offset_y
-
-    prev_eos = 1.0
-    commands = []
-    for x, y, eos in zip(*ls_render.T):
-        # Calculate relative X position from stroke start
-        rel_x = x - cursor_x
-
-        # Check if this point is within any exclusion zone
-        in_exclusion = False
-        for zone_start, zone_end in exclusion_zones:
-            if zone_start <= rel_x <= zone_end:
-                in_exclusion = True
-                break
-
-        if in_exclusion:
-            # Skip this point, mark as stroke break so next point starts a new path
-            prev_eos = 1.0
-        else:
-            commands.append('{}{},{}'.format('M' if prev_eos == 1.0 else 'L', x, y))
-            prev_eos = eos
-
-    if commands:
-        p = ' '.join(commands)
-        path = svgwrite.path.Path(p)
-        path = path.stroke(color=color, width=width, linecap='round', linejoin='round', miterlimit=2).fill('none')
-        dwg.add(path)
-
-    # STEP 2: Insert override SVGs at calculated positions
-    for char_idx, override_char in sorted_overrides:
-        # Calculate where this character should be positioned
-        # The space placeholder created a gap here - we fill it with the override
-        char_start_x = cursor_x + (char_idx * avg_char_width)
-
-        print(f"DEBUG override at char_idx={char_idx}, char='{override_char}', calculated_x={char_start_x:.2f}")
-
-        # Get override data
+        # Get override data and calculate its rendered width
         override_data = get_random_override(overrides_dict, override_char)
         if not override_data:
             print(f"Warning: No override data for '{override_char}'")
@@ -267,25 +247,213 @@ def _render_strokes_with_overrides(
 
             scale_x = scale * x_stretch * line_scale_x
             scale_y = scale
-
-            # Rendered dimensions
             rendered_width = char_width * scale_x
 
-            print(f"DEBUG override render: char='{override_char}', char_h={char_height:.2f}, scale={scale:.4f}, rendered_w={rendered_width:.2f}, gap_w={avg_char_width:.2f}")
+            # Find insertion point and EXPANDED stroke range using char_indices
+            # We expand the range to include transition strokes (buffer zone)
+            stroke_range = None
+            exclusion_range = None  # Expanded range for excluding transition strokes
 
-            # Center the override in the space gap
-            # Gap is avg_char_width wide, override is rendered_width wide
-            gap_center_x = char_start_x + (avg_char_width / 2.0)
-            override_start_x = gap_center_x - (rendered_width / 2.0)
+            if use_precise_indices:
+                matching_strokes = np.where(char_indices == char_idx)[0]
+                if len(matching_strokes) > 0:
+                    start_idx = matching_strokes[0]
+                    end_idx = matching_strokes[-1]
+                    stroke_range = (start_idx, end_idx)
 
-            # Position override SVG
-            pos_x = override_start_x - (char_min_x * scale_x)
-            pos_y = line_offset_y - (char_min_y * scale_y)
+                    # COMBINED BUFFER APPROACH:
+                    # 1. Stroke index based buffer
+                    # 2. X-position based exclusion zone
+                    # 3. Pen-up (eos) based extension
 
-            # Create group with transform
-            g = dwg.g(transform=f"translate({pos_x},{pos_y}) scale({scale_x},{scale_y})")
+                    # Calculate buffer size based on average strokes per character
+                    total_strokes = ls.shape[0]
+                    avg_strokes_per_char = total_strokes / max(1, num_chars)
+                    # Buffer: ~50% of average character's strokes on each side (more aggressive)
+                    stroke_buffer = int(max(5, avg_strokes_per_char * 0.5))
 
-            # Add paths from override SVG
+                    # Expand range by stroke buffer
+                    expanded_start = max(0, start_idx - stroke_buffer)
+                    expanded_end = min(ls.shape[0] - 1, end_idx + stroke_buffer)
+
+                    # Also create an X-position exclusion zone
+                    # Find the X range of the space strokes
+                    space_x_coords = ls[start_idx:end_idx+1, 0]
+                    space_x_min = space_x_coords.min() if len(space_x_coords) > 0 else ls[start_idx, 0]
+                    space_x_max = space_x_coords.max() if len(space_x_coords) > 0 else ls[start_idx, 0]
+
+                    # Expand X zone by 0.5 * avg_char_width on each side
+                    x_buffer = avg_char_width * 0.5
+                    exclusion_x_min = space_x_min - x_buffer
+                    exclusion_x_max = space_x_max + x_buffer
+
+                    # Now expand stroke range to include ANY stroke with X in the exclusion zone
+                    # Search backward from expanded_start
+                    while expanded_start > 0:
+                        prev_x = ls[expanded_start - 1, 0]
+                        prev_eos = ls[expanded_start - 1, 2]
+                        # Include if X is in zone OR if it's a pen-up transition
+                        if exclusion_x_min <= prev_x <= exclusion_x_max or prev_eos > 0.5:
+                            expanded_start -= 1
+                        else:
+                            break
+
+                    # Search forward from expanded_end
+                    while expanded_end < ls.shape[0] - 1:
+                        next_x = ls[expanded_end + 1, 0]
+                        next_eos = ls[expanded_end, 2]  # Current stroke's eos indicates break after
+                        # Include if X is in zone OR if current is pen-up
+                        if exclusion_x_min <= next_x <= exclusion_x_max or next_eos > 0.5:
+                            expanded_end += 1
+                        else:
+                            break
+
+                    exclusion_range = (expanded_start, expanded_end)
+                    num_excluded = expanded_end - expanded_start + 1
+                    print(f"DEBUG: Expanded exclusion range from [{start_idx}, {end_idx}] to [{expanded_start}, {expanded_end}] ({num_excluded} strokes, buffer={stroke_buffer})")
+
+                    insertion_x = ls[start_idx, 0]
+                else:
+                    insertion_x = stroke_min_x + (char_idx * avg_char_width)
+                    exclusion_range = None
+            else:
+                insertion_x = stroke_min_x + (char_idx * avg_char_width)
+                exclusion_range = None
+
+            override_info.append({
+                'char_idx': char_idx,
+                'override_char': override_char,
+                'insertion_x': insertion_x,
+                'override_width': rendered_width,
+                'stroke_range': stroke_range,
+                'exclusion_range': exclusion_range,  # Expanded range for transition strokes
+                'override_data': override_data,
+                'char_min_x': char_min_x,
+                'char_min_y': char_min_y,
+                'scale_x': scale_x,
+                'scale_y': scale_y,
+            })
+
+            print(f"DEBUG: Override '{override_char}' at char_idx={char_idx}: insertion_x={insertion_x:.2f}, width={rendered_width:.2f}")
+
+        except Exception as e:
+            print(f"Error processing override '{override_char}': {e}")
+            continue
+
+    # STEP 2: Build shifted stroke coordinates
+    # We need to shift strokes AFTER each override to make room
+    ls_shifted = ls.copy()
+
+    # Calculate cumulative shift needed at each stroke position
+    cumulative_shift = np.zeros(ls.shape[0])
+
+    # Build set of all stroke indices to exclude (using expanded exclusion ranges)
+    excluded_stroke_indices = set()
+
+    for info in override_info:
+        char_idx = info['char_idx']
+        override_width = info['override_width']
+        exclusion_range = info.get('exclusion_range') or info.get('stroke_range')
+
+        # Add small spacing around override (like natural character spacing)
+        spacing = avg_char_width * 0.15
+        total_shift = override_width + spacing * 2
+
+        if use_precise_indices and exclusion_range is not None:
+            start_idx, end_idx = exclusion_range
+            # Add all strokes in exclusion range to the set
+            for idx in range(start_idx, end_idx + 1):
+                excluded_stroke_indices.add(idx)
+            # Shift all strokes AFTER the exclusion range
+            cumulative_shift[end_idx + 1:] += total_shift
+            print(f"DEBUG: Excluding strokes [{start_idx}, {end_idx}], shifting after by {total_shift:.2f}")
+        else:
+            # Fallback: shift based on X position
+            insertion_x = info['insertion_x']
+            mask = ls[:, 0] > insertion_x
+            cumulative_shift[mask] += total_shift
+
+    # Apply shifts to X coordinates
+    ls_shifted[:, 0] += cumulative_shift
+
+    # Recalculate total width after shifting
+    total_shifted_width = ls_shifted[:, 0].max() - ls_shifted[:, 0].min()
+
+    # STEP 3: Render strokes (excluding override positions AND transition strokes)
+    ls_render = ls_shifted.copy()
+    shifted_min_x = ls_shifted[:, 0].min()
+    ls_render[:, 0] += cursor_x - shifted_min_x
+    ls_render[:, 1] += line_offset_y
+
+    prev_eos = 1.0
+    commands = []
+
+    if use_precise_indices:
+        # Use the expanded exclusion set (includes transition strokes)
+        for stroke_idx, (x, y, eos) in enumerate(zip(*ls_render.T)):
+            if stroke_idx in excluded_stroke_indices:
+                # Skip this stroke, mark as stroke break
+                prev_eos = 1.0
+            else:
+                commands.append('{}{},{}'.format('M' if prev_eos == 1.0 else 'L', x, y))
+                prev_eos = eos
+    else:
+        # Fallback using exclusion zones
+        exclusion_zones = []
+        for info in override_info:
+            zone_start = info['insertion_x'] - shifted_min_x
+            zone_end = zone_start + info['override_width']
+            exclusion_zones.append((zone_start, zone_end))
+
+        for x, y, eos in zip(*ls_render.T):
+            rel_x = x - cursor_x
+            in_exclusion = any(start <= rel_x <= end for start, end in exclusion_zones)
+            if in_exclusion:
+                prev_eos = 1.0
+            else:
+                commands.append('{}{},{}'.format('M' if prev_eos == 1.0 else 'L', x, y))
+                prev_eos = eos
+
+    if commands:
+        p = ' '.join(commands)
+        path = svgwrite.path.Path(p)
+        path = path.stroke(color=color, width=width, linecap='round', linejoin='round', miterlimit=2).fill('none')
+        dwg.add(path)
+
+    # STEP 4: Insert override SVGs at calculated positions (accounting for shifts)
+    running_shift = 0.0
+    for info in override_info:
+        char_idx = info['char_idx']
+        override_char = info['override_char']
+        override_data = info['override_data']
+        override_width = info['override_width']
+        stroke_range = info['stroke_range']
+
+        spacing = avg_char_width * 0.15
+
+        # Calculate position accounting for previous shifts
+        if use_precise_indices and stroke_range is not None:
+            start_idx, end_idx = stroke_range
+            # Use the shifted position
+            base_x = ls_shifted[start_idx, 0] - shifted_min_x + cursor_x
+        else:
+            base_x = info['insertion_x'] - stroke_min_x + cursor_x + running_shift
+
+        # Add spacing before the override
+        override_start_x = base_x + spacing
+
+        # Position override SVG
+        pos_x = override_start_x - (info['char_min_x'] * info['scale_x'])
+        pos_y = line_offset_y - (info['char_min_y'] * info['scale_y'])
+
+        print(f"DEBUG: Rendering override '{override_char}' at pos_x={pos_x:.2f}")
+
+        # Create group with transform
+        g = dwg.g(transform=f"translate({pos_x},{pos_y}) scale({info['scale_x']},{info['scale_y']})")
+
+        # Add paths from override SVG
+        try:
+            svg_root = ET.fromstring(override_data['svg_data'])
             for elem in svg_root.iter():
                 tag_name = elem.tag.split('}')[-1] if '}' in elem.tag else elem.tag
                 if tag_name == 'path':
@@ -297,7 +465,7 @@ def _render_strokes_with_overrides(
                     path = dwg.path(d=d)
 
                     if orig_stroke and orig_stroke.lower() not in ('none', 'transparent'):
-                        avg_scale = (scale_x + scale_y) / 2.0
+                        avg_scale = (info['scale_x'] + info['scale_y']) / 2.0
                         adjusted_stroke_width = width / avg_scale if avg_scale > 0 else width
                         path = path.stroke(
                             color=color,
@@ -311,14 +479,14 @@ def _render_strokes_with_overrides(
                     g.add(path)
 
             dwg.add(g)
-
         except Exception as e:
             print(f"Error rendering override '{override_char}': {e}")
-            import traceback
-            traceback.print_exc()
 
-    # Return final X position (same as total stroke width since we rendered everything)
-    final_x = cursor_x + total_stroke_width
+        # Track cumulative shift for fallback mode
+        running_shift += override_width + spacing * 2
+
+    # Return final X position
+    final_x = cursor_x + total_shifted_width
     return final_x
 
 
@@ -487,13 +655,29 @@ def _draw(
                 offsets_cp = offsets.copy()
                 offsets_cp[:, :2] *= float(global_scale)
                 ls = drawing.offsets_to_coords(offsets_cp)
-                if denoise:
-                    ls = drawing.denoise(ls)
-                if interpolate_factor > 1:
-                    try:
-                        ls = drawing.interpolate(ls, factor=interpolate_factor)
-                    except Exception:
-                        pass
+
+                # Get char_indices and override_positions for this segment
+                segment_char_indices = segment.get('char_indices', None)
+                segment_override_positions = segment.get('override_positions', [])
+                has_overrides = bool(segment_override_positions)
+
+                # IMPORTANT: Skip denoise/interpolate for segments with overrides
+                # This preserves the 1:1 correspondence between strokes and char_indices
+                # which is critical for precise model-based cutting
+                if has_overrides and segment_char_indices is not None:
+                    print(f"DEBUG preprocess: Skipping denoise/interpolate for override segment to preserve char_indices alignment")
+                    # Don't denoise or interpolate - keep exact correspondence
+                else:
+                    if denoise:
+                        ls = drawing.denoise(ls)
+                    if interpolate_factor > 1:
+                        try:
+                            ls = drawing.interpolate(ls, factor=interpolate_factor)
+                        except Exception:
+                            pass
+                    # Clear char_indices since they no longer align after denoise/interpolate
+                    segment_char_indices = None
+
                 if ls.shape[0] == 0:
                     preprocessed_segments.append({'type': 'empty'})
                     continue
@@ -510,7 +694,7 @@ def _draw(
                 raw_heights.append(raw_h)  # Track for average calculation
 
                 # DEBUG: Log preprocessing values
-                print(f"DEBUG preprocess: text='{segment.get('text', '')[:20]}', raw_h={raw_h:.2f}, s_h={s_h:.4f}, s_w={s_w:.4f}")
+                print(f"DEBUG preprocess: text='{segment.get('text', '')[:20]}', raw_h={raw_h:.2f}, s_h={s_h:.4f}, s_w={s_w:.4f}, has_overrides={has_overrides}")
 
                 preprocessed_segments.append({
                     'type': 'generated',
@@ -519,7 +703,8 @@ def _draw(
                     'color': color,
                     'width': width,
                     'text': segment.get('text', ''),  # Add original text for spacing checks
-                    'override_positions': segment.get('override_positions', [])  # Preserve override positions for placeholder approach
+                    'override_positions': segment_override_positions,  # Preserve override positions
+                    'char_indices': segment_char_indices  # Character indices (preserved for override segments)
                 })
 
         preprocessed_lines.append(preprocessed_segments if preprocessed_segments else [{'empty': True}])
@@ -711,9 +896,13 @@ def _draw(
                 override_positions = segment.get('override_positions', [])
 
                 if override_positions and overrides_dict:
-                    # SPACE PLACEHOLDER APPROACH: Render strokes normally (spaces create gaps),
-                    # then fill those gaps with override SVGs
-                    print(f"DEBUG: Using SPACE PLACEHOLDER rendering for segment with {len(override_positions)} overrides")
+                    # MODEL-LEVEL CHAR INDEX APPROACH: Use char_indices from attention for precise cutting
+                    char_indices = segment.get('char_indices', None)
+                    print(f"DEBUG: Using MODEL-LEVEL CHAR INDEX rendering for segment with {len(override_positions)} overrides")
+                    if char_indices is not None:
+                        print(f"DEBUG: Have char_indices: {len(char_indices)} values")
+                    else:
+                        print(f"DEBUG: No char_indices, will fall back to width estimation")
 
                     ls = segment['strokes'].copy()
                     ls[:, :2] *= s_global
@@ -737,7 +926,8 @@ def _draw(
                         line_scale_x=line_scale_x,
                         color=segment['color'],
                         width=segment['width'],
-                        target_h=segment_height
+                        target_h=segment_height,
+                        char_indices=char_indices  # NEW: Pass char_indices for precise cutting
                     )
                 else:
                     # STANDARD PATH: No overrides, render normally
