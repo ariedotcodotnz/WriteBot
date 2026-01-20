@@ -553,19 +553,19 @@ def _draw(
                                 continue
 
                             orig_stroke = elem.get('stroke', 'none')
-                            orig_stroke_width = elem.get('stroke-width', '3')
 
                             path = dwg.path(d=d)
 
                             if orig_stroke and orig_stroke.lower() not in ('none', 'transparent'):
-                                try:
-                                    stroke_width = min(float(orig_stroke_width), 4.0)
-                                except:
-                                    stroke_width = 2.0
+                                # Use line-level stroke width for consistency with generated text
+                                # Compensate for transform scaling to maintain visual thickness
+                                line_stroke_width = segment['width']
+                                avg_scale = (scale_x + scale_y) / 2.0
+                                adjusted_stroke_width = line_stroke_width / avg_scale if avg_scale > 0 else line_stroke_width
 
                                 path = path.stroke(
                                     color=segment['color'],
-                                    width=stroke_width,
+                                    width=adjusted_stroke_width,
                                     linecap='round',
                                     linejoin='round'
                                 ).fill('none')
