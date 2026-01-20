@@ -471,21 +471,14 @@ class Hand(object):
                 current_line_width = 0.0
                 current_line_segment_list = []
 
-                # Calculate actual target height for override width estimation
-                # This must match the calculation in _draw.py for consistent layout
-                from handwriting_synthesis.hand._draw import _to_px
-                default_line_height_px = 60.0
-                line_height_px = _to_px(line_height, units) if line_height is not None else default_line_height_px
-                target_h_for_estimation = 0.95 * line_height_px
-
                 for seg_idx, segment in enumerate(line_segments_data):
                     if segment['type'] == 'override':
                         # Estimate override width for layout
                         from handwriting_synthesis.hand.character_override_utils import get_random_override, estimate_override_width
                         override_data = get_random_override(overrides_dict, segment['text'])
                         if override_data:
-                            # Estimate width using actual target height and x_stretch
-                            override_width = estimate_override_width(override_data, target_height=target_h_for_estimation, x_stretch=x_stretch)
+                            # Estimate width (using typical line height of 60px)
+                            override_width = estimate_override_width(override_data, target_height=60, x_stretch=1.0)
                         else:
                             override_width = 20  # fallback width
 

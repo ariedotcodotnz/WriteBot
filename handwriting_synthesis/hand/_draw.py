@@ -219,6 +219,7 @@ def _draw(
     # First pass: preprocess each line and compute per-line max allowed scale
     preprocessed_lines = []
     scale_limits = []
+    raw_heights = []  # Track raw heights for computing average
     target_h = 0.95 * line_height_px
 
     for line_idx, segment_list in enumerate(line_segments):
@@ -279,6 +280,11 @@ def _draw(
                 s_w = content_width_px / raw_w
                 s_h = target_h / raw_h
                 scale_limits.append(min(s_w, s_h))
+                raw_heights.append(raw_h)  # Track for average calculation
+
+                # DEBUG: Log preprocessing values
+                print(f"DEBUG preprocess: text='{segment.get('text', '')[:20]}', raw_h={raw_h:.2f}, s_h={s_h:.4f}, s_w={s_w:.4f}")
+
                 preprocessed_segments.append({
                     'type': 'generated',
                     'strokes': ls,
@@ -294,6 +300,15 @@ def _draw(
         s_global = min(scale_limits) if scale_limits else 1.0
     else:
         s_global = float(manual_size_scale)
+
+    # Compute effective target height for overrides based on actual generated text height
+    # This ensures overrides match the size of surrounding generated text
+    avg_raw_h = sum(raw_heights) / len(raw_heights) if raw_heights else target_h
+    effective_target_h = avg_raw_h * s_global
+
+    # DEBUG: Log key scaling values
+    has_overrides = bool(overrides_dict)
+    print(f"DEBUG _draw: overrides={'ENABLED' if has_overrides else 'DISABLED'}, target_h={target_h:.2f}, s_global={s_global:.4f}, avg_raw_h={avg_raw_h:.2f}, effective_target_h={effective_target_h:.2f}")
 
     # BUGFIX: For small pages where auto_size significantly reduces text scale,
     # adjust line height to be proportional to the actual rendered text size.
@@ -371,8 +386,8 @@ def _draw(
                     ls_temp[:, 0] *= x_stretch
                 total_line_width += ls_temp[:, 0].max()
             elif segment.get('type') == 'override':
-                # Apply s_global to match generated text scaling
-                override_width = segment['estimated_width'] * s_global
+                # Scale estimated width to match effective_target_h (was estimated with target_h)
+                override_width = segment['estimated_width'] * (effective_target_h / target_h)
 
                 # Check if there's a space before this override character
                 has_space_before = False
@@ -437,6 +452,7 @@ def _draw(
         for seg_idx, segment in enumerate(preprocessed_segments):
             if segment.get('type') == 'generated':
                 ls = segment['strokes'].copy()
+                raw_h_before_scale = ls[:, 1].max()
                 ls[:, :2] *= s_global
                 if x_stretch != 1.0:
                     ls[:, 0] *= x_stretch
@@ -447,6 +463,10 @@ def _draw(
 
                 # Track segment width before translating
                 segment_width = ls[:, 0].max()
+                segment_height = ls[:, 1].max()
+
+                # DEBUG: Log generated segment dimensions
+                print(f"DEBUG generated: text='{segment.get('text', '')[:20]}', raw_h={raw_h_before_scale:.2f}, final_h={segment_height:.2f}")
 
                 ls[:, 0] += cursor_x
                 ls[:, 1] += line_offset_y
@@ -496,14 +516,13 @@ def _draw(
                     char_height = char_max_y - char_min_y
 
                     # Calculate scale to match generated text height
-                    # Generated text: normalized to start at y=0, height=raw_h, then scaled by s_global
-                    # Final height = raw_h * s_global (which may be < target_h when width-constrained)
-                    # Override should match: char_height * scale = target_h * s_global
-                    effective_target_h = target_h * s_global
+                    # Generated text renders at: raw_h * s_global (NOT target_h!)
+                    # Override should match: char_height * scale = effective_target_h
+                    # where effective_target_h = avg_raw_h * s_global
                     if char_height > 0:
                         scale = effective_target_h / char_height
                     else:
-                        scale = s_global
+                        scale = 1.0
 
                     scale_x = scale * x_stretch
                     scale_y = scale
@@ -515,6 +534,9 @@ def _draw(
                     # Rendered dimensions
                     rendered_width = char_width * scale_x
                     rendered_height = char_height * scale_y
+
+                    # DEBUG: Log override dimensions
+                    print(f"DEBUG override: char='{segment.get('char', '?')}', char_h={char_height:.2f}, scale={scale:.4f}, final_h={rendered_height:.2f}, effective_target_h={effective_target_h:.2f}")
 
                     # Check if there's a space before this override character
                     has_space_before = False
