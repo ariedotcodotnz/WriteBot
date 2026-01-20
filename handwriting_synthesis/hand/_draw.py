@@ -130,16 +130,17 @@ def _render_strokes_with_overrides(
     color, width, target_h
 ):
     """
-    Render generated strokes with override SVGs inserted into natural gaps.
+    Render generated strokes with override SVGs inserted at calculated positions.
 
-    SPACE PLACEHOLDER APPROACH:
+    SPACE PLACEHOLDER + CLIPPING APPROACH:
     The text was generated with SPACES where override characters should be.
-    Spaces create natural gaps in the stroke sequence (pen lifts).
-    We render ALL strokes (they already have gaps), then insert override SVGs
-    into those gaps at calculated positions.
+    We CLIP OUT any stroke points that fall within the override character zones,
+    then insert override SVGs at those positions.
 
-    This is nearly identical to non-override rendering, just with override
-    SVGs added at the right positions.
+    This ensures:
+    1. Full RNN context for surrounding text (space is a valid character)
+    2. No artifacts from placeholder strokes (we clip them out)
+    3. Clean override insertion
 
     Args:
         dwg: SVG drawing object
@@ -177,8 +178,16 @@ def _render_strokes_with_overrides(
     # Sort override positions by character index
     sorted_overrides = sorted(override_positions, key=lambda x: x[0])
 
-    # STEP 1: Render ALL strokes exactly like the non-override path
-    # The spaces already created natural gaps - we just render everything
+    # Build exclusion zones (X ranges to clip out) for each override position
+    exclusion_zones = []
+    for char_idx, override_char in sorted_overrides:
+        # Zone where placeholder strokes should be clipped
+        zone_start = char_idx * avg_char_width
+        zone_end = (char_idx + 1) * avg_char_width
+        exclusion_zones.append((zone_start, zone_end))
+        print(f"DEBUG exclusion zone for '{override_char}': char_idx={char_idx}, zone=[{zone_start:.2f}, {zone_end:.2f}]")
+
+    # STEP 1: Render strokes, CLIPPING OUT points within exclusion zones
     ls_render = ls.copy()
     ls_render[:, 0] += cursor_x - stroke_min_x  # Shift to cursor_x
     ls_render[:, 1] += line_offset_y
@@ -186,8 +195,22 @@ def _render_strokes_with_overrides(
     prev_eos = 1.0
     commands = []
     for x, y, eos in zip(*ls_render.T):
-        commands.append('{}{},{}'.format('M' if prev_eos == 1.0 else 'L', x, y))
-        prev_eos = eos
+        # Calculate relative X position from stroke start
+        rel_x = x - cursor_x
+
+        # Check if this point is within any exclusion zone
+        in_exclusion = False
+        for zone_start, zone_end in exclusion_zones:
+            if zone_start <= rel_x <= zone_end:
+                in_exclusion = True
+                break
+
+        if in_exclusion:
+            # Skip this point, mark as stroke break so next point starts a new path
+            prev_eos = 1.0
+        else:
+            commands.append('{}{},{}'.format('M' if prev_eos == 1.0 else 'L', x, y))
+            prev_eos = eos
 
     if commands:
         p = ' '.join(commands)
@@ -195,7 +218,7 @@ def _render_strokes_with_overrides(
         path = path.stroke(color=color, width=width, linecap='round', linejoin='round', miterlimit=2).fill('none')
         dwg.add(path)
 
-    # STEP 2: Insert override SVGs at calculated positions (filling the space gaps)
+    # STEP 2: Insert override SVGs at calculated positions
     for char_idx, override_char in sorted_overrides:
         # Calculate where this character should be positioned
         # The space placeholder created a gap here - we fill it with the override
@@ -598,24 +621,9 @@ def _draw(
                 spacing = _compute_inter_segment_spacing(prev_seg, segment, segment_height)
                 total_line_width += spacing + segment_width
 
-                # For placeholder approach: adjust width for override character size differences
-                override_positions = segment.get('override_positions', [])
-                if override_positions and overrides_dict:
-                    from handwriting_synthesis.hand.character_override_utils import get_random_override, estimate_override_width
-                    original_text = segment.get('text', '')
-                    num_chars = len(original_text) if original_text else 1
-                    avg_char_width = segment_width / max(1, num_chars)
-
-                    # Calculate width adjustment for each override
-                    for char_idx, override_char in override_positions:
-                        override_data = get_random_override(overrides_dict, override_char)
-                        if override_data:
-                            # Estimate override width at current scale
-                            override_width = estimate_override_width(override_data, segment_height, x_stretch)
-                            # Width difference: override width minus placeholder width
-                            width_diff = override_width - avg_char_width
-                            total_line_width += width_diff
-                            print(f"DEBUG width calc: override '{override_char}' width_diff={width_diff:.2f}")
+                # SPACE PLACEHOLDER APPROACH: No width adjustment needed
+                # The strokes already have natural gaps where spaces are, and we just fill them.
+                # The total width is the stroke width as-is.
 
             elif segment.get('type') == 'override':
                 # Scale estimated width using ADJACENT segment heights (same as rendering)
@@ -703,8 +711,9 @@ def _draw(
                 override_positions = segment.get('override_positions', [])
 
                 if override_positions and overrides_dict:
-                    # NEW PLACEHOLDER APPROACH: Use unified rendering with override insertion
-                    print(f"DEBUG: Using placeholder-based rendering for segment with {len(override_positions)} overrides")
+                    # SPACE PLACEHOLDER APPROACH: Render strokes normally (spaces create gaps),
+                    # then fill those gaps with override SVGs
+                    print(f"DEBUG: Using SPACE PLACEHOLDER rendering for segment with {len(override_positions)} overrides")
 
                     ls = segment['strokes'].copy()
                     ls[:, :2] *= s_global
