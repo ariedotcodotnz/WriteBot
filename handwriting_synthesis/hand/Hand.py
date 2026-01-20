@@ -386,10 +386,9 @@ class Hand(object):
         all_lines = []
         all_line_texts = []
 
-        # If we have overrides, use SPACE-PLACEHOLDER approach (same as write())
-        # Key insight: Generate full text with SPACES where overrides go.
-        # This preserves RNN context for surrounding text (no separate generation calls).
-        # We then use char_indices from attention to insert overrides at precise positions.
+        # If we have overrides, use SPACE-PLACEHOLDER approach
+        # KEY FIX: Chunk the ORIGINAL text first, THEN replace override chars in each chunk.
+        # This preserves the position mapping between chunks and the original text.
         if overrides_dict:
             from handwriting_synthesis.hand.character_override_utils import estimate_override_width, get_random_override
 
@@ -406,27 +405,10 @@ class Hand(object):
                     all_line_segment_data.append([])
                     continue
 
-                # STEP 1: Replace override characters with SPACES
-                # Track override positions within the ORIGINAL line
-                line_override_positions = []  # [(char_idx, char), ...]
-                modified_line_chars = []
-
-                for char_idx, char in enumerate(input_line):
-                    if char in overrides_dict:
-                        line_override_positions.append((char_idx, char))
-                        modified_line_chars.append(' ')  # Space placeholder
-                        print(f"DEBUG: Replacing '{char}' at position {char_idx} with SPACE placeholder")
-                    else:
-                        modified_line_chars.append(char)
-
-                modified_line = ''.join(modified_line_chars)
-                print(f"DEBUG: Original line: '{input_line}'")
-                print(f"DEBUG: Modified line: '{modified_line}'")
-                print(f"DEBUG: Override positions: {line_override_positions}")
-
-                # STEP 2: Chunk the MODIFIED text (with spaces) normally
-                chunks = split_text_into_chunks(
-                    modified_line,
+                # STEP 1: Chunk the ORIGINAL text first (before any modification)
+                # This preserves word boundaries and spacing correctly
+                original_chunks = split_text_into_chunks(
+                    input_line,
                     words_per_chunk=words_per_chunk,
                     target_chars_per_chunk=target_chars_per_chunk,
                     min_words=min_words_per_chunk,
@@ -435,15 +417,40 @@ class Hand(object):
                     adaptive_strategy=adaptive_strategy
                 )
 
-                if not chunks:
+                if not original_chunks:
                     all_lines.append(np.empty((0, 3)))
                     all_line_texts.append('')
                     all_line_segment_data.append([])
                     continue
 
-                # Validate characters in chunks (spaces are valid, override chars replaced)
+                print(f"DEBUG: Original line: '{input_line}'")
+                print(f"DEBUG: Original chunks: {original_chunks}")
+
+                # STEP 2: For each chunk, identify overrides and create modified version
+                modified_chunks = []  # Chunks with override chars replaced by spaces
+                chunk_override_info = []  # Override positions for each chunk
+
+                for chunk_idx, original_chunk in enumerate(original_chunks):
+                    chunk_overrides = []  # [(local_idx, char), ...]
+                    modified_chars = []
+
+                    for char_idx, char in enumerate(original_chunk):
+                        if char in overrides_dict:
+                            chunk_overrides.append((char_idx, char))
+                            modified_chars.append(' ')  # Space placeholder
+                            print(f"DEBUG: Chunk {chunk_idx}: Replacing '{char}' at local position {char_idx} with SPACE")
+                        else:
+                            modified_chars.append(char)
+
+                    modified_chunk = ''.join(modified_chars)
+                    modified_chunks.append(modified_chunk)
+                    chunk_override_info.append(chunk_overrides)
+
+                    print(f"DEBUG: Chunk {chunk_idx}: original='{original_chunk}' modified='{modified_chunk}' overrides={chunk_overrides}")
+
+                # STEP 3: Validate modified chunks (should only contain valid alphabet chars)
                 valid_char_set = set(drawing.alphabet)
-                for chunk_num, chunk in enumerate(chunks):
+                for chunk_num, chunk in enumerate(modified_chunks):
                     for char in chunk:
                         if char not in valid_char_set:
                             raise ValueError(
@@ -451,26 +458,15 @@ class Hand(object):
                                 f"Valid character set is {valid_char_set}"
                             )
 
-                # STEP 3: Generate strokes for all chunks WITH char_indices
-                # This preserves full RNN context across the entire modified text
+                # STEP 4: Generate strokes for modified chunks WITH char_indices
                 chunk_strokes, chunk_char_indices = self._sample(
-                    chunks,
-                    biases=[biases] * len(chunks) if biases is not None else None,
-                    styles=[styles] * len(chunks) if styles is not None else None,
+                    modified_chunks,
+                    biases=[biases] * len(modified_chunks) if biases is not None else None,
+                    styles=[styles] * len(modified_chunks) if styles is not None else None,
                     return_char_indices=True  # Get char indices from attention
                 )
 
-                print(f"DEBUG: Generated {len(chunks)} chunks with char_indices")
-
-                # STEP 4: Map override positions to chunks
-                # Track which character position each chunk starts at in the original line
-                chunk_start_positions = []
-                current_pos = 0
-                for chunk in chunks:
-                    chunk_start_positions.append(current_pos)
-                    current_pos += len(chunk)
-
-                print(f"DEBUG: Chunk start positions: {chunk_start_positions}")
+                print(f"DEBUG: Generated {len(modified_chunks)} chunks with char_indices")
 
                 # STEP 5: Build segment data with override info for each chunk
                 # Stitch chunks into lines based on actual widths
@@ -479,35 +475,23 @@ class Hand(object):
                 current_line_width = 0.0
                 current_line_segment_list = []
 
-                for chunk_idx, (chunk_text, chunk_stroke, char_indices) in enumerate(
-                    zip(chunks, chunk_strokes, chunk_char_indices)
+                for chunk_idx, (original_chunk, modified_chunk, chunk_stroke, char_indices, chunk_overrides) in enumerate(
+                    zip(original_chunks, modified_chunks, chunk_strokes, chunk_char_indices, chunk_override_info)
                 ):
-                    chunk_start = chunk_start_positions[chunk_idx]
-                    chunk_end = chunk_start + len(chunk_text)
-
-                    # Find override positions that fall within this chunk
-                    chunk_override_positions = []
-                    for orig_char_idx, override_char in line_override_positions:
-                        if chunk_start <= orig_char_idx < chunk_end:
-                            # Convert to chunk-local index
-                            local_idx = orig_char_idx - chunk_start
-                            chunk_override_positions.append((local_idx, override_char))
-
-                    has_overrides = len(chunk_override_positions) > 0
-                    print(f"DEBUG: Chunk {chunk_idx} '{chunk_text}': has_overrides={has_overrides}, positions={chunk_override_positions}")
+                    has_overrides = len(chunk_overrides) > 0
+                    print(f"DEBUG: Processing chunk {chunk_idx} '{modified_chunk}': has_overrides={has_overrides}, positions={chunk_overrides}")
+                    if has_overrides:
+                        print(f"DEBUG:   char_indices range: [{char_indices.min()}, {char_indices.max()}], len={len(char_indices)}")
 
                     # Calculate chunk width (including estimated override widths)
                     chunk_width = get_stroke_width(chunk_stroke)
 
                     # For width calculation, estimate how much extra space overrides need
-                    # (the actual rendering will shift strokes, but we need to estimate for line breaking)
                     extra_override_width = 0.0
-                    for local_idx, override_char in chunk_override_positions:
+                    for local_idx, override_char in chunk_overrides:
                         override_data = get_random_override(overrides_dict, override_char)
                         if override_data:
-                            # Space creates minimal width, override needs actual width
                             override_w = estimate_override_width(override_data, target_height=60, x_stretch=1.0)
-                            # Add the difference (override width minus space width, plus some spacing)
                             extra_override_width += override_w + (override_w * 0.3)
 
                     effective_chunk_width = chunk_width + extra_override_width
@@ -520,15 +504,15 @@ class Hand(object):
                         potential_width = effective_chunk_width
 
                     # Build segment data
+                    # NOTE: 'text' is the MODIFIED chunk (what was generated)
+                    # override_positions are LOCAL indices within this chunk
                     segment = {
                         'type': 'generated',
-                        'text': input_line[chunk_start:chunk_end],  # Original text (with override chars)
-                        'modified_text': chunk_text,  # Text that was generated (with spaces)
+                        'text': modified_chunk,  # Text that was generated (with spaces)
+                        'original_text': original_chunk,  # Original text (with override chars)
                         'strokes': chunk_stroke,
                         'char_indices': char_indices,  # Attention-based character indices
-                        'override_positions': chunk_override_positions,  # [(local_idx, char), ...]
-                        'chunk_start': chunk_start,
-                        'chunk_end': chunk_end,
+                        'override_positions': chunk_overrides,  # [(local_idx, char), ...]
                     }
 
                     if potential_width <= max_line_width or current_line_width == 0:
@@ -542,7 +526,7 @@ class Hand(object):
                             )
                         else:
                             current_line_stroke = chunk_stroke
-                        current_line_text.append(input_line[chunk_start:chunk_end])
+                        current_line_text.append(original_chunk)
                         current_line_segment_list.append(segment)
                         current_line_width = potential_width
                     else:
@@ -553,7 +537,7 @@ class Hand(object):
                             all_line_segment_data.append(current_line_segment_list)
 
                         current_line_stroke = chunk_stroke
-                        current_line_text = [input_line[chunk_start:chunk_end]]
+                        current_line_text = [original_chunk]
                         current_line_segment_list = [segment]
                         current_line_width = effective_chunk_width
 
