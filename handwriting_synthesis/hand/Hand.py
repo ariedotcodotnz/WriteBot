@@ -176,70 +176,56 @@ class Hand(object):
         stroke_colors = _normalize_seq(stroke_colors, num_lines, str, 'stroke_colors')
         stroke_widths = _normalize_seq(stroke_widths, num_lines, float, 'stroke_widths')
 
-        # Split lines with character overrides
+        # Handle character overrides using SPACE PLACEHOLDER approach
+        # Key insight: Generate full lines with SPACES where overrides go.
+        # The space creates a natural gap in the stroke sequence (pen lift).
+        # We then insert the override SVG into that gap - no stroke clipping needed!
+        # This preserves full RNN context for the surrounding text.
         if overrides_dict:
-            print(f"DEBUG: Processing text with overrides enabled")
-            from handwriting_synthesis.hand.character_override_utils import split_text_with_overrides
+            print(f"DEBUG: Processing text with SPACE-PLACEHOLDER override approach")
 
-            # Create expanded line data with override info
-            line_segments = []
-            texts_to_generate = []
-            segment_to_line_idx = []
+            # Use SPACE as placeholder - creates natural gap in strokes
+            placeholder_char = ' '
+
+            # Track override positions: {line_idx: [(char_idx, original_char), ...]}
+            override_positions = {}
+            modified_lines = []
 
             for line_idx, line in enumerate(lines):
-                print(f"DEBUG: Processing line {line_idx}: '{line}'")
-                chunks = split_text_with_overrides(line, overrides_dict)
-                print(f"DEBUG:   Split into {len(chunks)} chunks: {chunks}")
-                line_segment_list = []
+                override_positions[line_idx] = []
+                modified_line_chars = []
 
-                for chunk_text, is_override in chunks:
-                    print(f"DEBUG:     Chunk: '{chunk_text}', is_override={is_override}")
-                    if is_override:
-                        line_segment_list.append({
-                            'type': 'override',
-                            'text': chunk_text,
-                            'line_idx': line_idx
-                        })
+                for char_idx, char in enumerate(line):
+                    if char in overrides_dict:
+                        # Track the position and original character
+                        override_positions[line_idx].append((char_idx, char))
+                        # Replace with SPACE - creates natural gap for override insertion
+                        modified_line_chars.append(placeholder_char)
+                        print(f"DEBUG: Line {line_idx}, char {char_idx}: replacing '{char}' with SPACE placeholder")
                     else:
-                        if chunk_text.strip():  # Only generate non-empty chunks
-                            gen_idx = len(texts_to_generate)
-                            texts_to_generate.append(chunk_text)
-                            segment_to_line_idx.append(line_idx)
-                            line_segment_list.append({
-                                'type': 'generated',
-                                'gen_idx': gen_idx,
-                                'text': chunk_text,
-                                'line_idx': line_idx
-                            })
-                        else:
-                            # Empty space, generate it
-                            gen_idx = len(texts_to_generate)
-                            texts_to_generate.append(chunk_text)
-                            segment_to_line_idx.append(line_idx)
-                            line_segment_list.append({
-                                'type': 'generated',
-                                'gen_idx': gen_idx,
-                                'text': chunk_text,
-                                'line_idx': line_idx
-                            })
+                        modified_line_chars.append(char)
 
-                line_segments.append(line_segment_list)
+                modified_lines.append(''.join(modified_line_chars))
 
-            print(f"DEBUG: Texts to generate: {texts_to_generate}")
+            print(f"DEBUG: Original lines: {lines}")
+            print(f"DEBUG: Modified lines (with placeholders): {modified_lines}")
+            print(f"DEBUG: Override positions: {override_positions}")
 
-            # Generate strokes for non-override chunks
-            if texts_to_generate:
-                gen_biases = [biases[idx] if biases else None for idx in segment_to_line_idx]
-                gen_styles = [styles[idx] if styles else None for idx in segment_to_line_idx]
-                generated_strokes = self._sample(texts_to_generate, biases=gen_biases, styles=gen_styles)
-            else:
-                generated_strokes = []
+            # Generate strokes for FULL lines (like non-override path)
+            # This preserves RNN context - the key improvement!
+            generated_strokes = self._sample(modified_lines, biases=biases, styles=styles)
 
-            # Map generated strokes back to segments
-            for line_segment_list in line_segments:
-                for segment in line_segment_list:
-                    if segment['type'] == 'generated':
-                        segment['strokes'] = generated_strokes[segment['gen_idx']]
+            # Convert to line_segments format (single segment per line, like non-override)
+            line_segments = []
+            for line_idx, (original_line, strokes) in enumerate(zip(lines, generated_strokes)):
+                line_segments.append([{
+                    'type': 'generated',
+                    'text': original_line,  # Keep original text for reference
+                    'modified_text': modified_lines[line_idx],  # Text that was actually generated
+                    'strokes': strokes,
+                    'line_idx': line_idx,
+                    'override_positions': override_positions[line_idx]  # [(char_idx, char), ...]
+                }])
         else:
             # No overrides, use normal generation
             print(f"DEBUG: No overrides, using normal generation")

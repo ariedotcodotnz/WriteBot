@@ -95,6 +95,210 @@ def _resolve_page_size(page_size, units, num_lines, default_line_height_px):
     return width_px, height_px, svg_size
 
 
+def _compute_inter_segment_spacing(prev_segment, current_segment, reference_height):
+    """
+    Compute spacing to add before current_segment based on the previous segment.
+
+    Args:
+        prev_segment: The previous segment dict (or None if first segment)
+        current_segment: The current segment dict
+        reference_height: Height to use for computing proportional spacing
+
+    Returns:
+        Spacing amount in pixels
+    """
+    if prev_segment is None:
+        return 0.0
+
+    current_type = current_segment.get('type')
+    prev_type = prev_segment.get('type')
+
+    if current_type == 'generated' and prev_type == 'generated':
+        # Generated-to-generated: add spacing based on text boundaries
+        prev_text = prev_segment.get('text', '')
+        current_text = current_segment.get('text', '')
+        has_space = prev_text.endswith(' ') or current_text.startswith(' ')
+        return reference_height * 0.35 if has_space else reference_height * 0.1
+
+    # Override spacing is handled separately in override rendering
+    return 0.0
+
+
+def _render_strokes_with_overrides(
+    dwg, ls, original_text, override_positions, overrides_dict,
+    cursor_x, line_offset_y, s_global, x_stretch, line_scale_x,
+    color, width, target_h
+):
+    """
+    Render generated strokes with override SVGs inserted into natural gaps.
+
+    SPACE PLACEHOLDER APPROACH:
+    The text was generated with SPACES where override characters should be.
+    Spaces create natural gaps in the stroke sequence (pen lifts).
+    We render ALL strokes (they already have gaps), then insert override SVGs
+    into those gaps at calculated positions.
+
+    This is nearly identical to non-override rendering, just with override
+    SVGs added at the right positions.
+
+    Args:
+        dwg: SVG drawing object
+        ls: Stroke coordinates array (already scaled)
+        original_text: Original text of the line (with override chars)
+        override_positions: List of (char_idx, char) tuples for override positions
+        overrides_dict: Dictionary of override character data
+        cursor_x: Starting X position
+        line_offset_y: Y position for this line
+        s_global: Global scale factor
+        x_stretch: Horizontal stretch factor
+        line_scale_x: Line-specific horizontal scale (for overflow prevention)
+        color: Stroke color
+        width: Stroke width
+        target_h: Target height for scaling overrides
+
+    Returns:
+        Final cursor_x position after rendering
+    """
+    from handwriting_synthesis.hand.character_override_utils import get_random_override
+
+    if ls.shape[0] == 0:
+        return cursor_x
+
+    # Calculate dimensions
+    stroke_min_x = ls[:, 0].min()
+    stroke_max_x = ls[:, 0].max()
+    total_stroke_width = stroke_max_x - stroke_min_x
+    stroke_height = ls[:, 1].max()
+    num_chars = len(original_text) if original_text else 1
+    avg_char_width = total_stroke_width / max(1, num_chars)
+
+    print(f"DEBUG render_with_overrides: text='{original_text}', num_chars={num_chars}, total_w={total_stroke_width:.2f}, avg_char_w={avg_char_width:.2f}")
+
+    # Sort override positions by character index
+    sorted_overrides = sorted(override_positions, key=lambda x: x[0])
+
+    # STEP 1: Render ALL strokes exactly like the non-override path
+    # The spaces already created natural gaps - we just render everything
+    ls_render = ls.copy()
+    ls_render[:, 0] += cursor_x - stroke_min_x  # Shift to cursor_x
+    ls_render[:, 1] += line_offset_y
+
+    prev_eos = 1.0
+    commands = []
+    for x, y, eos in zip(*ls_render.T):
+        commands.append('{}{},{}'.format('M' if prev_eos == 1.0 else 'L', x, y))
+        prev_eos = eos
+
+    if commands:
+        p = ' '.join(commands)
+        path = svgwrite.path.Path(p)
+        path = path.stroke(color=color, width=width, linecap='round', linejoin='round', miterlimit=2).fill('none')
+        dwg.add(path)
+
+    # STEP 2: Insert override SVGs at calculated positions (filling the space gaps)
+    for char_idx, override_char in sorted_overrides:
+        # Calculate where this character should be positioned
+        # The space placeholder created a gap here - we fill it with the override
+        char_start_x = cursor_x + (char_idx * avg_char_width)
+
+        print(f"DEBUG override at char_idx={char_idx}, char='{override_char}', calculated_x={char_start_x:.2f}")
+
+        # Get override data
+        override_data = get_random_override(overrides_dict, override_char)
+        if not override_data:
+            print(f"Warning: No override data for '{override_char}'")
+            continue
+
+        # Parse override SVG to get dimensions
+        try:
+            svg_root = ET.fromstring(override_data['svg_data'])
+            all_x_coords = []
+            all_y_coords = []
+
+            for elem in svg_root.iter():
+                tag_name = elem.tag.split('}')[-1] if '}' in elem.tag else elem.tag
+                if tag_name == 'path':
+                    d = elem.get('d', '')
+                    coords = re.findall(r'[ML]\s*([-\d.]+)\s+([-\d.]+)', d)
+                    for x, y in coords:
+                        all_x_coords.append(float(x))
+                        all_y_coords.append(float(y))
+
+            if not all_x_coords or not all_y_coords:
+                print(f"Warning: No coordinates found for override '{override_char}'")
+                continue
+
+            char_min_x = min(all_x_coords)
+            char_max_x = max(all_x_coords)
+            char_min_y = min(all_y_coords)
+            char_max_y = max(all_y_coords)
+
+            char_width = char_max_x - char_min_x
+            char_height = char_max_y - char_min_y
+
+            # Calculate scale to match stroke height
+            if char_height > 0:
+                scale = stroke_height / char_height
+            else:
+                scale = 1.0
+
+            scale_x = scale * x_stretch * line_scale_x
+            scale_y = scale
+
+            # Rendered dimensions
+            rendered_width = char_width * scale_x
+
+            print(f"DEBUG override render: char='{override_char}', char_h={char_height:.2f}, scale={scale:.4f}, rendered_w={rendered_width:.2f}, gap_w={avg_char_width:.2f}")
+
+            # Center the override in the space gap
+            # Gap is avg_char_width wide, override is rendered_width wide
+            gap_center_x = char_start_x + (avg_char_width / 2.0)
+            override_start_x = gap_center_x - (rendered_width / 2.0)
+
+            # Position override SVG
+            pos_x = override_start_x - (char_min_x * scale_x)
+            pos_y = line_offset_y - (char_min_y * scale_y)
+
+            # Create group with transform
+            g = dwg.g(transform=f"translate({pos_x},{pos_y}) scale({scale_x},{scale_y})")
+
+            # Add paths from override SVG
+            for elem in svg_root.iter():
+                tag_name = elem.tag.split('}')[-1] if '}' in elem.tag else elem.tag
+                if tag_name == 'path':
+                    d = elem.get('d')
+                    if not d:
+                        continue
+
+                    orig_stroke = elem.get('stroke', 'none')
+                    path = dwg.path(d=d)
+
+                    if orig_stroke and orig_stroke.lower() not in ('none', 'transparent'):
+                        avg_scale = (scale_x + scale_y) / 2.0
+                        adjusted_stroke_width = width / avg_scale if avg_scale > 0 else width
+                        path = path.stroke(
+                            color=color,
+                            width=adjusted_stroke_width,
+                            linecap='round',
+                            linejoin='round'
+                        ).fill('none')
+                    else:
+                        path = path.fill(color)
+
+                    g.add(path)
+
+            dwg.add(g)
+
+        except Exception as e:
+            print(f"Error rendering override '{override_char}': {e}")
+            import traceback
+            traceback.print_exc()
+
+    # Return final X position (same as total stroke width since we rendered everything)
+    final_x = cursor_x + total_stroke_width
+    return final_x
+
+
 def _draw(
     line_segments,  # Changed from 'strokes' to 'line_segments'
     lines,
@@ -288,9 +492,11 @@ def _draw(
                 preprocessed_segments.append({
                     'type': 'generated',
                     'strokes': ls,
+                    'raw_h': raw_h,  # Store for adjacent override sizing
                     'color': color,
                     'width': width,
-                    'text': segment.get('text', '')  # Add original text for spacing checks
+                    'text': segment.get('text', ''),  # Add original text for spacing checks
+                    'override_positions': segment.get('override_positions', [])  # Preserve override positions for placeholder approach
                 })
 
         preprocessed_lines.append(preprocessed_segments if preprocessed_segments else [{'empty': True}])
@@ -384,10 +590,52 @@ def _draw(
                 ls_temp[:, :2] *= s_global
                 if x_stretch != 1.0:
                     ls_temp[:, 0] *= x_stretch
-                total_line_width += ls_temp[:, 0].max()
+                segment_height = ls_temp[:, 1].max()
+                segment_width = ls_temp[:, 0].max()
+
+                # Add inter-segment spacing
+                prev_seg = preprocessed_segments[seg_idx - 1] if seg_idx > 0 else None
+                spacing = _compute_inter_segment_spacing(prev_seg, segment, segment_height)
+                total_line_width += spacing + segment_width
+
+                # For placeholder approach: adjust width for override character size differences
+                override_positions = segment.get('override_positions', [])
+                if override_positions and overrides_dict:
+                    from handwriting_synthesis.hand.character_override_utils import get_random_override, estimate_override_width
+                    original_text = segment.get('text', '')
+                    num_chars = len(original_text) if original_text else 1
+                    avg_char_width = segment_width / max(1, num_chars)
+
+                    # Calculate width adjustment for each override
+                    for char_idx, override_char in override_positions:
+                        override_data = get_random_override(overrides_dict, override_char)
+                        if override_data:
+                            # Estimate override width at current scale
+                            override_width = estimate_override_width(override_data, segment_height, x_stretch)
+                            # Width difference: override width minus placeholder width
+                            width_diff = override_width - avg_char_width
+                            total_line_width += width_diff
+                            print(f"DEBUG width calc: override '{override_char}' width_diff={width_diff:.2f}")
+
             elif segment.get('type') == 'override':
-                # Scale estimated width to match effective_target_h (was estimated with target_h)
-                override_width = segment['estimated_width'] * (effective_target_h / target_h)
+                # Scale estimated width using ADJACENT segment heights (same as rendering)
+                adjacent_raw_heights = []
+                if seg_idx > 0:
+                    prev_seg = preprocessed_segments[seg_idx - 1]
+                    if prev_seg.get('type') == 'generated' and 'raw_h' in prev_seg:
+                        adjacent_raw_heights.append(prev_seg['raw_h'])
+                if seg_idx < len(preprocessed_segments) - 1:
+                    next_seg = preprocessed_segments[seg_idx + 1]
+                    if next_seg.get('type') == 'generated' and 'raw_h' in next_seg:
+                        adjacent_raw_heights.append(next_seg['raw_h'])
+
+                if adjacent_raw_heights:
+                    local_raw_h = sum(adjacent_raw_heights) / len(adjacent_raw_heights)
+                    local_effective_target_h = local_raw_h * s_global
+                else:
+                    local_effective_target_h = effective_target_h
+
+                override_width = segment['estimated_width'] * (local_effective_target_h / target_h)
 
                 # Check if there's a space before this override character
                 has_space_before = False
@@ -451,38 +699,76 @@ def _draw(
         cursor_x = line_offset_x
         for seg_idx, segment in enumerate(preprocessed_segments):
             if segment.get('type') == 'generated':
-                ls = segment['strokes'].copy()
-                raw_h_before_scale = ls[:, 1].max()
-                ls[:, :2] *= s_global
-                if x_stretch != 1.0:
-                    ls[:, 0] *= x_stretch
+                # Check if this segment uses the placeholder-based override approach
+                override_positions = segment.get('override_positions', [])
 
-                # Apply line-specific horizontal scaling to prevent overflow
-                if line_scale_x != 1.0:
-                    ls[:, 0] *= line_scale_x
+                if override_positions and overrides_dict:
+                    # NEW PLACEHOLDER APPROACH: Use unified rendering with override insertion
+                    print(f"DEBUG: Using placeholder-based rendering for segment with {len(override_positions)} overrides")
 
-                # Track segment width before translating
-                segment_width = ls[:, 0].max()
-                segment_height = ls[:, 1].max()
+                    ls = segment['strokes'].copy()
+                    ls[:, :2] *= s_global
+                    if x_stretch != 1.0:
+                        ls[:, 0] *= x_stretch
+                    if line_scale_x != 1.0:
+                        ls[:, 0] *= line_scale_x
 
-                # DEBUG: Log generated segment dimensions
-                print(f"DEBUG generated: text='{segment.get('text', '')[:20]}', raw_h={raw_h_before_scale:.2f}, final_h={segment_height:.2f}")
+                    segment_height = ls[:, 1].max()
 
-                ls[:, 0] += cursor_x
-                ls[:, 1] += line_offset_y
+                    cursor_x = _render_strokes_with_overrides(
+                        dwg=dwg,
+                        ls=ls,
+                        original_text=segment.get('text', ''),
+                        override_positions=override_positions,
+                        overrides_dict=overrides_dict,
+                        cursor_x=cursor_x,
+                        line_offset_y=line_offset_y,
+                        s_global=s_global,
+                        x_stretch=x_stretch,
+                        line_scale_x=line_scale_x,
+                        color=segment['color'],
+                        width=segment['width'],
+                        target_h=segment_height
+                    )
+                else:
+                    # STANDARD PATH: No overrides, render normally
+                    ls = segment['strokes'].copy()
+                    raw_h_before_scale = ls[:, 1].max()
+                    ls[:, :2] *= s_global
+                    if x_stretch != 1.0:
+                        ls[:, 0] *= x_stretch
 
-                prev_eos = 1.0
-                commands = []
-                for x, y, eos in zip(*ls.T):
-                    commands.append('{}{},{}'.format('M' if prev_eos == 1.0 else 'L', x, y))
-                    prev_eos = eos
-                p = ' '.join(commands)
-                path = svgwrite.path.Path(p)
-                path = path.stroke(color=segment['color'], width=segment['width'], linecap='round', linejoin='round', miterlimit=2).fill('none')
-                dwg.add(path)
+                    # Apply line-specific horizontal scaling to prevent overflow
+                    if line_scale_x != 1.0:
+                        ls[:, 0] *= line_scale_x
 
-                # Advance cursor by segment width
-                cursor_x += segment_width
+                    # Track segment width before translating
+                    segment_width = ls[:, 0].max()
+                    segment_height = ls[:, 1].max()
+
+                    # Add inter-segment spacing
+                    prev_seg = preprocessed_segments[seg_idx - 1] if seg_idx > 0 else None
+                    spacing = _compute_inter_segment_spacing(prev_seg, segment, segment_height)
+                    cursor_x += spacing
+
+                    # DEBUG: Log generated segment dimensions
+                    print(f"DEBUG generated: text='{segment.get('text', '')[:20]}', raw_h={raw_h_before_scale:.2f}, final_h={segment_height:.2f}")
+
+                    ls[:, 0] += cursor_x
+                    ls[:, 1] += line_offset_y
+
+                    prev_eos = 1.0
+                    commands = []
+                    for x, y, eos in zip(*ls.T):
+                        commands.append('{}{},{}'.format('M' if prev_eos == 1.0 else 'L', x, y))
+                        prev_eos = eos
+                    p = ' '.join(commands)
+                    path = svgwrite.path.Path(p)
+                    path = path.stroke(color=segment['color'], width=segment['width'], linecap='round', linejoin='round', miterlimit=2).fill('none')
+                    dwg.add(path)
+
+                    # Advance cursor by segment width
+                    cursor_x += segment_width
 
             elif segment.get('type') == 'override':
                 override_data = segment['override_data']
@@ -515,12 +801,27 @@ def _draw(
                     char_width = char_max_x - char_min_x
                     char_height = char_max_y - char_min_y
 
-                    # Calculate scale to match generated text height
-                    # Generated text renders at: raw_h * s_global (NOT target_h!)
-                    # Override should match: char_height * scale = effective_target_h
-                    # where effective_target_h = avg_raw_h * s_global
+                    # Calculate scale to match ADJACENT generated text height
+                    # Use raw_h from neighboring segments for better local matching
+                    adjacent_raw_heights = []
+                    if seg_idx > 0:
+                        prev_seg = preprocessed_segments[seg_idx - 1]
+                        if prev_seg.get('type') == 'generated' and 'raw_h' in prev_seg:
+                            adjacent_raw_heights.append(prev_seg['raw_h'])
+                    if seg_idx < len(preprocessed_segments) - 1:
+                        next_seg = preprocessed_segments[seg_idx + 1]
+                        if next_seg.get('type') == 'generated' and 'raw_h' in next_seg:
+                            adjacent_raw_heights.append(next_seg['raw_h'])
+
+                    # Use adjacent average if available, otherwise fall back to global
+                    if adjacent_raw_heights:
+                        local_raw_h = sum(adjacent_raw_heights) / len(adjacent_raw_heights)
+                        local_effective_target_h = local_raw_h * s_global
+                    else:
+                        local_effective_target_h = effective_target_h
+
                     if char_height > 0:
-                        scale = effective_target_h / char_height
+                        scale = local_effective_target_h / char_height
                     else:
                         scale = 1.0
 
@@ -536,7 +837,7 @@ def _draw(
                     rendered_height = char_height * scale_y
 
                     # DEBUG: Log override dimensions
-                    print(f"DEBUG override: char='{segment.get('char', '?')}', char_h={char_height:.2f}, scale={scale:.4f}, final_h={rendered_height:.2f}, effective_target_h={effective_target_h:.2f}")
+                    print(f"DEBUG override: char='{segment.get('char', '?')}', char_h={char_height:.2f}, scale={scale:.4f}, final_h={rendered_height:.2f}, local_target_h={local_effective_target_h:.2f}, adjacent_raw_h={adjacent_raw_heights}")
 
                     # Check if there's a space before this override character
                     has_space_before = False
