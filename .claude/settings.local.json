@@ -30,7 +30,8 @@
       "Skill(frontend-design)",
       "Bash(FLASK_DEBUG=1 python:*)",
       "Bash(docker compose:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

@@ -371,7 +371,8 @@ def _draw(
                     ls_temp[:, 0] *= x_stretch
                 total_line_width += ls_temp[:, 0].max()
             elif segment.get('type') == 'override':
-                override_width = segment['estimated_width']
+                # Apply s_global to match generated text scaling
+                override_width = segment['estimated_width'] * s_global
 
                 # Check if there's a space before this override character
                 has_space_before = False
@@ -496,12 +497,13 @@ def _draw(
 
                     # Calculate scale to match generated text height
                     # Generated text: normalized to start at y=0, height=raw_h, then scaled by s_global
-                    # Final height = raw_h * s_global ≈ target_h
-                    # SVG character should have same final height: char_height * scale = target_h
+                    # Final height = raw_h * s_global (which may be < target_h when width-constrained)
+                    # Override should match: char_height * scale = target_h * s_global
+                    effective_target_h = target_h * s_global
                     if char_height > 0:
-                        scale = target_h / char_height
+                        scale = effective_target_h / char_height
                     else:
-                        scale = 1.0
+                        scale = s_global
 
                     scale_x = scale * x_stretch
                     scale_y = scale
