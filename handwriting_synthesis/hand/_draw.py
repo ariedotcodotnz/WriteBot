@@ -261,56 +261,56 @@ def _render_strokes_with_overrides(
                     end_idx = matching_strokes[-1]
                     stroke_range = (start_idx, end_idx)
 
-                    # COMBINED BUFFER APPROACH:
-                    # 1. Stroke index based buffer
-                    # 2. X-position based exclusion zone
-                    # 3. Pen-up (eos) based extension
+                    # AGGRESSIVE EXCLUSION APPROACH:
+                    # The artifacts are "trailing strokes" of the previous character -
+                    # the connecting/cursive tail that extends toward the space.
+                    # We need to exclude:
+                    # 1. All space strokes (char_idx == space_idx)
+                    # 2. The LAST N strokes of the previous character (the tail)
+                    # 3. The FIRST N strokes of the next character (any leading artifacts)
 
-                    # Calculate buffer size based on average strokes per character
+                    # Calculate how many strokes to exclude from adjacent characters
                     total_strokes = ls.shape[0]
                     avg_strokes_per_char = total_strokes / max(1, num_chars)
-                    # Buffer: ~50% of average character's strokes on each side (more aggressive)
-                    stroke_buffer = int(max(5, avg_strokes_per_char * 0.5))
+                    # Tail buffer: ~40% of average character's strokes
+                    tail_buffer = int(max(8, avg_strokes_per_char * 0.4))
 
-                    # Expand range by stroke buffer
-                    expanded_start = max(0, start_idx - stroke_buffer)
-                    expanded_end = min(ls.shape[0] - 1, end_idx + stroke_buffer)
+                    # Start with the space strokes
+                    expanded_start = start_idx
+                    expanded_end = end_idx
 
-                    # Also create an X-position exclusion zone
-                    # Find the X range of the space strokes
-                    space_x_coords = ls[start_idx:end_idx+1, 0]
-                    space_x_min = space_x_coords.min() if len(space_x_coords) > 0 else ls[start_idx, 0]
-                    space_x_max = space_x_coords.max() if len(space_x_coords) > 0 else ls[start_idx, 0]
+                    # Find previous character's strokes and exclude its tail
+                    prev_char_idx = char_idx - 1
+                    if prev_char_idx >= 0:
+                        prev_char_strokes = np.where(char_indices == prev_char_idx)[0]
+                        if len(prev_char_strokes) > 0:
+                            # Exclude the last tail_buffer strokes of the previous character
+                            prev_char_end_stroke = prev_char_strokes[-1]
+                            prev_char_tail_start = max(prev_char_strokes[0], prev_char_end_stroke - tail_buffer + 1)
+                            expanded_start = min(expanded_start, prev_char_tail_start)
+                            print(f"DEBUG: Excluding tail of prev char (idx {prev_char_idx}): strokes [{prev_char_tail_start}, {prev_char_end_stroke}]")
 
-                    # Expand X zone by 0.5 * avg_char_width on each side
-                    x_buffer = avg_char_width * 0.5
-                    exclusion_x_min = space_x_min - x_buffer
-                    exclusion_x_max = space_x_max + x_buffer
+                    # Find next character's strokes and exclude its leading strokes
+                    next_char_idx = char_idx + 1
+                    if next_char_idx <= char_indices.max():
+                        next_char_strokes = np.where(char_indices == next_char_idx)[0]
+                        if len(next_char_strokes) > 0:
+                            # Exclude the first few strokes of the next character (smaller buffer)
+                            next_char_start_stroke = next_char_strokes[0]
+                            lead_buffer = tail_buffer // 2  # Smaller buffer for leading strokes
+                            next_char_lead_end = min(next_char_strokes[-1], next_char_start_stroke + lead_buffer - 1)
+                            expanded_end = max(expanded_end, next_char_lead_end)
+                            print(f"DEBUG: Excluding lead of next char (idx {next_char_idx}): strokes [{next_char_start_stroke}, {next_char_lead_end}]")
 
-                    # Now expand stroke range to include ANY stroke with X in the exclusion zone
-                    # Search backward from expanded_start
-                    while expanded_start > 0:
-                        prev_x = ls[expanded_start - 1, 0]
-                        prev_eos = ls[expanded_start - 1, 2]
-                        # Include if X is in zone OR if it's a pen-up transition
-                        if exclusion_x_min <= prev_x <= exclusion_x_max or prev_eos > 0.5:
-                            expanded_start -= 1
-                        else:
-                            break
-
-                    # Search forward from expanded_end
-                    while expanded_end < ls.shape[0] - 1:
-                        next_x = ls[expanded_end + 1, 0]
-                        next_eos = ls[expanded_end, 2]  # Current stroke's eos indicates break after
-                        # Include if X is in zone OR if current is pen-up
-                        if exclusion_x_min <= next_x <= exclusion_x_max or next_eos > 0.5:
-                            expanded_end += 1
-                        else:
-                            break
+                    # Also extend to catch any pen-up transitions at the boundaries
+                    while expanded_start > 0 and ls[expanded_start - 1, 2] > 0.5:
+                        expanded_start -= 1
+                    while expanded_end < ls.shape[0] - 1 and ls[expanded_end, 2] > 0.5:
+                        expanded_end += 1
 
                     exclusion_range = (expanded_start, expanded_end)
                     num_excluded = expanded_end - expanded_start + 1
-                    print(f"DEBUG: Expanded exclusion range from [{start_idx}, {end_idx}] to [{expanded_start}, {expanded_end}] ({num_excluded} strokes, buffer={stroke_buffer})")
+                    print(f"DEBUG: Final exclusion range [{expanded_start}, {expanded_end}] ({num_excluded} strokes, tail_buffer={tail_buffer})")
 
                     insertion_x = ls[start_idx, 0]
                 else:
@@ -930,9 +930,15 @@ def _draw(
                         char_indices=char_indices  # NEW: Pass char_indices for precise cutting
                     )
                 else:
-                    # STANDARD PATH: No overrides, render normally
+                    # STANDARD PATH: No overrides in this segment, render normally
                     ls = segment['strokes'].copy()
                     raw_h_before_scale = ls[:, 1].max()
+
+                    # NOTE: With the space-placeholder approach, we no longer need aggressive
+                    # clipping for segments adjacent to overrides. Text is generated as a
+                    # continuous sequence with spaces where overrides go, and char_indices
+                    # from attention give us precise cutting positions.
+
                     ls[:, :2] *= s_global
                     if x_stretch != 1.0:
                         ls[:, 0] *= x_stretch
@@ -942,8 +948,8 @@ def _draw(
                         ls[:, 0] *= line_scale_x
 
                     # Track segment width before translating
-                    segment_width = ls[:, 0].max()
-                    segment_height = ls[:, 1].max()
+                    segment_width = ls[:, 0].max() if ls.shape[0] > 0 else 0
+                    segment_height = ls[:, 1].max() if ls.shape[0] > 0 else 0
 
                     # Add inter-segment spacing
                     prev_seg = preprocessed_segments[seg_idx - 1] if seg_idx > 0 else None
@@ -953,18 +959,19 @@ def _draw(
                     # DEBUG: Log generated segment dimensions
                     print(f"DEBUG generated: text='{segment.get('text', '')[:20]}', raw_h={raw_h_before_scale:.2f}, final_h={segment_height:.2f}")
 
-                    ls[:, 0] += cursor_x
-                    ls[:, 1] += line_offset_y
+                    if ls.shape[0] > 0:
+                        ls[:, 0] += cursor_x
+                        ls[:, 1] += line_offset_y
 
-                    prev_eos = 1.0
-                    commands = []
-                    for x, y, eos in zip(*ls.T):
-                        commands.append('{}{},{}'.format('M' if prev_eos == 1.0 else 'L', x, y))
-                        prev_eos = eos
-                    p = ' '.join(commands)
-                    path = svgwrite.path.Path(p)
-                    path = path.stroke(color=segment['color'], width=segment['width'], linecap='round', linejoin='round', miterlimit=2).fill('none')
-                    dwg.add(path)
+                        prev_eos = 1.0
+                        commands = []
+                        for x, y, eos in zip(*ls.T):
+                            commands.append('{}{},{}'.format('M' if prev_eos == 1.0 else 'L', x, y))
+                            prev_eos = eos
+                        p = ' '.join(commands)
+                        path = svgwrite.path.Path(p)
+                        path = path.stroke(color=segment['color'], width=segment['width'], linecap='round', linejoin='round', miterlimit=2).fill('none')
+                        dwg.add(path)
 
                     # Advance cursor by segment width
                     cursor_x += segment_width
