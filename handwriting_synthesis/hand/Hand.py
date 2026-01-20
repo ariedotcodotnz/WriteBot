@@ -458,22 +458,8 @@ class Hand(object):
                                 f"Valid character set is {valid_char_set}"
                             )
 
-                # STEP 4: Calculate style offset (char_indices are offset when styles are used)
-                # When styles are used, text is prepended: "style_chars" + " " + actual_text
-                # So char_indices for actual text start at len(style_chars) + 1
-                style_char_offset = 0
-                if styles is not None:
-                    try:
-                        from handwriting_synthesis.config import style_path
-                        style_id = styles if not isinstance(styles, list) else styles[0]
-                        style_chars = np.load(f"{style_path}/style-{style_id}-chars.npy").tostring().decode('utf-8')
-                        style_char_offset = len(style_chars) + 1  # +1 for the space separator
-                        print(f"DEBUG: Style priming active, char_indices offset = {style_char_offset}")
-                    except Exception as e:
-                        print(f"DEBUG: Could not determine style offset: {e}")
-                        style_char_offset = 0
-
-                # STEP 5: Generate strokes for modified chunks WITH char_indices
+                # STEP 4: Generate strokes for modified chunks WITH char_indices
+                # NOTE: char_indices offset is detected automatically from min(char_indices) in each chunk
                 chunk_strokes, chunk_char_indices = self._sample(
                     modified_chunks,
                     biases=[biases] * len(modified_chunks) if biases is not None else None,
@@ -495,13 +481,18 @@ class Hand(object):
                 ):
                     has_overrides = len(chunk_overrides) > 0
 
-                    # Adjust override positions for style offset
-                    # char_indices from the model include the style prime, so we need to add the offset
-                    adjusted_overrides = [(local_idx + style_char_offset, char) for local_idx, char in chunk_overrides]
+                    # CRITICAL FIX: Detect the actual char_indices offset from the data itself
+                    # char_indices from the model start at min(char_indices), not 0
+                    # This accounts for style priming and any other offsets automatically
+                    actual_offset = int(char_indices.min()) if len(char_indices) > 0 else 0
+
+                    # Adjust override positions using the detected offset
+                    adjusted_overrides = [(local_idx + actual_offset, char) for local_idx, char in chunk_overrides]
 
                     print(f"DEBUG: Processing chunk {chunk_idx} '{modified_chunk}': has_overrides={has_overrides}")
                     print(f"DEBUG:   Original positions: {chunk_overrides}")
-                    print(f"DEBUG:   Adjusted positions (with style offset {style_char_offset}): {adjusted_overrides}")
+                    print(f"DEBUG:   Detected char_indices offset: {actual_offset}")
+                    print(f"DEBUG:   Adjusted positions: {adjusted_overrides}")
                     if has_overrides:
                         print(f"DEBUG:   char_indices range: [{char_indices.min()}, {char_indices.max()}], unique values: {np.unique(char_indices)[:20]}...")
 
