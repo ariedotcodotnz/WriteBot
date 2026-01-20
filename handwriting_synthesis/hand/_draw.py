@@ -17,6 +17,52 @@ PAPER_SIZES_MM = {
 }
 
 
+def _extract_svg_coordinates(d_string):
+    """
+    Extract all coordinate points from an SVG path 'd' attribute.
+
+    Handles M, L, C, Q, A commands (absolute and relative) to properly
+    calculate bounding boxes for characters with curves (like '!' dot).
+
+    Args:
+        d_string: The 'd' attribute value from an SVG path element.
+
+    Returns:
+        List of (x, y) tuples representing all coordinate points.
+    """
+    coords = []
+
+    # M/L: x y (move/line commands)
+    for match in re.finditer(r'[MLml]\s*([-\d.]+)[,\s]+([-\d.]+)', d_string):
+        coords.append((float(match.group(1)), float(match.group(2))))
+
+    # C (cubic bezier): x1 y1, x2 y2, x y - capture all 3 points for bounding box
+    for match in re.finditer(r'[Cc]\s*([-\d.]+)[,\s]+([-\d.]+)[,\s]+([-\d.]+)[,\s]+([-\d.]+)[,\s]+([-\d.]+)[,\s]+([-\d.]+)', d_string):
+        coords.append((float(match.group(1)), float(match.group(2))))  # control point 1
+        coords.append((float(match.group(3)), float(match.group(4))))  # control point 2
+        coords.append((float(match.group(5)), float(match.group(6))))  # endpoint
+
+    # Q (quadratic bezier): x1 y1, x y - capture both points
+    for match in re.finditer(r'[Qq]\s*([-\d.]+)[,\s]+([-\d.]+)[,\s]+([-\d.]+)[,\s]+([-\d.]+)', d_string):
+        coords.append((float(match.group(1)), float(match.group(2))))  # control point
+        coords.append((float(match.group(3)), float(match.group(4))))  # endpoint
+
+    # S (smooth cubic): x2 y2, x y - capture both points
+    for match in re.finditer(r'[Ss]\s*([-\d.]+)[,\s]+([-\d.]+)[,\s]+([-\d.]+)[,\s]+([-\d.]+)', d_string):
+        coords.append((float(match.group(1)), float(match.group(2))))
+        coords.append((float(match.group(3)), float(match.group(4))))
+
+    # T (smooth quadratic): x y
+    for match in re.finditer(r'[Tt]\s*([-\d.]+)[,\s]+([-\d.]+)', d_string):
+        coords.append((float(match.group(1)), float(match.group(2))))
+
+    # A (arc): rx ry angle large-arc sweep x y - capture endpoint
+    for match in re.finditer(r'[Aa]\s*[-\d.]+[,\s]+[-\d.]+[,\s]+[-\d.]+[,\s]+[01][,\s]+[01][,\s]+([-\d.]+)[,\s]+([-\d.]+)', d_string):
+        coords.append((float(match.group(1)), float(match.group(2))))
+
+    return coords
+
+
 def _to_px(value, units):
     """
     Converts a value to pixels based on the given unit.
@@ -222,10 +268,11 @@ def _render_strokes_with_overrides(
                 tag_name = elem.tag.split('}')[-1] if '}' in elem.tag else elem.tag
                 if tag_name == 'path':
                     d = elem.get('d', '')
-                    coords = re.findall(r'[ML]\s*([-\d.]+)\s+([-\d.]+)', d)
+                    # Use comprehensive SVG parsing to capture bezier curves (e.g., for '!' dot)
+                    coords = _extract_svg_coordinates(d)
                     for x, y in coords:
-                        all_x_coords.append(float(x))
-                        all_y_coords.append(float(y))
+                        all_x_coords.append(x)
+                        all_y_coords.append(y)
 
             if not all_x_coords or not all_y_coords:
                 print(f"Warning: No coordinates found for override '{override_char}'")
@@ -261,48 +308,14 @@ def _render_strokes_with_overrides(
                     end_idx = matching_strokes[-1]
                     stroke_range = (start_idx, end_idx)
 
-                    # AGGRESSIVE EXCLUSION APPROACH:
-                    # The artifacts are "trailing strokes" of the previous character -
-                    # the connecting/cursive tail that extends toward the space.
-                    # We need to exclude:
-                    # 1. All space strokes (char_idx == space_idx)
-                    # 2. The LAST N strokes of the previous character (the tail)
-                    # 3. The FIRST N strokes of the next character (any leading artifacts)
-
-                    # Calculate how many strokes to exclude from adjacent characters
-                    total_strokes = ls.shape[0]
-                    avg_strokes_per_char = total_strokes / max(1, num_chars)
-                    # Tail buffer: ~40% of average character's strokes
-                    tail_buffer = int(max(8, avg_strokes_per_char * 0.4))
-
-                    # Start with the space strokes
+                    # SIMPLIFIED EXCLUSION: Only exclude the space placeholder strokes
+                    # Don't aggressively cut into adjacent characters - this was causing
+                    # visible artifacts by removing actual character strokes.
                     expanded_start = start_idx
                     expanded_end = end_idx
 
-                    # Find previous character's strokes and exclude its tail
-                    prev_char_idx = char_idx - 1
-                    if prev_char_idx >= 0:
-                        prev_char_strokes = np.where(char_indices == prev_char_idx)[0]
-                        if len(prev_char_strokes) > 0:
-                            # Exclude the last tail_buffer strokes of the previous character
-                            prev_char_end_stroke = prev_char_strokes[-1]
-                            prev_char_tail_start = max(prev_char_strokes[0], prev_char_end_stroke - tail_buffer + 1)
-                            expanded_start = min(expanded_start, prev_char_tail_start)
-                            print(f"DEBUG: Excluding tail of prev char (idx {prev_char_idx}): strokes [{prev_char_tail_start}, {prev_char_end_stroke}]")
-
-                    # Find next character's strokes and exclude its leading strokes
-                    next_char_idx = char_idx + 1
-                    if next_char_idx <= char_indices.max():
-                        next_char_strokes = np.where(char_indices == next_char_idx)[0]
-                        if len(next_char_strokes) > 0:
-                            # Exclude the first few strokes of the next character (smaller buffer)
-                            next_char_start_stroke = next_char_strokes[0]
-                            lead_buffer = tail_buffer // 2  # Smaller buffer for leading strokes
-                            next_char_lead_end = min(next_char_strokes[-1], next_char_start_stroke + lead_buffer - 1)
-                            expanded_end = max(expanded_end, next_char_lead_end)
-                            print(f"DEBUG: Excluding lead of next char (idx {next_char_idx}): strokes [{next_char_start_stroke}, {next_char_lead_end}]")
-
-                    # Also extend to catch any pen-up transitions at the boundaries
+                    # Only extend to include pen-up transitions at boundaries
+                    # This catches connecting strokes that are part of the transition
                     while expanded_start > 0 and ls[expanded_start - 1, 2] > 0.5:
                         expanded_start -= 1
                     while expanded_end < ls.shape[0] - 1 and ls[expanded_end, 2] > 0.5:
@@ -310,10 +323,12 @@ def _render_strokes_with_overrides(
 
                     exclusion_range = (expanded_start, expanded_end)
                     num_excluded = expanded_end - expanded_start + 1
-                    print(f"DEBUG: Final exclusion range [{expanded_start}, {expanded_end}] ({num_excluded} strokes, tail_buffer={tail_buffer})")
+                    print(f"DEBUG: Exclusion for '{override_char}' (char_idx={char_idx}): "
+                          f"strokes [{expanded_start}, {expanded_end}] ({num_excluded} strokes)")
 
                     insertion_x = ls[start_idx, 0]
                 else:
+                    print(f"DEBUG: No matching strokes for char_idx={char_idx}, falling back to position estimate")
                     insertion_x = stroke_min_x + (char_idx * avg_char_width)
                     exclusion_range = None
             else:
@@ -989,10 +1004,11 @@ def _draw(
                         tag_name = elem.tag.split('}')[-1] if '}' in elem.tag else elem.tag
                         if tag_name == 'path':
                             d = elem.get('d', '')
-                            coords = re.findall(r'[ML]\s*([-\d.]+)\s+([-\d.]+)', d)
+                            # Use comprehensive SVG parsing to capture bezier curves (e.g., for '!' dot)
+                            coords = _extract_svg_coordinates(d)
                             for x, y in coords:
-                                all_x_coords.append(float(x))
-                                all_y_coords.append(float(y))
+                                all_x_coords.append(x)
+                                all_y_coords.append(y)
 
                     if not all_x_coords or not all_y_coords:
                         print(f"Warning: No coordinates found for override '{segment.get('char', '?')}'")
