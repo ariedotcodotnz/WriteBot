@@ -302,31 +302,61 @@ def _render_strokes_with_overrides(
             exclusion_range = None  # Expanded range for excluding transition strokes
 
             if use_precise_indices:
-                # DEBUG: Show what we're looking for vs what's available
-                unique_indices = np.unique(char_indices)
                 print(f"DEBUG: Looking for char_idx={char_idx} in char_indices")
                 print(f"DEBUG:   char_indices range: [{char_indices.min()}, {char_indices.max()}]")
 
-                matching_strokes = np.where(char_indices == char_idx)[0]
-                if len(matching_strokes) > 0:
-                    start_idx = matching_strokes[0]
-                    end_idx = matching_strokes[-1]
-                    stroke_range = (start_idx, end_idx)
+                # IMPROVED APPROACH: Find characters with SUFFICIENT strokes (not just immediate neighbors)
+                # Spaces may have very few strokes, so we search outward until we find substantial characters
+                min_strokes_threshold = 3  # Require at least this many strokes to be reliable
 
-                    # Get the X position at the START of the space placeholder strokes
-                    insertion_x = ls[start_idx, 0]
-                    print(f"DEBUG:   FOUND {len(matching_strokes)} matching strokes at indices [{start_idx}, {end_idx}]")
-                    print(f"DEBUG:   Insertion X position: {insertion_x:.2f}")
+                # Search backwards for previous substantial character
+                prev_strokes = np.array([], dtype=int)
+                for search_idx in range(char_idx - 1, int(char_indices.min()) - 1, -1):
+                    candidate_strokes = np.where(char_indices == search_idx)[0]
+                    if len(candidate_strokes) >= min_strokes_threshold:
+                        prev_strokes = candidate_strokes
+                        print(f"DEBUG:   Found prev char at idx {search_idx} with {len(candidate_strokes)} strokes")
+                        break
 
-                    # NEW APPROACH: Don't exclude strokes! The char_indices boundaries are fuzzy.
-                    # Instead, we'll use X-position based shifting to create a gap.
-                    # Set exclusion_range to None to disable stroke exclusion.
-                    exclusion_range = None
+                # Search forwards for next substantial character
+                next_strokes = np.array([], dtype=int)
+                for search_idx in range(char_idx + 1, int(char_indices.max()) + 1):
+                    candidate_strokes = np.where(char_indices == search_idx)[0]
+                    if len(candidate_strokes) >= min_strokes_threshold:
+                        next_strokes = candidate_strokes
+                        print(f"DEBUG:   Found next char at idx {search_idx} with {len(candidate_strokes)} strokes")
+                        break
+
+                if len(prev_strokes) > 0 and len(next_strokes) > 0:
+                    # Get the X position at the END of previous character
+                    prev_end_x = ls[prev_strokes[-1], 0]
+                    # Get the X position at the START of next character
+                    next_start_x = ls[next_strokes[0], 0]
+                    # Insert closer to the start of the next character (leave room for any space)
+                    # Weight towards next_start_x since we want override right before the number/letter
+                    insertion_x = prev_end_x + (next_start_x - prev_end_x) * 0.3
+                    stroke_range = (prev_strokes[-1], next_strokes[0])
+                    print(f"DEBUG:   Using BETWEEN approach: prev ends at {prev_end_x:.2f}, next starts at {next_start_x:.2f}")
+                    print(f"DEBUG:   Insertion X position: {insertion_x:.2f} (30% into gap)")
+                elif len(prev_strokes) > 0:
+                    # Only have previous character - insert after it
+                    prev_end_x = ls[prev_strokes[-1], 0]
+                    insertion_x = prev_end_x + avg_char_width * 0.3
+                    stroke_range = (prev_strokes[-1], prev_strokes[-1])
+                    print(f"DEBUG:   Using AFTER-PREV approach: inserting after {prev_end_x:.2f}")
+                elif len(next_strokes) > 0:
+                    # Only have next character - insert before it
+                    next_start_x = ls[next_strokes[0], 0]
+                    insertion_x = next_start_x - avg_char_width * 0.3
+                    stroke_range = (next_strokes[0], next_strokes[0])
+                    print(f"DEBUG:   Using BEFORE-NEXT approach: inserting before {next_start_x:.2f}")
                 else:
-                    print(f"DEBUG:   NOT FOUND! char_idx={char_idx} not in char_indices. Falling back to position estimate.")
+                    # Fallback to position estimate
+                    print(f"DEBUG:   No adjacent chars found. Falling back to position estimate.")
                     insertion_x = stroke_min_x + ((char_idx - char_indices.min()) * avg_char_width)
                     stroke_range = None
-                    exclusion_range = None
+
+                exclusion_range = None
             else:
                 insertion_x = stroke_min_x + (char_idx * avg_char_width)
                 stroke_range = None
@@ -365,15 +395,34 @@ def _render_strokes_with_overrides(
     for info in override_info:
         char_idx = info['char_idx']
         override_width = info['override_width']
-        exclusion_range = info.get('exclusion_range')  # Only use explicit exclusion_range, NOT stroke_range
+        stroke_range = info.get('stroke_range')
 
         # Add small spacing around override (like natural character spacing)
-        spacing = avg_char_width * 0.15
-        total_shift = override_width + spacing * 2
+        spacing = avg_char_width * 0.1  # Reduced from 0.15
+
+        # Calculate the existing gap width (space placeholder takes some natural width)
+        insertion_x = info['insertion_x']
+
+        # Get the existing space width from the stroke range
+        if stroke_range is not None:
+            prev_stroke_idx, next_stroke_idx = stroke_range
+            # The existing gap is from end of prev char to start of next char
+            existing_gap = ls[next_stroke_idx, 0] - ls[prev_stroke_idx, 0]
+        else:
+            existing_gap = avg_char_width * 0.5  # Fallback estimate
+
+        # Only shift by the ADDITIONAL space needed beyond what's already there
+        # We want: existing_gap -> override_width + small_spacing
+        extra_needed = (override_width + spacing) - existing_gap
+        total_shift = max(0, extra_needed)
+
+        print(f"DEBUG: existing_gap={existing_gap:.2f}, override_width={override_width:.2f}, extra_needed={extra_needed:.2f}")
+
+        # Store for SVG positioning
+        info['existing_gap'] = existing_gap
 
         # ALWAYS use X-position based shifting - this is more reliable than stroke exclusion
         # The char_indices boundaries are fuzzy and excluding strokes cuts into adjacent chars
-        insertion_x = info['insertion_x']
         mask = ls[:, 0] > insertion_x
         cumulative_shift[mask] += total_shift
         print(f"DEBUG: X-position shift at {insertion_x:.2f}, shifting {np.sum(mask)} strokes by {total_shift:.2f}")
@@ -413,18 +462,21 @@ def _render_strokes_with_overrides(
         override_data = info['override_data']
         override_width = info['override_width']
         stroke_range = info['stroke_range']
+        existing_gap = info.get('existing_gap', avg_char_width * 0.5)
 
-        spacing = avg_char_width * 0.15
+        # Small spacing before override (consistent with shift calculation)
+        spacing = avg_char_width * 0.05  # Small gap before override
 
         # Calculate position accounting for previous shifts
         if use_precise_indices and stroke_range is not None:
-            start_idx, end_idx = stroke_range
-            # Use the shifted position
-            base_x = ls_shifted[start_idx, 0] - shifted_min_x + cursor_x
+            prev_stroke_idx, next_stroke_idx = stroke_range
+            # Position after the previous character ends (in shifted coordinates)
+            prev_end_x_shifted = ls_shifted[prev_stroke_idx, 0]
+            base_x = prev_end_x_shifted - shifted_min_x + cursor_x
         else:
             base_x = info['insertion_x'] - stroke_min_x + cursor_x + running_shift
 
-        # Add spacing before the override
+        # Place override with small spacing after previous character
         override_start_x = base_x + spacing
 
         # Position override SVG
