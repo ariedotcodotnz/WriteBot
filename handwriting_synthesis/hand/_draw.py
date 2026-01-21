@@ -305,7 +305,6 @@ def _render_strokes_with_overrides(
                 # DEBUG: Show what we're looking for vs what's available
                 unique_indices = np.unique(char_indices)
                 print(f"DEBUG: Looking for char_idx={char_idx} in char_indices")
-                print(f"DEBUG:   char_indices unique values: {unique_indices}")
                 print(f"DEBUG:   char_indices range: [{char_indices.min()}, {char_indices.max()}]")
 
                 matching_strokes = np.where(char_indices == char_idx)[0]
@@ -313,34 +312,24 @@ def _render_strokes_with_overrides(
                     start_idx = matching_strokes[0]
                     end_idx = matching_strokes[-1]
                     stroke_range = (start_idx, end_idx)
-                    print(f"DEBUG:   FOUND {len(matching_strokes)} matching strokes at indices [{start_idx}, {end_idx}]")
 
-                    # SIMPLIFIED EXCLUSION: Only exclude the space placeholder strokes
-                    # Don't aggressively cut into adjacent characters - this was causing
-                    # visible artifacts by removing actual character strokes.
-                    expanded_start = start_idx
-                    expanded_end = end_idx
-
-                    # Only extend to include pen-up transitions at boundaries
-                    # This catches connecting strokes that are part of the transition
-                    while expanded_start > 0 and ls[expanded_start - 1, 2] > 0.5:
-                        expanded_start -= 1
-                    while expanded_end < ls.shape[0] - 1 and ls[expanded_end, 2] > 0.5:
-                        expanded_end += 1
-
-                    exclusion_range = (expanded_start, expanded_end)
-                    num_excluded = expanded_end - expanded_start + 1
-                    print(f"DEBUG: Exclusion for '{override_char}' (char_idx={char_idx}): "
-                          f"strokes [{expanded_start}, {expanded_end}] ({num_excluded} strokes)")
-
+                    # Get the X position at the START of the space placeholder strokes
                     insertion_x = ls[start_idx, 0]
+                    print(f"DEBUG:   FOUND {len(matching_strokes)} matching strokes at indices [{start_idx}, {end_idx}]")
                     print(f"DEBUG:   Insertion X position: {insertion_x:.2f}")
+
+                    # NEW APPROACH: Don't exclude strokes! The char_indices boundaries are fuzzy.
+                    # Instead, we'll use X-position based shifting to create a gap.
+                    # Set exclusion_range to None to disable stroke exclusion.
+                    exclusion_range = None
                 else:
                     print(f"DEBUG:   NOT FOUND! char_idx={char_idx} not in char_indices. Falling back to position estimate.")
-                    insertion_x = stroke_min_x + (char_idx * avg_char_width)
+                    insertion_x = stroke_min_x + ((char_idx - char_indices.min()) * avg_char_width)
+                    stroke_range = None
                     exclusion_range = None
             else:
                 insertion_x = stroke_min_x + (char_idx * avg_char_width)
+                stroke_range = None
                 exclusion_range = None
 
             override_info.append({
@@ -376,25 +365,18 @@ def _render_strokes_with_overrides(
     for info in override_info:
         char_idx = info['char_idx']
         override_width = info['override_width']
-        exclusion_range = info.get('exclusion_range') or info.get('stroke_range')
+        exclusion_range = info.get('exclusion_range')  # Only use explicit exclusion_range, NOT stroke_range
 
         # Add small spacing around override (like natural character spacing)
         spacing = avg_char_width * 0.15
         total_shift = override_width + spacing * 2
 
-        if use_precise_indices and exclusion_range is not None:
-            start_idx, end_idx = exclusion_range
-            # Add all strokes in exclusion range to the set
-            for idx in range(start_idx, end_idx + 1):
-                excluded_stroke_indices.add(idx)
-            # Shift all strokes AFTER the exclusion range
-            cumulative_shift[end_idx + 1:] += total_shift
-            print(f"DEBUG: Excluding strokes [{start_idx}, {end_idx}], shifting after by {total_shift:.2f}")
-        else:
-            # Fallback: shift based on X position
-            insertion_x = info['insertion_x']
-            mask = ls[:, 0] > insertion_x
-            cumulative_shift[mask] += total_shift
+        # ALWAYS use X-position based shifting - this is more reliable than stroke exclusion
+        # The char_indices boundaries are fuzzy and excluding strokes cuts into adjacent chars
+        insertion_x = info['insertion_x']
+        mask = ls[:, 0] > insertion_x
+        cumulative_shift[mask] += total_shift
+        print(f"DEBUG: X-position shift at {insertion_x:.2f}, shifting {np.sum(mask)} strokes by {total_shift:.2f}")
 
     # Apply shifts to X coordinates
     ls_shifted[:, 0] += cumulative_shift
@@ -411,31 +393,11 @@ def _render_strokes_with_overrides(
     prev_eos = 1.0
     commands = []
 
-    if use_precise_indices:
-        # Use the expanded exclusion set (includes transition strokes)
-        for stroke_idx, (x, y, eos) in enumerate(zip(*ls_render.T)):
-            if stroke_idx in excluded_stroke_indices:
-                # Skip this stroke, mark as stroke break
-                prev_eos = 1.0
-            else:
-                commands.append('{}{},{}'.format('M' if prev_eos == 1.0 else 'L', x, y))
-                prev_eos = eos
-    else:
-        # Fallback using exclusion zones
-        exclusion_zones = []
-        for info in override_info:
-            zone_start = info['insertion_x'] - shifted_min_x
-            zone_end = zone_start + info['override_width']
-            exclusion_zones.append((zone_start, zone_end))
-
-        for x, y, eos in zip(*ls_render.T):
-            rel_x = x - cursor_x
-            in_exclusion = any(start <= rel_x <= end for start, end in exclusion_zones)
-            if in_exclusion:
-                prev_eos = 1.0
-            else:
-                commands.append('{}{},{}'.format('M' if prev_eos == 1.0 else 'L', x, y))
-                prev_eos = eos
+    # RENDER ALL STROKES - no exclusion!
+    # We use X-position shifting to create gaps, so all strokes are valid
+    for x, y, eos in zip(*ls_render.T):
+        commands.append('{}{},{}'.format('M' if prev_eos == 1.0 else 'L', x, y))
+        prev_eos = eos
 
     if commands:
         p = ' '.join(commands)
