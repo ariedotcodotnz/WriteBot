@@ -16,6 +16,48 @@ PAPER_SIZES_MM = {
     'Legal': (215.9, 355.6),
 }
 
+# --- Natural handwriting sizing -------------------------------------------------
+# Auto-sizing targets a physical x-height (the height of lowercase letters such as
+# a / e / o) rather than fitting the worst-case stroke extent. ~4.5 mm matches
+# normal ballpoint handwriting. Override per call with writing_size_mm.
+NATURAL_WRITING_SIZE_MM = 4.5
+# Auto line advance as a multiple of the rendered x-height. ~2.1x leaves room for
+# ascenders/descenders without large gaps (natural single spacing).
+LINE_SPACING_PER_XHEIGHT = 2.1
+# Width clamp fits every line up to this multiple of the median line width; lines
+# wider than that are treated as outliers (e.g. an unwrapped long token) and are
+# condensed per-line at render time instead of shrinking the whole document.
+WIDTH_OUTLIER_FACTOR = 2.0
+
+# Empirical correction for the size-aware wrap width (Hand.write_chunked). The wrap
+# width is derived from per-chunk x-heights, but _draw renders stitched, aligned,
+# de-noised lines whose measured x-height is a bit smaller, so without this lines
+# would render ~20% under the requested size. Calibrated against real model output.
+WRAP_SIZE_CALIBRATION = 0.82
+
+
+def _estimate_xheight(ls):
+    """Estimate the x-height (lowercase body height) of an aligned stroke array.
+
+    ``ls`` is in the normalised layout space produced in the first pass (y in
+    ``[0, raw_h]`` with the baseline near the bottom). Letter bodies form a dense
+    central band while ascenders (l, h, k) and descenders (g, y, p) are a small
+    fraction of the points. Taking the 10th..90th percentile span of the y values
+    yields a body-height estimate that stays stable regardless of which letters
+    happen to appear -- unlike the raw maximum extent, which a single tall stroke
+    inflates and which is the reason the previous logic shrank text inconsistently.
+
+    Returns the band height (a positive float); falls back to the full extent for
+    very short stroke arrays.
+    """
+    if ls.shape[0] < 8:
+        return max(1e-6, float(ls[:, 1].max()) if ls.shape[0] else 1e-6)
+    ys = ls[:, 1]
+    band = float(np.percentile(ys, 90.0) - np.percentile(ys, 10.0))
+    if band <= 1e-6:
+        band = max(1e-6, float(ys.max()))
+    return band
+
 
 def _extract_svg_coordinates(d_string):
     """
@@ -547,6 +589,7 @@ def _draw(
     empty_line_spacing=None,
     auto_size=True,
     manual_size_scale=1.0,
+    writing_size_mm=None,  # Target x-height in mm for natural sizing (None -> NATURAL_WRITING_SIZE_MM)
     character_override_collection_id=None,
     overrides_dict=None,  # New parameter
     margin_jitter_frac=None,  # Bi-directional left margin jitter (fraction of content width)
@@ -606,10 +649,12 @@ def _draw(
     content_width_px = max(1.0, width_px - (m_left + m_right))
     content_height_px = max(1.0, height_px - (m_top + m_bottom))
 
-    line_height_px = _to_px(line_height, units) if line_height is not None else default_line_height_px
-    # Ensure all lines fit vertically
-    max_line_height_px = content_height_px / max(1, len(line_segments) + 0)
-    line_height_px = min(line_height_px, max_line_height_px)
+    # Requested line advance (px). When None we derive a natural one from the text
+    # size below. The previous content_height/num_lines cram is gone: keeping the
+    # output on one page is handled once, after sizing, by scaling size + spacing
+    # together (see the sizing block) so spacing always tracks the letter size.
+    line_height_given = line_height is not None
+    line_height_px = _to_px(line_height, units) if line_height_given else default_line_height_px
 
     # Empty line spacing: if not specified, use regular line_height_px
     empty_line_spacing_px = _to_px(empty_line_spacing, units) if empty_line_spacing is not None else line_height_px
@@ -648,10 +693,14 @@ def _draw(
     if margin_jitter_coherence is None:
         margin_jitter_coherence = {'high': 0.0, 'normal': 0.4}.get(legibility, 0.3)
 
-    # First pass: preprocess each line and compute per-line max allowed scale
+    # First pass: preprocess each line, measuring a robust per-segment x-height
+    # (drives the natural text size) and per-line widths (drives the width clamp).
+    # target_h is only a stable REFERENCE for override scaling -- it cancels out of
+    # the override width math, so its exact value does not affect the output.
     preprocessed_lines = []
-    scale_limits = []
-    raw_heights = []  # Track raw heights for computing average
+    raw_heights = []       # full stroke extents, used for override size matching
+    xheights = []          # robust body heights, used to pick the natural text size
+    line_raw_widths = []   # summed generated raw width per line, for the width clamp
     target_h = 0.95 * line_height_px
 
     for line_idx, segment_list in enumerate(line_segments):
@@ -662,6 +711,7 @@ def _draw(
         preprocessed_segments = []
         color = stroke_colors[line_idx]
         width = stroke_widths[line_idx]
+        line_gen_raw_w = 0.0  # accumulated generated stroke width for this line
 
         for segment in segment_list:
             if segment['type'] == 'override':
@@ -725,18 +775,15 @@ def _draw(
                 ls[:, :2] -= min_xy
                 raw_w = max(1e-6, ls[:, 0].max())
                 raw_h = max(1e-6, ls[:, 1].max())
-                s_w = content_width_px / raw_w
-                s_h = target_h / raw_h
-                scale_limits.append(min(s_w, s_h))
-                raw_heights.append(raw_h)  # Track for average calculation
-
-                # DEBUG: Log preprocessing values
-                print(f"DEBUG preprocess: text='{segment.get('text', '')[:20]}', raw_h={raw_h:.2f}, s_h={s_h:.4f}, s_w={s_w:.4f}, has_overrides={has_overrides}")
+                raw_heights.append(raw_h)          # full extent (override matching)
+                xheights.append(_estimate_xheight(ls))  # robust body height (sizing)
+                line_gen_raw_w += raw_w
 
                 preprocessed_segments.append({
                     'type': 'generated',
                     'strokes': ls,
                     'raw_h': raw_h,  # Store for adjacent override sizing
+                    'raw_w': raw_w,  # cached so the width pass need not re-measure
                     'color': color,
                     'width': width,
                     'text': segment.get('text', ''),  # Add original text for spacing checks
@@ -744,61 +791,74 @@ def _draw(
                     'char_indices': segment_char_indices  # Character indices (preserved for override segments)
                 })
 
+        if line_gen_raw_w > 0:
+            line_raw_widths.append(line_gen_raw_w)
         preprocessed_lines.append(preprocessed_segments if preprocessed_segments else [{'empty': True}])
 
-    # Determine global scale: automatic or manual
+    # ---- Choose the natural handwriting size and line spacing -----------------
+    #
+    # Size is driven by a robust x-height target that is the SAME for every line,
+    # so a single tall or wide line no longer shrinks the whole document. Width is
+    # respected via a percentile clamp (most lines fit the page; the few widest are
+    # condensed slightly per line at render time). Vertically we keep one page by
+    # scaling the text AND the spacing down together when the lines would not fit.
+    x_stretch = float(x_stretch) if x_stretch is not None else 1.0
+    if x_stretch <= 0:
+        x_stretch = 1.0
+
+    writing_mm = NATURAL_WRITING_SIZE_MM if writing_size_mm is None else float(writing_size_mm)
+    target_xheight_px = max(1.0, writing_mm * PX_PER_MM)
+
+    typical_xheight = float(np.median(xheights)) if xheights else target_xheight_px
+    size_scale = target_xheight_px / max(1e-6, typical_xheight)
+
     if auto_size:
-        s_global = min(scale_limits) if scale_limits else 1.0
+        s_global = size_scale
+        # Width clamp: fit every NORMAL line within the page, ignoring gross
+        # outliers (a single unwrapped long line is condensed per-line at render
+        # time via line_scale_x instead of shrinking every line -- which is what
+        # used to make the text tiny).
+        if line_raw_widths:
+            median_w = float(np.median(line_raw_widths))
+            normal_widths = [w for w in line_raw_widths if w <= WIDTH_OUTLIER_FACTOR * median_w]
+            width_ref = max(normal_widths) if normal_widths else median_w
+            if width_ref > 1e-6:
+                s_global = min(s_global, content_width_px / (width_ref * x_stretch))
     else:
-        s_global = float(manual_size_scale)
+        # manual_size_scale is now a multiple of the natural size (1.0 == natural).
+        s_global = float(manual_size_scale) * size_scale
 
-    # Compute effective target height for overrides based on actual generated text height
-    # This ensures overrides match the size of surrounding generated text
-    avg_raw_h = sum(raw_heights) / len(raw_heights) if raw_heights else target_h
+    # Rendered x-height after the width clamp, used to derive natural line spacing.
+    rendered_xheight = typical_xheight * s_global
+
+    # Line advance: honour an explicit line_height, otherwise derive one from the
+    # rendered x-height so spacing always tracks the letter size.
+    line_advance_px = line_height_px if line_height_given else LINE_SPACING_PER_XHEIGHT * rendered_xheight
+
+    # Keep everything on one page (auto-size only): if the lines would not fit the
+    # content height, scale the size and the spacing down by the same factor.
+    if auto_size:
+        n_rows = max(1, len(preprocessed_lines))
+        needed_height = line_advance_px * (n_rows + 1.0)  # first-line offset + descender slack
+        if needed_height > content_height_px:
+            vfit = content_height_px / needed_height
+            s_global *= vfit
+            line_advance_px *= vfit
+            rendered_xheight *= vfit
+
+    line_height_px = max(1.0, line_advance_px)
+    if empty_line_spacing is None:
+        empty_line_spacing_px = line_height_px
+
+    # Override sizing reference: overrides are sized to neighbouring generated text
+    # via raw_h * s_global; target_h cancels out of the override width math, so its
+    # exact value does not matter as long as it is used consistently.
+    avg_raw_h = sum(raw_heights) / len(raw_heights) if raw_heights else 1.0
     effective_target_h = avg_raw_h * s_global
-
-    # DEBUG: Log key scaling values
-    has_overrides = bool(overrides_dict)
-    print(f"DEBUG _draw: overrides={'ENABLED' if has_overrides else 'DISABLED'}, target_h={target_h:.2f}, s_global={s_global:.4f}, avg_raw_h={avg_raw_h:.2f}, effective_target_h={effective_target_h:.2f}")
-
-    # BUGFIX: For small pages where auto_size significantly reduces text scale,
-    # adjust line height to be proportional to the actual rendered text size.
-    # This prevents huge line spacing when text is scaled down to fit narrow pages.
-    if auto_size and scale_limits:
-        # Calculate what the text height would have been without width constraint
-        # scale_limits contains min(s_w, s_h) for each line, where s_h = target_h / raw_h
-        # If s_global is much smaller than what s_h alone would give, text is width-constrained
-        # In that case, effective line height should scale down proportionally
-
-        # Recalculate scale limits considering only height (not width)
-        height_only_scales = []
-        for preprocessed_segments in preprocessed_lines:
-            for segment in preprocessed_segments:
-                if segment.get('type') == 'generated' and 'strokes' in segment:
-                    ls = segment['strokes']
-                    raw_h = max(1e-6, ls[:, 1].max())
-                    s_h = target_h / raw_h
-                    height_only_scales.append(s_h)
-                    break
-
-        if height_only_scales:
-            # The ideal scale based on height alone
-            ideal_height_scale = min(height_only_scales)
-            # If actual scale is significantly smaller (width-constrained), reduce line height
-            if s_global < ideal_height_scale * 0.95:  # Allow 5% tolerance
-                scale_ratio = s_global / ideal_height_scale
-                # Adjust line height proportionally, but keep some minimum spacing
-                adjusted_line_height = line_height_px * scale_ratio
-                # Ensure minimum spacing of at least 20% of original to prevent overlapping
-                line_height_px = max(adjusted_line_height, line_height_px * 0.2)
-                # Also adjust empty line spacing if it was based on line_height_px
-                if empty_line_spacing is None:
-                    empty_line_spacing_px = line_height_px
 
     # Second pass: render with uniform scale across lines for consistent letter size
     cursor_y = m_top + (3.0 * line_height_px / 4.0)
     rng = np.random.RandomState(42)
-    x_stretch = float(x_stretch) if x_stretch is not None else 1.0
 
     # Pre-generate bi-directional margin jitter for all lines (Gaussian + coherence smoothing)
     num_lines = len(preprocessed_lines)

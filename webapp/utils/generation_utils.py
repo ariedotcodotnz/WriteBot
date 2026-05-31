@@ -117,6 +117,8 @@ def parse_generation_params(params: Dict[str, Any], defaults: Optional[Dict[str,
     empty_line_spacing = _parse_float(_get("empty_line_spacing"))
     auto_size = _parse_bool(_get("auto_size", "true"), True)
     manual_size_scale = _parse_float(_get("manual_size_scale"), 1.0)
+    # Target x-height in mm for natural sizing (None -> engine default ~4.5mm)
+    writing_size_mm = _parse_float(_get("writing_size_mm"))
 
     # Character overrides
     character_override_collection_id = _parse_int(_get("character_override_collection_id"))
@@ -165,6 +167,7 @@ def parse_generation_params(params: Dict[str, Any], defaults: Optional[Dict[str,
         "empty_line_spacing": empty_line_spacing,
         "auto_size": auto_size,
         "manual_size_scale": manual_size_scale,
+        "writing_size_mm": writing_size_mm,
         "character_override_collection_id": character_override_collection_id,
         "wrap_char_px": wrap_char_px,
         "wrap_ratio": wrap_ratio,
@@ -282,6 +285,7 @@ def generate_handwriting_to_file(
             empty_line_spacing=params["empty_line_spacing"],
             auto_size=params["auto_size"],
             manual_size_scale=params["manual_size_scale"],
+            writing_size_mm=params["writing_size_mm"],
             character_override_collection_id=params["character_override_collection_id"],
             margin_jitter_frac=params["margin_jitter_frac"],
             margin_jitter_coherence=params["margin_jitter_coherence"],
@@ -336,6 +340,7 @@ def generate_handwriting_to_file(
             empty_line_spacing=params["empty_line_spacing"],
             auto_size=params["auto_size"],
             manual_size_scale=params["manual_size_scale"],
+            writing_size_mm=params["writing_size_mm"],
             character_override_collection_id=params["character_override_collection_id"],
             margin_jitter_frac=params["margin_jitter_frac"],
             margin_jitter_coherence=params["margin_jitter_coherence"],

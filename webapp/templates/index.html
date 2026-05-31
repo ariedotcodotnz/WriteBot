@@ -372,18 +372,27 @@ Use \\ on its own line to insert blank space."></textarea>
                   <label class="flex-label">
                     <input id="autoSize" type="checkbox" x-model="autoSize" class="checkbox-auto" />
                     <span class="bx--label label-with-tooltip m-0">
-                      Auto Size (fit to line height)
+                      Auto Size (natural)
                       <span class="tooltip-icon">
-                        <span class="tooltip-text">Automatically adjusts text size to fit the line height. Recommended for consistent results.</span>
+                        <span class="tooltip-text">Sizes the handwriting to a natural x-height (set by Writing Size) and keeps it on one page. Recommended.</span>
                       </span>
                     </span>
                   </label>
                 </div>
                 <div class="form-group">
+                  <label for="writingSizeMm" class="bx--label label-with-tooltip">
+                    Writing Size (mm)
+                    <span class="tooltip-icon">
+                      <span class="tooltip-text">Target x-height (height of lowercase letters like a, e, o) in millimetres. ~4.5mm is normal pen handwriting; increase for larger writing. Used when Auto Size is on.</span>
+                    </span>
+                  </label>
+                  <input id="writingSizeMm" class="bx--text-input" type="number" step="0.5" min="1" placeholder="4.5" x-model="writingSizeMm" :disabled="!autoSize" />
+                </div>
+                <div class="form-group">
                   <label for="manualSizeScale" class="bx--label label-with-tooltip">
                     Manual Size Scale
                     <span class="tooltip-icon">
-                      <span class="tooltip-text">Manual text size when Auto Size is disabled. 1.0 = normal, 2.0 = double, 0.5 = half.</span>
+                      <span class="tooltip-text">Used when Auto Size is off: a multiple of the natural size. 1.0 = natural, 2.0 = double, 0.5 = half.</span>
                     </span>
                   </label>
                   <input id="manualSizeScale" class="bx--text-input" type="number" step="0.1" placeholder="1.0" x-model="manualSizeScale" :disabled="autoSize" />

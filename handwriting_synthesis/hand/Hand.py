@@ -76,6 +76,7 @@ class Hand(object):
         empty_line_spacing=None,
         auto_size=True,
         manual_size_scale=1.0,
+        writing_size_mm=None,
         character_override_collection_id=None,
         margin_jitter_frac=None,
         margin_jitter_coherence=None,
@@ -274,6 +275,7 @@ class Hand(object):
             empty_line_spacing=empty_line_spacing,
             auto_size=auto_size,
             manual_size_scale=manual_size_scale,
+            writing_size_mm=writing_size_mm,
             character_override_collection_id=character_override_collection_id,
             overrides_dict=overrides_dict,
             margin_jitter_frac=margin_jitter_frac,
@@ -301,6 +303,63 @@ class Hand(object):
             self.nn.session, self.nn, lines, biases, styles,
             return_char_indices=return_char_indices
         )
+
+    def _size_aware_max_line_width(
+        self, chunk_strokes, max_line_width, page_size, units, margins,
+        orientation, writing_size_mm, x_stretch, auto_size,
+    ):
+        """Cap the wrap width so a full line still renders at the natural size.
+
+        The chunked wrapper measures widths in raw model units, but ``_draw``
+        renders in page pixels. If lines are allowed to grow to ``max_line_width``
+        raw units, a full line ends up wider than the page at the natural
+        x-height, so ``_draw`` shrinks ALL text to make it fit -- which is what
+        makes the handwriting come out small. Here we cap the wrap width to the
+        raw width that exactly fills the page's content box at the target
+        x-height, so letters keep their natural size and a line simply holds
+        fewer words (wrapping to the next line instead of shrinking).
+
+        Returns the (possibly reduced) wrap width in raw units. Only applies when
+        auto-sizing; returns ``max_line_width`` unchanged otherwise.
+        """
+        if not auto_size or not chunk_strokes:
+            return max_line_width
+        try:
+            from handwriting_synthesis.hand._draw import (
+                _resolve_page_size, _normalize_margins, _estimate_xheight,
+                PX_PER_MM, NATURAL_WRITING_SIZE_MM, WRAP_SIZE_CALIBRATION,
+            )
+
+            width_px, height_px, _ = _resolve_page_size(page_size, units, 1, 60.0)
+            if orientation == 'landscape':
+                width_px, height_px = height_px, width_px
+            _, m_right, _, m_left = _normalize_margins(margins, units)
+            content_width_px = max(1.0, width_px - (m_left + m_right))
+
+            # Model x-height in raw units (robust median across the chunks).
+            xheights = []
+            for stroke in chunk_strokes:
+                if stroke is None or len(stroke) < 8:
+                    continue
+                xheights.append(_estimate_xheight(drawing.offsets_to_coords(stroke)))
+            if not xheights:
+                return max_line_width
+            model_xheight = float(np.median(xheights))
+
+            target_mm = NATURAL_WRITING_SIZE_MM if writing_size_mm is None else float(writing_size_mm)
+            target_xheight_px = max(1.0, target_mm * PX_PER_MM)
+            xs = float(x_stretch) if x_stretch else 1.0
+            if xs <= 0:
+                xs = 1.0
+
+            # Raw width whose rendered width == content width at the target size.
+            # WRAP_SIZE_CALIBRATION corrects for the per-chunk vs stitched-line
+            # x-height difference so the rendered size matches the requested one.
+            fit_raw = WRAP_SIZE_CALIBRATION * content_width_px * model_xheight / (target_xheight_px * xs)
+            return max(1.0, min(float(max_line_width), fit_raw))
+        except Exception as exc:  # never block generation on a sizing heuristic
+            print(f"Warning: size-aware wrap width failed, using max_line_width: {exc}")
+            return max_line_width
 
     def write_chunked(
         self,
@@ -333,6 +392,7 @@ class Hand(object):
         empty_line_spacing=None,
         auto_size=True,
         manual_size_scale=1.0,
+        writing_size_mm=None,
         character_override_collection_id=None,
         margin_jitter_frac=None,
         margin_jitter_coherence=None,
@@ -469,6 +529,13 @@ class Hand(object):
 
                 print(f"DEBUG: Generated {len(modified_chunks)} chunks with char_indices")
 
+                # Wrap to the page at the natural size: cap line width so a full
+                # line renders at the target x-height instead of being shrunk.
+                effective_max_line_width = self._size_aware_max_line_width(
+                    chunk_strokes, max_line_width, page_size, units, margins,
+                    orientation, writing_size_mm, x_stretch, auto_size,
+                )
+
                 # STEP 6: Build segment data with override info for each chunk
                 # Stitch chunks into lines based on actual widths
                 current_line_stroke = np.empty((0, 3))
@@ -528,7 +595,7 @@ class Hand(object):
                         'override_positions': adjusted_overrides,  # [(adjusted_idx, char), ...] - ADJUSTED for style offset
                     }
 
-                    if potential_width <= max_line_width or current_line_width == 0:
+                    if potential_width <= effective_max_line_width or current_line_width == 0:
                         # Chunk fits on current line
                         if current_line_width > 0:
                             current_line_stroke = stitch_strokes(
@@ -605,6 +672,13 @@ class Hand(object):
                     styles=[styles] * len(chunks) if styles is not None else None
                 )
 
+                # Wrap to the page at the natural size: cap line width so a full
+                # line renders at the target x-height instead of being shrunk.
+                effective_max_line_width = self._size_aware_max_line_width(
+                    chunk_strokes, max_line_width, page_size, units, margins,
+                    orientation, writing_size_mm, x_stretch, auto_size,
+                )
+
                 # Stitch chunks into lines based on actual widths
                 current_line_stroke = np.empty((0, 3))
                 current_line_text = []
@@ -620,7 +694,7 @@ class Hand(object):
                     else:
                         potential_width = chunk_width
 
-                    if potential_width <= max_line_width or current_line_width == 0:
+                    if potential_width <= effective_max_line_width or current_line_width == 0:
                         # Chunk fits on current line
                         if current_line_width > 0:
                             current_line_stroke = stitch_strokes(
@@ -714,6 +788,7 @@ class Hand(object):
             empty_line_spacing=empty_line_spacing,
             auto_size=auto_size,
             manual_size_scale=manual_size_scale,
+            writing_size_mm=writing_size_mm,
             character_override_collection_id=character_override_collection_id,
             overrides_dict=overrides_dict,
             margin_jitter_frac=margin_jitter_frac,
