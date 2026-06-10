@@ -437,7 +437,7 @@ class Hand(object):
 
     def _auto_fill_writing_size(
         self, chunk_strokes, n_blank_lines, page_size, units, margins,
-        orientation, x_stretch, model_xheight=None,
+        orientation, x_stretch, model_xheight=None, total_raw_width=None,
     ):
         """Pick a writing size (mm) so the text fills the page vertically.
 
@@ -458,10 +458,11 @@ class Hand(object):
             if not model_xheight:
                 return None
             content_w, content_h = self._content_box_px(page_size, units, margins, orientation)
-            total_raw_width = sum(
-                get_stroke_width(s) for s in chunk_strokes
-                if s is not None and len(s) > 0
-            )
+            if total_raw_width is None:
+                total_raw_width = sum(
+                    get_stroke_width(s) for s in chunk_strokes
+                    if s is not None and len(s) > 0
+                )
             xs = float(x_stretch) if x_stretch else 1.0
             if xs <= 0:
                 xs = 1.0
@@ -850,15 +851,21 @@ class Hand(object):
             # simply written larger. Long texts stay at the base natural size.
             all_strokes_flat = [s for entry in sampled_lines if entry for s in entry[1]]
             n_blank_lines = sum(1 for entry in sampled_lines if entry is None)
-            # Measure the x-height on line-sized STITCHED groups -- the statistic
-            # _draw actually scales by -- so wrap-time predictions match the
-            # rendered size and lines reach the right margin.
-            stitched_xheight = self._estimate_stitched_xheight(
+            # Measure x-height and width inflation on line-sized STITCHED groups
+            # -- the statistics _draw actually renders with -- so wrap-time
+            # predictions match the rendered output.
+            stitched_xheight, stitch_width_factor = self._estimate_stitched_xheight(
                 sampled_lines, chunk_spacing, rotate_chunks)
             if auto_size and writing_size_mm is None and all_strokes_flat:
+                # Stitched lines come out wider than the sum of their chunks, so
+                # the text effectively occupies stitch_width_factor more width
+                # when the solver estimates how many lines it will wrap into.
+                total_w = sum(get_stroke_width(s) for s in all_strokes_flat
+                              if s is not None and len(s) > 0)
                 fitted_mm = self._auto_fill_writing_size(
                     all_strokes_flat, n_blank_lines, page_size, units, margins,
                     orientation, x_stretch, model_xheight=stitched_xheight,
+                    total_raw_width=total_w * stitch_width_factor,
                 )
                 if fitted_mm:
                     effective_writing_size_mm = fitted_mm
@@ -868,6 +875,11 @@ class Hand(object):
                 orientation, effective_writing_size_mm, x_stretch, auto_size,
                 model_xheight=stitched_xheight,
             )
+            # Deflate the budget by the stitch widening: the DP below compares it
+            # against SUMS of chunk widths, but the stitched line will measure
+            # stitch_width_factor wider -- without this the widest lines overrun
+            # the page and the width clamp shrinks the writing size to fit them.
+            effective_max_line_width /= stitch_width_factor
             # Allow a squeeze past the wrap limit: a writer fits one more word by
             # tightening slightly rather than leaving a ragged gap. _draw condenses
             # such lines by the same few percent per line (line_scale_x).
