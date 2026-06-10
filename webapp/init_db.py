@@ -155,6 +155,42 @@ def init_database():
                 _reconcile_missing_columns()
 
 
+# Standard page sizes the UI expects (names must match the engine's PAPER_SIZES_MM
+# and the frontend's predefined-size list so they resolve correctly).
+DEFAULT_PAGE_SIZES = [
+    ('A4', 210.0, 297.0),
+    ('A5', 148.0, 210.0),
+    ('Letter', 215.9, 279.4),
+    ('Legal', 215.9, 355.6),
+]
+
+
+def seed_default_page_sizes():
+    """Seed the standard system page sizes if they are missing.
+
+    Without these the page-size dropdown in the UI is empty, which forces every
+    generation onto the A4 fallback and hides the size options. Idempotent: only
+    inserts names that are not already present, so it is safe to run on every init.
+    """
+    from models import PageSizePreset
+    with app.app_context():
+        existing = {row[0] for row in db.session.query(PageSizePreset.name).all()}
+        created = []
+        for name, width, height in DEFAULT_PAGE_SIZES:
+            if name in existing:
+                continue
+            db.session.add(PageSizePreset(
+                name=name, width=width, height=height, unit='mm',
+                is_active=True, is_default=True, created_by=None,
+            ))
+            created.append(name)
+        if created:
+            db.session.commit()
+            print(f"Seeded default page sizes: {', '.join(created)}")
+        else:
+            print("Default page sizes already present.")
+
+
 def create_admin_user():
     """
     Create a default admin user interactively.
@@ -290,8 +326,11 @@ def main():
     # Initialize database
     init_database()
 
+    # Seed system defaults the UI depends on (page-size dropdown).
+    seed_default_page_sizes()
+
     if args.auto:
-        # Automatic mode - just run migrations and exit
+        # Automatic mode - schema + system defaults, then exit
         print("Database initialization completed (auto mode)")
         return
 

@@ -10,6 +10,7 @@ from webapp.utils.page_utils import resolve_page_px, margins_to_px, line_height_
 from webapp.utils.text_utils import (
     normalize_text_for_model,
     wrap_by_canvas,
+    reflow_paragraphs,
     parse_optional_list as _parse_optional_list,
     parse_margins as _parse_margins,
     map_sequence_to_wrapped as _map_sequence_to_wrapped,
@@ -119,6 +120,9 @@ def parse_generation_params(params: Dict[str, Any], defaults: Optional[Dict[str,
     manual_size_scale = _parse_float(_get("manual_size_scale"), 1.0)
     # Target x-height in mm for natural sizing (None -> engine default ~4.5mm)
     writing_size_mm = _parse_float(_get("writing_size_mm"))
+    # Reflow soft-wrapped lines to fill the page width (preserving blank-line
+    # paragraph breaks). Default on; turn off to keep the input's exact line breaks.
+    reflow = _parse_bool(_get("reflow", "true"), True)
 
     # Character overrides
     character_override_collection_id = _parse_int(_get("character_override_collection_id"))
@@ -168,6 +172,7 @@ def parse_generation_params(params: Dict[str, Any], defaults: Optional[Dict[str,
         "auto_size": auto_size,
         "manual_size_scale": manual_size_scale,
         "writing_size_mm": writing_size_mm,
+        "reflow": reflow,
         "character_override_collection_id": character_override_collection_id,
         "wrap_char_px": wrap_char_px,
         "wrap_ratio": wrap_ratio,
@@ -205,7 +210,13 @@ def generate_handwriting_to_file(
     """
     # Parse lines from text or lines parameter
     if params["text"] is not None:
-        lines_in = params["text"].splitlines() if isinstance(params["text"], str) else params["text"]
+        text_str = params["text"] if isinstance(params["text"], str) else "\n".join(str(x) for x in params["text"])
+        # Reflow soft-wrapped input so paragraphs fill the page width. Without this,
+        # a letter pasted with a hard line break every few words renders as a column
+        # of half-empty lines (the wrapper can't widen lines that arrive pre-broken).
+        if params.get("reflow", True):
+            text_str = reflow_paragraphs(text_str)
+        lines_in = text_str.splitlines()
     elif params["lines"] is not None:
         lines_in = params["lines"] if isinstance(params["lines"], list) else [params["lines"]]
     else:

@@ -13,7 +13,10 @@ import sys
 # Make the project importable when run directly (python tests/test_operations.py).
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
 
-from handwriting_synthesis.hand.operations.chunking import split_text_into_chunks
+from handwriting_synthesis.hand.operations.chunking import (
+    split_text_into_chunks,
+    balanced_line_breaks,
+)
 
 
 # Tokens longer than this are hard-split by the chunker (see chunking.py).
@@ -92,6 +95,48 @@ def test_whitespace_and_empty_inputs():
     lead_trail = split_text_into_chunks("   hello world there   ", words_per_chunk=2)
     assert lead_trail[0].startswith("   "), lead_trail
     assert lead_trail[-1].endswith("   "), lead_trail
+
+
+def _line_widths(widths, spacing, breaks):
+    out = []
+    for i, j in breaks:
+        w = sum(widths[i:j]) + spacing * (j - i - 1)
+        out.append(w)
+    return out
+
+
+def test_balanced_breaks_cover_all_chunks_in_order():
+    widths = [90.0, 110.0, 100.0, 95.0, 105.0, 80.0, 120.0]
+    breaks = balanced_line_breaks(widths, 8.0, target=250.0, limit=260.0)
+    flat = [k for i, j in breaks for k in range(i, j)]
+    assert flat == list(range(len(widths))), breaks
+    # No line exceeds the limit (none of these single chunks is oversized)
+    assert all(w <= 260.0 for w in _line_widths(widths, 8.0, breaks)), breaks
+
+
+def test_balanced_breaks_spread_slack():
+    """DP must not leave one line nearly empty when even splits exist.
+
+    Greedy on these widths gives lines of 240 and 60; balanced breaking
+    should split 150/150 (both near-ish target, far better balance).
+    """
+    widths = [120.0, 120.0, 30.0, 30.0]
+    breaks = balanced_line_breaks(widths, 0.0, target=160.0, limit=240.0)
+    line_w = _line_widths(widths, 0.0, breaks)
+    assert len(line_w) >= 2
+    # the non-final lines must be closer to target than greedy's worst case
+    assert min(line_w[:-1]) >= 120.0, line_w
+
+
+def test_balanced_breaks_oversized_chunk_gets_own_line():
+    widths = [50.0, 500.0, 50.0]
+    breaks = balanced_line_breaks(widths, 5.0, target=200.0, limit=210.0)
+    assert (1, 2) in breaks, breaks  # the huge chunk stands alone
+
+
+def test_balanced_breaks_empty_and_single():
+    assert balanced_line_breaks([], 5.0, 100.0, 105.0) == []
+    assert balanced_line_breaks([42.0], 5.0, 100.0, 105.0) == [(0, 1)]
 
 
 def test_progress_guaranteed_with_degenerate_min_words():

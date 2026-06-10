@@ -67,6 +67,7 @@ document.addEventListener('alpine:init', () => {
 
     // Chunked generation
     useChunked: true,
+    reflowText: true,  // reflow soft-wrapped input to fill the width (keeps blank-line paragraph breaks)
     adaptiveChunking: true,
     adaptiveStrategy: 'balanced',
     wordsPerChunk: '',
@@ -285,6 +286,7 @@ document.addEventListener('alpine:init', () => {
         manual_size_scale: (!this.autoSize && this.manualSizeScale) ? Number(this.manualSizeScale) : undefined,
         writing_size_mm: this.writingSizeMm ? Number(this.writingSizeMm) : undefined,
         use_chunked: this.useChunked,
+        reflow: this.reflowText,
         adaptive_chunking: this.adaptiveChunking,
         adaptive_strategy: this.adaptiveStrategy || undefined,
         words_per_chunk: this.wordsPerChunk ? Number(this.wordsPerChunk) : undefined,
@@ -665,6 +667,7 @@ document.addEventListener('alpine:init', () => {
       formData.append('wrap_ratio', this.wrapRatio || '');
       formData.append('wrap_utilization', this.wrapUtil || '');
       formData.append('use_chunked', this.useChunked ? 'true' : 'false');
+      formData.append('reflow', this.reflowText ? 'true' : 'false');
       formData.append('adaptive_chunking', this.adaptiveChunking ? 'true' : 'false');
       formData.append('adaptive_strategy', this.adaptiveStrategy || '');
       formData.append('words_per_chunk', this.wordsPerChunk || '');
@@ -823,6 +826,7 @@ document.addEventListener('alpine:init', () => {
           wrap_ratio: this.wrapRatio || null,
           wrap_utilization: this.wrapUtil || null,
           use_chunked: this.useChunked,
+          reflow: this.reflowText,
           adaptive_chunking: this.adaptiveChunking,
           adaptive_strategy: this.adaptiveStrategy || null,
           words_per_chunk: this.wordsPerChunk || null,

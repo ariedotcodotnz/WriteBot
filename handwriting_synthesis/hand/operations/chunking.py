@@ -1,6 +1,64 @@
 """Text chunking logic for improved handwriting generation."""
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
+
+
+def balanced_line_breaks(
+    widths: List[float],
+    spacing: float,
+    target: float,
+    limit: float,
+) -> List[Tuple[int, int]]:
+    """Choose line breaks over measured chunk widths, minimising raggedness.
+
+    Greedy filling makes line lengths erratic (one line packed past the budget,
+    the next stopping at 60%), which reads as a jagged right margin. This is the
+    classic dynamic-programming line-breaking approach applied to chunk widths:
+    every line except the last pays for its deviation from the target, so slack
+    is spread evenly across lines instead of accumulating in one. The penalty is
+    asymmetric: undershoot pays the full quadratic, overshoot (up to ``limit``)
+    only a quarter -- a slightly over-full line is condensed a few percent at
+    render time, which looks like natural cramming, whereas an under-full line
+    leaves a visible gap at the margin.
+
+    Args:
+        widths: Measured raw width of each chunk, in order.
+        spacing: Horizontal gap added between chunks on a line.
+        target: Ideal line width (the wrap budget).
+        limit: Hard maximum line width (target plus any squeeze allowance). A
+            single chunk wider than the limit still gets a line of its own.
+
+    Returns:
+        List of (start, end) index pairs, one per line, covering all chunks.
+    """
+    n = len(widths)
+    if n == 0:
+        return []
+    inf = float('inf')
+    best = [0.0] + [inf] * n
+    back = [0] * (n + 1)
+    for j in range(1, n + 1):
+        w = 0.0
+        for i in range(j - 1, -1, -1):
+            w = widths[i] + (spacing + w if w > 0 else 0.0)
+            if w > limit and i < j - 1:
+                break  # adding earlier chunks only widens the line further
+            if j == n:
+                penalty = 0.0           # the final line may be any length
+            elif w <= target:
+                penalty = (target - w) ** 2
+            else:
+                penalty = 0.25 * (w - target) ** 2  # mild: overshoot is condensed
+            if best[i] + penalty < best[j]:
+                best[j] = best[i] + penalty
+                back[j] = i
+    lines = []
+    j = n
+    while j > 0:
+        i = back[j]
+        lines.append((i, j))
+        j = i
+    return lines[::-1]
 
 
 # Tokens that mark the end of a sentence -- strong, high-priority break points.

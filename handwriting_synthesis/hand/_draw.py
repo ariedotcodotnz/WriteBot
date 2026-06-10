@@ -29,11 +29,64 @@ LINE_SPACING_PER_XHEIGHT = 2.1
 # condensed per-line at render time instead of shrinking the whole document.
 WIDTH_OUTLIER_FACTOR = 2.0
 
-# Empirical correction for the size-aware wrap width (Hand.write_chunked). The wrap
-# width is derived from per-chunk x-heights, but _draw renders stitched, aligned,
-# de-noised lines whose measured x-height is a bit smaller, so without this lines
-# would render ~20% under the requested size. Calibrated against real model output.
-WRAP_SIZE_CALIBRATION = 0.82
+# Bounds for the auto page-fill writing size. Short texts grow (like a real
+# one-page letter written larger) up to the max; beyond it, blank space at the
+# bottom looks more natural than huge letters. Long texts shrink below the base
+# natural size down to the min so they fit one page with full-width lines --
+# crucially the WRAP width shrinks with the render size, otherwise _draw's
+# fallback shrink leaves every line short of the right margin.
+NATURAL_WRITING_MIN_FILL_MM = 2.5
+NATURAL_WRITING_MAX_FILL_MM = 7.0
+
+# Fraction of the content height the page-fill solver aims to use. Below 1.0 to
+# absorb what the closed-form estimate ignores: the first-line offset, integer
+# line rounding, and inter-chunk stitch gaps widening lines slightly.
+PAGE_FILL_FRACTION = 0.92
+
+# How far past the wrap budget a single line may go before it is condensed
+# horizontally (line_scale_x) at render time. A writer squeezes the last word in
+# rather than leaving a gap; an 8% horizontal tightening is visually invisible.
+# Used by the wrapper (line-break limit) and by the global width clamp, which
+# tolerates this much overhang on the widest line instead of shrinking ALL text.
+LINE_SQUEEZE_TOLERANCE = 1.08
+
+
+def solve_fill_xheight_px(
+    total_raw_width,
+    model_xheight,
+    n_blank_lines,
+    content_width_px,
+    content_height_px,
+    x_stretch=1.0,
+    spacing_per_xheight=LINE_SPACING_PER_XHEIGHT,
+    fill_frac=PAGE_FILL_FRACTION,
+):
+    """Solve for the x-height (px) at which wrapped text fills the page height.
+
+    At rendered x-height ``h`` the text scales by ``h / model_xheight``, so it
+    wraps into roughly ``n(h) = total_raw_width * h * x_stretch / (model_xheight
+    * content_width)`` lines, each advancing ``spacing_per_xheight * h``; blank
+    (paragraph-break) lines add the same advance without consuming text. Setting
+    the resulting height to ``fill_frac * content_height`` gives a quadratic in
+    ``h``::
+
+        a*h^2 + b*h - fill_frac*content_height = 0,
+        a = spacing_per_xheight * total_raw_width * x_stretch
+            / (model_xheight * content_width)
+        b = spacing_per_xheight * n_blank_lines
+
+    Returns the positive root, or ``None`` if the inputs are degenerate. The
+    caller is expected to clamp the result to a sensible size range.
+    """
+    if total_raw_width <= 0 or model_xheight <= 0 or content_width_px <= 0 or content_height_px <= 0:
+        return None
+    a = spacing_per_xheight * total_raw_width * max(x_stretch, 1e-6) / (model_xheight * content_width_px)
+    b = spacing_per_xheight * max(0, n_blank_lines)
+    c = -fill_frac * content_height_px
+    disc = b * b - 4.0 * a * c
+    if disc <= 0 or a <= 0:
+        return None
+    return (-b + math.sqrt(disc)) / (2.0 * a)
 
 
 def _estimate_xheight(ls):
@@ -776,7 +829,7 @@ def _draw(
                 raw_w = max(1e-6, ls[:, 0].max())
                 raw_h = max(1e-6, ls[:, 1].max())
                 raw_heights.append(raw_h)          # full extent (override matching)
-                xheights.append(_estimate_xheight(ls))  # robust body height (sizing)
+                xheights.append((_estimate_xheight(ls), raw_w))  # body height (sizing)
                 line_gen_raw_w += raw_w
 
                 preprocessed_segments.append({
@@ -809,7 +862,17 @@ def _draw(
     writing_mm = NATURAL_WRITING_SIZE_MM if writing_size_mm is None else float(writing_size_mm)
     target_xheight_px = max(1.0, writing_mm * PX_PER_MM)
 
-    typical_xheight = float(np.median(xheights)) if xheights else target_xheight_px
+    # Typical x-height from the LONG segments only: on short lines (a signature,
+    # a paragraph's last few words) ascenders/descenders are a large fraction of
+    # the points, which inflates the percentile band and would make all text
+    # render smaller and narrower than the wrap predicted.
+    if xheights:
+        max_seg_w = max(w for _, w in xheights)
+        long_bands = [h for h, w in xheights if w >= 0.5 * max_seg_w]
+        typical_xheight = float(np.median(long_bands if long_bands
+                                          else [h for h, _ in xheights]))
+    else:
+        typical_xheight = target_xheight_px
     size_scale = target_xheight_px / max(1e-6, typical_xheight)
 
     if auto_size:
@@ -817,13 +880,16 @@ def _draw(
         # Width clamp: fit every NORMAL line within the page, ignoring gross
         # outliers (a single unwrapped long line is condensed per-line at render
         # time via line_scale_x instead of shrinking every line -- which is what
-        # used to make the text tiny).
+        # used to make the text tiny). The clamp tolerates LINE_SQUEEZE_TOLERANCE
+        # of overhang on the widest line: that line is condensed individually,
+        # so one well-packed line doesn't scale the whole document down.
         if line_raw_widths:
             median_w = float(np.median(line_raw_widths))
             normal_widths = [w for w in line_raw_widths if w <= WIDTH_OUTLIER_FACTOR * median_w]
             width_ref = max(normal_widths) if normal_widths else median_w
             if width_ref > 1e-6:
-                s_global = min(s_global, content_width_px / (width_ref * x_stretch))
+                s_global = min(s_global, LINE_SQUEEZE_TOLERANCE * content_width_px
+                               / (width_ref * x_stretch))
     else:
         # manual_size_scale is now a multiple of the natural size (1.0 == natural).
         s_global = float(manual_size_scale) * size_scale

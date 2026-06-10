@@ -383,10 +383,10 @@ Use \\ on its own line to insert blank space."></textarea>
                   <label for="writingSizeMm" class="bx--label label-with-tooltip">
                     Writing Size (mm)
                     <span class="tooltip-icon">
-                      <span class="tooltip-text">Target x-height (height of lowercase letters like a, e, o) in millimetres. ~4.5mm is normal pen handwriting; increase for larger writing. Used when Auto Size is on.</span>
+                      <span class="tooltip-text">Target x-height (height of lowercase letters like a, e, o) in millimetres. Leave blank for Auto: picks 2.5–7mm so the text naturally fills one page (short notes are written larger, long letters smaller). Set a value to lock the size exactly; ~4.5mm is normal pen handwriting.</span>
                     </span>
                   </label>
-                  <input id="writingSizeMm" class="bx--text-input" type="number" step="0.5" min="1" placeholder="4.5" x-model="writingSizeMm" :disabled="!autoSize" />
+                  <input id="writingSizeMm" class="bx--text-input" type="number" step="0.5" min="1" placeholder="Auto" x-model="writingSizeMm" :disabled="!autoSize" />
                 </div>
                 <div class="form-group">
                   <label for="manualSizeScale" class="bx--label label-with-tooltip">
@@ -455,6 +455,22 @@ Use \\ on its own line to insert blank space."></textarea>
                     </div>
                     <small class="helper-text">
                       Generate text in small chunks for better quality and longer lines
+                    </small>
+                  </div>
+                  <div class="form-group">
+                    <div class="label-with-tooltip label-tooltip-mb">
+                      <label class="bx--checkbox-wrapper m-0">
+                        <input id="reflowText" type="checkbox" class="bx--checkbox" x-model="reflowText" />
+                        <label for="reflowText" class="bx--checkbox-label">
+                          <span class="bx--checkbox-label-text">Reflow text to fill width (Recommended)</span>
+                        </label>
+                      </label>
+                      <span class="tooltip-icon">
+                        <span class="tooltip-text">Joins soft-wrapped lines so paragraphs fill the page width, keeping blank-line paragraph breaks. Uncheck to keep your exact line breaks.</span>
+                      </span>
+                    </div>
+                    <small class="helper-text">
+                      Fills the page width; uncheck to keep your exact line breaks
                     </small>
                   </div>
                   <div class="form-group">

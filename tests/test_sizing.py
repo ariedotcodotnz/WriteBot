@@ -21,7 +21,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), os.pa
 
 from handwriting_synthesis import drawing
 from handwriting_synthesis.hand import _draw as draw_mod
-from handwriting_synthesis.hand._draw import _draw, PX_PER_MM, NATURAL_WRITING_SIZE_MM
+from handwriting_synthesis.hand._draw import (
+    _draw, PX_PER_MM, NATURAL_WRITING_SIZE_MM,
+    solve_fill_xheight_px, LINE_SPACING_PER_XHEIGHT,
+)
 
 _COORD = re.compile(r'[ML]\s*([-\d.]+)[\s,]+([-\d.]+)')
 
@@ -147,6 +150,32 @@ def test_shrinks_to_fit_one_page():
     page_h_px = 297.0 * PX_PER_MM
     assert max_y_px <= page_h_px + 2.0, (max_y_px, page_h_px)            # stays on page
     assert _rendered_xheight_mm(path) < 5.0                              # was scaled down
+
+
+def test_fill_solver_fills_target_height():
+    """The solved x-height plugs back into the height model at the fill target."""
+    W, mxh, content_w, content_h = 5000.0, 20.0, 600.0, 900.0
+    h = solve_fill_xheight_px(W, mxh, 0, content_w, content_h, fill_frac=0.92)
+    assert h and h > 0
+    n_lines = W * h / (mxh * content_w)
+    height = n_lines * LINE_SPACING_PER_XHEIGHT * h
+    assert abs(height - 0.92 * content_h) < 1e-6, (height, 0.92 * content_h)
+
+
+def test_fill_solver_monotonic():
+    """More text or more blank lines -> smaller solved size; both reduce h."""
+    args = dict(model_xheight=20.0, content_width_px=600.0, content_height_px=900.0)
+    h_short = solve_fill_xheight_px(2000.0, n_blank_lines=0, **args)
+    h_long = solve_fill_xheight_px(20000.0, n_blank_lines=0, **args)
+    h_blanks = solve_fill_xheight_px(2000.0, n_blank_lines=5, **args)
+    assert h_long < h_short, (h_long, h_short)
+    assert h_blanks < h_short, (h_blanks, h_short)
+
+
+def test_fill_solver_degenerate_inputs():
+    assert solve_fill_xheight_px(0.0, 20.0, 0, 600.0, 900.0) is None
+    assert solve_fill_xheight_px(100.0, 0.0, 0, 600.0, 900.0) is None
+    assert solve_fill_xheight_px(100.0, 20.0, 0, 0.0, 900.0) is None
 
 
 def test_manual_scale_is_multiple_of_natural():
