@@ -9,7 +9,7 @@ import zipfile
 import json
 import uuid
 from typing import List, Tuple, Dict, Any
-from flask import Blueprint, jsonify, request, send_file, Response, stream_with_context
+from flask import Blueprint, jsonify, request, send_file, Response, stream_with_context, current_app
 from flask_login import login_required
 from werkzeug.utils import secure_filename
 
@@ -687,11 +687,10 @@ def batch_stream():
         else:
             return jsonify({"error": "File must be CSV or XLSX format"}), 400
 
-        print(f"DEBUG: File parsed successfully. Rows: {len(df)}, Columns: {list(df.columns)}")
+        current_app.logger.debug(f"File parsed successfully. Rows: {len(df)}, Columns: {list(df.columns)}")
     except Exception as e:
-        error_msg = f"Failed to read file: {e}"
-        print(f"ERROR: {error_msg}")
-        return jsonify({"error": error_msg}), 400
+        current_app.logger.exception('Failed to read uploaded batch file')
+        return jsonify({"error": "Failed to read file. Please ensure it's a valid CSV or XLSX format."}), 400
 
     # Get defaults from form, but filter out None/empty values
     defaults = {k: v for k, v in request.form.to_dict(flat=True).items() if v}

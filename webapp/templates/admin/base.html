@@ -66,6 +66,12 @@
                     Templates
                 </a>
             </li>
+            <li class="admin-nav__item">
+                <a href="{{ url_for('admin.error_logs') }}"
+                   class="admin-nav__link{% if active_nav == 'logs' %} admin-nav__link--active{% endif %}">
+                    Error Logs
+                </a>
+            </li>
         </ul>
     </nav>
 

@@ -1,7 +1,7 @@
 """
 Admin routes for managing character override collections.
 """
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
 from flask_login import login_required, current_user
 from webapp.models import db, CharacterOverrideCollection, CharacterOverride
 from webapp.utils.auth_utils import admin_required, log_activity
@@ -454,8 +454,8 @@ def save_drawn_character(collection_id):
         return jsonify({'success': True, 'message': f'Character "{character}" saved successfully.'}), 200
 
     except Exception as e:
-        print(f"Error saving drawn character: {e}")
-        return jsonify({'error': str(e)}), 500
+        current_app.logger.exception('Error saving drawn character')
+        return jsonify({'error': 'Failed to save character'}), 500
 
 
 @character_override_bp.route('/character/<int:override_id>/delete', methods=['POST'])

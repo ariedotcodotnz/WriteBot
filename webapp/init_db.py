@@ -6,6 +6,7 @@ This script creates the database tables and optionally creates a default admin u
 """
 import os
 import sys
+from datetime import datetime
 from getpass import getpass
 import warnings
 
@@ -41,30 +42,153 @@ def get_password_input(prompt="Password: "):
         return input(prompt).strip()
 
 
+def _placeholder_for(column):
+    """Return a safe non-null backfill value for a newly-added NOT NULL column."""
+    from sqlalchemy import Integer, Numeric, Float, Boolean, DateTime, Date
+    col_type = column.type
+    if isinstance(col_type, (Integer, Numeric, Float)):
+        return 0
+    if isinstance(col_type, Boolean):
+        return False
+    if isinstance(col_type, (DateTime, Date)):
+        return datetime.utcnow()
+    return ''  # strings/text and anything else
+
+
+def _reconcile_missing_columns():
+    """Add columns present in the models but missing from existing tables.
+
+    ``db.create_all()`` creates new tables but never ALTERs existing ones, so a DB
+    created against older models is left missing newly-added columns -- which is
+    exactly how ``users.email`` went missing and made every page 500. For each
+    existing table we add any missing column (NOT NULL columns are backfilled so
+    the ALTER succeeds on populated tables; unique columns get a unique index when
+    the current values allow it). Column drops / renames / type changes are NOT
+    handled here -- those need a real Alembic migration.
+    """
+    from sqlalchemy import inspect, text
+
+    inspector = inspect(db.engine)
+    existing_tables = set(inspector.get_table_names())
+    added = []
+
+    for table in db.metadata.sorted_tables:
+        if table.name not in existing_tables:
+            continue  # brand-new table: db.create_all() already created it
+        db_cols = {c['name'] for c in inspector.get_columns(table.name)}
+        for column in table.columns:
+            if column.name in db_cols:
+                continue
+            col_type = column.type.compile(dialect=db.engine.dialect)
+            with db.engine.begin() as conn:
+                conn.execute(text(
+                    f'ALTER TABLE "{table.name}" ADD COLUMN "{column.name}" {col_type}'))
+                if not column.nullable:
+                    conn.execute(
+                        text(f'UPDATE "{table.name}" SET "{column.name}" = :val '
+                             f'WHERE "{column.name}" IS NULL'),
+                        {"val": _placeholder_for(column)})
+                if column.unique:
+                    dupes = conn.execute(text(
+                        f'SELECT COUNT(*) - COUNT(DISTINCT "{column.name}") '
+                        f'FROM "{table.name}"')).scalar()
+                    if not dupes:
+                        conn.execute(text(
+                            f'CREATE UNIQUE INDEX IF NOT EXISTS '
+                            f'"ix_{table.name}_{column.name}" '
+                            f'ON "{table.name}" ("{column.name}")'))
+                    else:
+                        print(f"  [WARN] added {table.name}.{column.name} but left it "
+                              f"non-unique: existing rows have blank/duplicate values; "
+                              f"set them and add a unique index manually.")
+            added.append(f"{table.name}.{column.name}")
+
+    if added:
+        print(f"  Added missing columns: {', '.join(added)}")
+    else:
+        print("  Schema already matches models (no missing columns).")
+    return added
+
+
 def init_database():
     """
-    Initialize the database tables and run migrations.
+    Bring the database schema up to date from any starting state.
 
-    Attempts to run Alembic migrations first. If that fails (e.g., first run),
-    falls back to SQLAlchemy's `db.create_all()`.
+    Handles all three cases the app can encounter:
+      * Fresh DB, or a legacy DB created by db.create_all() with no Alembic stamp:
+        build the schema directly from the models (creating missing tables AND
+        adding columns missing from existing tables), then stamp Alembic head so
+        future `flask db upgrade` works.
+      * Alembic-managed DB: apply any pending migrations with `upgrade head`.
+
+    The previous version ran migrations first and fell back to db.create_all() on
+    error, which could not ALTER existing tables and silently left the schema out
+    of date (the users.email outage).
     """
     with app.app_context():
-        print("Running database migrations...")
-        from alembic.config import Config
-        from alembic import command
+        # Use Flask-Migrate's helpers (not a hand-built alembic Config): they use
+        # the Migrate extension's configured migrations/ directory. The old code
+        # pointed Config at webapp/alembic.ini -> webapp/alembic/env.py, which does
+        # not exist, so every `upgrade` failed and silently fell back to
+        # create_all() -- the reason the schema drifted (users.email outage).
+        from flask_migrate import upgrade as fm_upgrade, stamp as fm_stamp
+        from alembic.runtime.migration import MigrationContext
 
-        # Get the alembic config
-        alembic_cfg = Config(os.path.join(PROJECT_ROOT, "alembic.ini"))
+        with db.engine.connect() as conn:
+            current_rev = MigrationContext.configure(conn).get_current_revision()
 
-        try:
-            # Run all pending migrations
-            command.upgrade(alembic_cfg, "head")
-            print("Database migrations completed successfully!")
-        except Exception as e:
-            print(f"Error running migrations: {e}")
-            print("\nFalling back to db.create_all()...")
-            db.create_all()
-            print("Database tables created successfully!")
+        if current_rev is None:
+            print("No Alembic revision found - syncing schema directly from models...")
+            db.create_all()                # create any missing tables
+            _reconcile_missing_columns()   # add columns missing from existing tables
+            fm_stamp(revision="head")      # mark as current so future upgrades work
+            print("Schema synced from models and stamped to Alembic head.")
+        else:
+            print(f"Alembic revision {current_rev} - applying any pending migrations...")
+            try:
+                fm_upgrade()               # to head
+                print("Database is at Alembic head.")
+            except Exception as e:
+                print(f"Error applying migrations: {e}")
+                print("Falling back to model-based schema sync...")
+                db.create_all()
+                _reconcile_missing_columns()
+
+
+# Standard page sizes the UI expects (names must match the engine's PAPER_SIZES_MM
+# and the frontend's predefined-size list so they resolve correctly).
+DEFAULT_PAGE_SIZES = [
+    ('A4', 210.0, 297.0),
+    ('A5', 148.0, 210.0),
+    ('Letter', 215.9, 279.4),
+    ('Legal', 215.9, 355.6),
+]
+
+
+def seed_default_page_sizes():
+    """Seed the standard system page sizes if they are missing.
+
+    Without these the page-size dropdown in the UI is empty, which forces every
+    generation onto the A4 fallback and hides the size options. Idempotent: only
+    inserts names that are not already present, so it is safe to run on every init.
+    """
+    from models import PageSizePreset
+    with app.app_context():
+        existing = {row[0] for row in db.session.query(PageSizePreset.name).all()}
+        created = []
+        for name, width, height in DEFAULT_PAGE_SIZES:
+            if name in existing:
+                continue
+            db.session.add(PageSizePreset(
+                name=name, width=width, height=height, unit='mm',
+                is_active=True, is_default=True, created_by=None,
+            ))
+            created.append(name)
+        if created:
+            db.session.commit()
+            print(f"Seeded default page sizes: {', '.join(created)}")
+        else:
+            print("Default page sizes already present.")
 
 
 def create_admin_user():
@@ -202,8 +326,11 @@ def main():
     # Initialize database
     init_database()
 
+    # Seed system defaults the UI depends on (page-size dropdown).
+    seed_default_page_sizes()
+
     if args.auto:
-        # Automatic mode - just run migrations and exit
+        # Automatic mode - schema + system defaults, then exit
         print("Database initialization completed (auto mode)")
         return
 

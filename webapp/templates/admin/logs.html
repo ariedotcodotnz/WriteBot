@@ -1,0 +1,488 @@
+{% extends "admin/base.html" %}
+
+{% set active_nav = 'logs' %}
+
+{% block title %}Error Logs - Admin - WriteBot{% endblock %}
+
+{% block admin_title %}Error Logs{% endblock %}
+
+{% block admin_extra_css %}
+<style>
+    .logs-controls {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+        align-items: flex-end;
+    }
+
+    .logs-control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .logs-control-group label {
+        font-size: 0.75rem;
+        color: #525252;
+        font-weight: 500;
+    }
+
+    .logs-control-group select,
+    .logs-control-group input {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #8d8d8d;
+        border-radius: 0;
+        font-size: 0.875rem;
+        background: #fff;
+        min-width: 150px;
+    }
+
+    .logs-control-group select:focus,
+    .logs-control-group input:focus {
+        outline: 2px solid #0f62fe;
+        outline-offset: -2px;
+        border-color: #0f62fe;
+    }
+
+    .logs-stats {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: #f4f4f4;
+        border-left: 3px solid #0f62fe;
+    }
+
+    .logs-stat {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .logs-stat__value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        line-height: 1;
+    }
+
+    .logs-stat__label {
+        font-size: 0.75rem;
+        color: #525252;
+        margin-top: 0.25rem;
+    }
+
+    .logs-stat--error .logs-stat__value {
+        color: #da1e28;
+    }
+
+    .logs-stat--warning .logs-stat__value {
+        color: #f1c21b;
+    }
+
+    .logs-file-selector {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .logs-file-btn {
+        padding: 0.5rem 1rem;
+        border: 1px solid #e0e0e0;
+        background: #fff;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .logs-file-btn:hover {
+        background: #f4f4f4;
+        border-color: #8d8d8d;
+    }
+
+    .logs-file-btn--active {
+        background: #0f62fe;
+        color: #fff;
+        border-color: #0f62fe;
+    }
+
+    .logs-file-btn--active:hover {
+        background: #0353e9;
+    }
+
+    .logs-viewer {
+        background: #161616;
+        border-radius: 4px;
+        overflow: hidden;
+        max-height: 600px;
+        overflow-y: auto;
+    }
+
+    .logs-viewer__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background: #262626;
+        border-bottom: 1px solid #393939;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .logs-viewer__title {
+        color: #f4f4f4;
+        font-size: 0.875rem;
+        font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .logs-viewer__actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .logs-viewer__action-btn {
+        padding: 0.25rem 0.5rem;
+        background: #393939;
+        color: #f4f4f4;
+        border: none;
+        font-size: 0.75rem;
+        cursor: pointer;
+        border-radius: 2px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .logs-viewer__action-btn:hover {
+        background: #525252;
+    }
+
+    .logs-viewer__action-btn--danger {
+        background: #da1e28;
+    }
+
+    .logs-viewer__action-btn--danger:hover {
+        background: #b81921;
+    }
+
+    .logs-content {
+        padding: 1rem;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.8125rem;
+        line-height: 1.6;
+    }
+
+    .log-entry {
+        padding: 0.25rem 0;
+        border-bottom: 1px solid #262626;
+        color: #c6c6c6;
+        word-break: break-word;
+    }
+
+    .log-entry:last-child {
+        border-bottom: none;
+    }
+
+    .log-entry--error {
+        color: #ff8389;
+        background: rgba(218, 30, 40, 0.1);
+        padding: 0.5rem;
+        margin: 0.25rem 0;
+        border-left: 3px solid #da1e28;
+    }
+
+    .log-entry--warning {
+        color: #f1c21b;
+        background: rgba(241, 194, 27, 0.05);
+        padding: 0.5rem;
+        margin: 0.25rem 0;
+        border-left: 3px solid #f1c21b;
+    }
+
+    .log-entry--debug {
+        color: #6f6f6f;
+    }
+
+    .log-entry__timestamp {
+        color: #6f6f6f;
+    }
+
+    .empty-logs {
+        padding: 3rem;
+        text-align: center;
+        color: #6f6f6f;
+    }
+
+    .log-file-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 1rem;
+        background: #262626;
+        margin-bottom: 1rem;
+        border-radius: 4px;
+    }
+
+    .log-file-info__name {
+        color: #f4f4f4;
+        font-weight: 500;
+        font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .log-file-info__meta {
+        color: #8d8d8d;
+        font-size: 0.75rem;
+    }
+
+    .badge-level {
+        display: inline-block;
+        padding: 0.125rem 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        border-radius: 2px;
+    }
+
+    .badge-level--error {
+        background: #da1e28;
+        color: #fff;
+    }
+
+    .badge-level--warning {
+        background: #f1c21b;
+        color: #161616;
+    }
+
+    .badge-level--info {
+        background: #0f62fe;
+        color: #fff;
+    }
+
+    .badge-level--debug {
+        background: #6f6f6f;
+        color: #fff;
+    }
+
+    /* Confirm dialog */
+    .confirm-dialog {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .confirm-dialog.active {
+        display: flex;
+    }
+
+    .confirm-dialog__content {
+        background: #fff;
+        padding: 1.5rem;
+        border-radius: 4px;
+        max-width: 400px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .confirm-dialog__title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .confirm-dialog__message {
+        color: #525252;
+        margin-bottom: 1.5rem;
+    }
+
+    .confirm-dialog__actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    @media (max-width: 768px) {
+        .logs-controls {
+            flex-direction: column;
+        }
+
+        .logs-control-group {
+            width: 100%;
+        }
+
+        .logs-control-group select,
+        .logs-control-group input {
+            width: 100%;
+        }
+
+        .logs-stats {
+            flex-wrap: wrap;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="admin-section">
+    <div class="admin-section__header">
+        <div>
+            <h2 class="admin-section__title">Application Logs</h2>
+            <p class="admin-section__subtitle">View and manage application error and debug logs</p>
+        </div>
+    </div>
+
+    {% if log_files %}
+    <!-- Log File Selector -->
+    <div class="logs-file-selector">
+        {% for file in log_files[:10] %}
+        <a href="{{ url_for('admin.error_logs', file=file.name, level=level_filter, search=search_query) }}"
+           class="logs-file-btn{% if file.name == selected_file %} logs-file-btn--active{% endif %}">
+            {{ file.name | replace('log_', '') | replace('.txt', '') }}
+            <small>({{ file.size_human }})</small>
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="logs-stats">
+        <div class="logs-stat">
+            <span class="logs-stat__value">{{ total_lines }}</span>
+            <span class="logs-stat__label">Total Lines</span>
+        </div>
+        <div class="logs-stat logs-stat--error">
+            <span class="logs-stat__value">{{ error_count }}</span>
+            <span class="logs-stat__label">Errors</span>
+        </div>
+        <div class="logs-stat logs-stat--warning">
+            <span class="logs-stat__value">{{ warning_count }}</span>
+            <span class="logs-stat__label">Warnings</span>
+        </div>
+        <div class="logs-stat">
+            <span class="logs-stat__value">{{ log_entries | length }}</span>
+            <span class="logs-stat__label">Showing</span>
+        </div>
+    </div>
+
+    <!-- Filter Controls -->
+    <form method="GET" action="{{ url_for('admin.error_logs') }}" class="logs-controls">
+        <input type="hidden" name="file" value="{{ selected_file }}">
+
+        <div class="logs-control-group">
+            <label for="level">Log Level</label>
+            <select name="level" id="level" onchange="this.form.submit()">
+                <option value="all" {% if level_filter == 'all' %}selected{% endif %}>All Levels</option>
+                <option value="error" {% if level_filter == 'error' %}selected{% endif %}>Errors Only</option>
+                <option value="warning" {% if level_filter == 'warning' %}selected{% endif %}>Warnings Only</option>
+                <option value="info" {% if level_filter == 'info' %}selected{% endif %}>Info Only</option>
+                <option value="debug" {% if level_filter == 'debug' %}selected{% endif %}>Debug Only</option>
+            </select>
+        </div>
+
+        <div class="logs-control-group">
+            <label for="search">Search</label>
+            <input type="text" name="search" id="search" value="{{ search_query }}" placeholder="Search logs...">
+        </div>
+
+        <div class="logs-control-group">
+            <label for="limit">Lines Limit</label>
+            <select name="limit" id="limit" onchange="this.form.submit()">
+                <option value="100" {% if lines_limit == 100 %}selected{% endif %}>100</option>
+                <option value="500" {% if lines_limit == 500 %}selected{% endif %}>500</option>
+                <option value="1000" {% if lines_limit == 1000 %}selected{% endif %}>1000</option>
+                <option value="5000" {% if lines_limit == 5000 %}selected{% endif %}>5000</option>
+            </select>
+        </div>
+
+        <div class="logs-control-group">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1rem;">Apply Filter</button>
+        </div>
+    </form>
+
+    <!-- Log Viewer -->
+    <div class="logs-viewer">
+        <div class="logs-viewer__header">
+            <span class="logs-viewer__title">{{ selected_file }}</span>
+            <div class="logs-viewer__actions">
+                <a href="{{ url_for('admin.download_log', filename=selected_file) }}" class="logs-viewer__action-btn">
+                    Download
+                </a>
+                <button type="button" class="logs-viewer__action-btn logs-viewer__action-btn--danger" onclick="showClearConfirm()">
+                    Clear Log
+                </button>
+            </div>
+        </div>
+
+        <div class="logs-content">
+            {% if log_entries %}
+                {% for entry in log_entries %}
+                <div class="log-entry log-entry--{{ entry.level }}">{{ entry.clean }}</div>
+                {% endfor %}
+            {% else %}
+            <div class="empty-logs">
+                {% if search_query or level_filter != 'all' %}
+                No log entries match your filter criteria.
+                {% else %}
+                No log entries found in this file.
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state__message">No log files found in the logs directory.</div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Clear Confirmation Dialog -->
+<div id="clearConfirmDialog" class="confirm-dialog">
+    <div class="confirm-dialog__content">
+        <div class="confirm-dialog__title">Clear Log File?</div>
+        <div class="confirm-dialog__message">
+            This will permanently delete all entries in <strong>{{ selected_file }}</strong>.
+            This action cannot be undone.
+        </div>
+        <div class="confirm-dialog__actions">
+            <button type="button" class="btn btn-ghost" onclick="hideClearConfirm()">Cancel</button>
+            <form method="POST" action="{{ url_for('admin.clear_log', filename=selected_file) }}" style="display: inline;">
+                <button type="submit" class="btn btn-danger">Clear Log</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block admin_extra_js %}
+<script>
+    function showClearConfirm() {
+        document.getElementById('clearConfirmDialog').classList.add('active');
+    }
+
+    function hideClearConfirm() {
+        document.getElementById('clearConfirmDialog').classList.remove('active');
+    }
+
+    // Close dialog on outside click
+    document.getElementById('clearConfirmDialog').addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideClearConfirm();
+        }
+    });
+
+    // Close dialog on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            hideClearConfirm();
+        }
+    });
+</script>
+{% endblock %}

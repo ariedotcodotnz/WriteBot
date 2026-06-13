@@ -269,10 +269,18 @@ def estimate_override_width(override_data, target_height, x_stretch=1.0):
             tag_name = elem.tag.split('}')[-1] if '}' in elem.tag else elem.tag
             if tag_name == 'path':
                 d = elem.get('d', '')
-                coords = re.findall(r'[ML]\s*([-\d.]+)\s+([-\d.]+)', d)
-                for x, y in coords:
-                    all_x_coords.append(float(x))
-                    all_y_coords.append(float(y))
+                # Extract M/L coordinates
+                for match in re.finditer(r'[MLml]\s*([-\d.]+)[,\s]+([-\d.]+)', d):
+                    all_x_coords.append(float(match.group(1)))
+                    all_y_coords.append(float(match.group(2)))
+                # Extract C (cubic bezier) control and end points for bounding box
+                for match in re.finditer(r'[Cc]\s*([-\d.]+)[,\s]+([-\d.]+)[,\s]+([-\d.]+)[,\s]+([-\d.]+)[,\s]+([-\d.]+)[,\s]+([-\d.]+)', d):
+                    all_x_coords.extend([float(match.group(1)), float(match.group(3)), float(match.group(5))])
+                    all_y_coords.extend([float(match.group(2)), float(match.group(4)), float(match.group(6))])
+                # Extract Q (quadratic bezier) points
+                for match in re.finditer(r'[Qq]\s*([-\d.]+)[,\s]+([-\d.]+)[,\s]+([-\d.]+)[,\s]+([-\d.]+)', d):
+                    all_x_coords.extend([float(match.group(1)), float(match.group(3))])
+                    all_y_coords.extend([float(match.group(2)), float(match.group(4))])
 
         if all_x_coords and all_y_coords:
             char_width = max(all_x_coords) - min(all_x_coords)

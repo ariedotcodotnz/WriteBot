@@ -14,7 +14,7 @@ from .stroke_ops import (
     calculate_adaptive_spacing,
     stitch_strokes,
 )
-from .chunking import split_text_into_chunks
+from .chunking import split_text_into_chunks, balanced_line_breaks
 from .sampling import sample_strokes
 
 __all__ = [
@@ -26,5 +26,6 @@ __all__ = [
     'calculate_adaptive_spacing',
     'stitch_strokes',
     'split_text_into_chunks',
+    'balanced_line_breaks',
     'sample_strokes',
 ]

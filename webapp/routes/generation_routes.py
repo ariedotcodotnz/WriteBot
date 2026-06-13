@@ -6,7 +6,7 @@ import shutil
 import tempfile
 import time
 from typing import Any, Dict
-from flask import Blueprint, jsonify, request, Response
+from flask import Blueprint, jsonify, request, Response, current_app
 from flask_login import login_required
 
 # Ensure project root is in sys.path
@@ -107,8 +107,13 @@ def api_v1_generate():
         meta['generation_time_seconds'] = round(processing_time, 3)
 
         return jsonify({"svg": svg_text, "meta": meta})
-    except Exception as e:
+    except ValueError as e:
+        # ValueError is typically a validation error (invalid params), safe to show
+        current_app.logger.warning(f'Generation validation error: {e}')
         return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        current_app.logger.exception('Generation error')
+        return jsonify({"error": "Failed to generate handwriting. Please check your parameters."}), 400
 
 
 @generation_bp.route("/api/v1/generate/svg", methods=["POST"])
@@ -146,8 +151,12 @@ def api_v1_generate_svg():
         log_activity('generate', f'Generated {lines_count} lines (SVG only)')
 
         return Response(svg_text, mimetype="image/svg+xml")
-    except Exception as e:
+    except ValueError as e:
+        current_app.logger.warning(f'Generation validation error: {e}')
         return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        current_app.logger.exception('Generation error (SVG)')
+        return jsonify({"error": "Failed to generate handwriting. Please check your parameters."}), 400
 
 
 @generation_bp.route("/api/generate", methods=["POST"])
@@ -184,5 +193,9 @@ def generate_svg():
         log_activity('generate', f'Generated {lines_count} lines (legacy)')
 
         return Response(svg_text, mimetype="image/svg+xml")
-    except Exception as e:
+    except ValueError as e:
+        current_app.logger.warning(f'Generation validation error (legacy): {e}')
         return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        current_app.logger.exception('Generation error (legacy)')
+        return jsonify({"error": "Failed to generate handwriting. Please check your parameters."}), 400

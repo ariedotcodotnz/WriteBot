@@ -80,6 +80,34 @@ def normalize_text_for_model(s: str, override_chars: Optional[set] = None) -> st
     return out
 
 
+def reflow_paragraphs(text: str) -> str:
+    """Reflow soft-wrapped text so paragraphs fill the available width.
+
+    A run of consecutive non-blank lines is treated as a single paragraph and
+    joined with spaces (so the generator re-wraps it to the page width); blank
+    lines are preserved as paragraph separators. This prevents short, hard-wrapped
+    input (e.g. a letter pasted with a line break every few words) from rendering
+    as a column of half-empty lines. Turn it off to keep your exact line breaks.
+
+    Args:
+        text: Raw input text (may contain hard line breaks).
+
+    Returns:
+        Reflowed text: paragraphs joined to single lines, separated by one blank
+        line each.
+    """
+    if not text:
+        return text
+    text = text.replace('\r\n', '\n').replace('\r', '\n')
+    paragraphs = re.split(r'\n[ \t]*\n', text)  # split on blank lines
+    out = []
+    for para in paragraphs:
+        joined = ' '.join(seg.strip() for seg in para.split('\n') if seg.strip())
+        if joined:
+            out.append(joined)
+    return '\n\n'.join(out)
+
+
 def wrap_by_canvas(
     raw_lines: List[str],
     content_width_px: float,
