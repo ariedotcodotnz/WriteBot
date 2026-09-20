@@ -74,10 +74,10 @@ def validate_svg(svg_content):
             return False, "SVG must have a viewBox or width/height attributes", None
 
         return True, None, viewbox_data
-    except ET.ParseError as e:
-        return False, f"Invalid XML: {str(e)}", None
-    except Exception as e:
-        return False, f"Error validating SVG: {str(e)}", None
+    except ET.ParseError:
+        return False, "Invalid SVG: malformed XML content", None
+    except Exception:
+        return False, "Invalid SVG content", None
 
 
 @character_override_bp.route('/')

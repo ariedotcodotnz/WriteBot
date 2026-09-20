@@ -14,6 +14,16 @@ from sqlalchemy import func, desc
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 
+def _is_safe_path(base_dir, candidate_path):
+    """Return True when candidate_path resolves inside base_dir."""
+    real_base_dir = os.path.realpath(base_dir)
+    real_candidate_path = os.path.realpath(candidate_path)
+    try:
+        return os.path.commonpath([real_base_dir, real_candidate_path]) == real_base_dir
+    except ValueError:
+        return False
+
+
 @admin_bp.route('/')
 @login_required
 @admin_required
@@ -839,16 +849,14 @@ def error_logs():
 
     if selected_file:
         filepath = os.path.join(logs_dir, selected_file)
-        # Security check: ensure the file is within logs_dir
-        real_logs_dir = os.path.realpath(logs_dir)
         real_filepath = os.path.realpath(filepath)
-        if not real_filepath.startswith(real_logs_dir):
+        if not _is_safe_path(logs_dir, real_filepath):
             flash('Invalid log file path.', 'error')
             return redirect(url_for('admin.error_logs'))
 
-        if os.path.exists(filepath):
+        if os.path.exists(real_filepath):
             try:
-                with open(filepath, 'r', encoding='utf-8', errors='replace') as f:
+                with open(real_filepath, 'r', encoding='utf-8', errors='replace') as f:
                     lines = f.readlines()
 
                 total_lines = len(lines)
@@ -913,20 +921,18 @@ def download_log(filename):
     logs_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
     filepath = os.path.join(logs_dir, filename)
 
-    # Security check: ensure the file is within logs_dir
-    real_logs_dir = os.path.realpath(logs_dir)
     real_filepath = os.path.realpath(filepath)
-    if not real_filepath.startswith(real_logs_dir):
+    if not _is_safe_path(logs_dir, real_filepath):
         flash('Invalid log file path.', 'error')
         return redirect(url_for('admin.error_logs'))
 
-    if not os.path.exists(filepath):
+    if not os.path.exists(real_filepath):
         flash('Log file not found.', 'error')
         return redirect(url_for('admin.error_logs'))
 
     log_activity('admin_action', f'Downloaded log file: {filename}')
 
-    return send_file(filepath, as_attachment=True, download_name=filename)
+    return send_file(real_filepath, as_attachment=True, download_name=filename)
 
 
 @admin_bp.route('/logs/clear/<filename>', methods=['POST'])
@@ -942,20 +948,18 @@ def clear_log(filename):
     logs_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'logs')
     filepath = os.path.join(logs_dir, filename)
 
-    # Security check: ensure the file is within logs_dir
-    real_logs_dir = os.path.realpath(logs_dir)
     real_filepath = os.path.realpath(filepath)
-    if not real_filepath.startswith(real_logs_dir):
+    if not _is_safe_path(logs_dir, real_filepath):
         flash('Invalid log file path.', 'error')
         return redirect(url_for('admin.error_logs'))
 
-    if not os.path.exists(filepath):
+    if not os.path.exists(real_filepath):
         flash('Log file not found.', 'error')
         return redirect(url_for('admin.error_logs'))
 
     try:
         # Truncate the file
-        with open(filepath, 'w') as f:
+        with open(real_filepath, 'w', encoding='utf-8') as f:
             f.write(f'# Log cleared by {current_user.username} at {datetime.now().isoformat()}\n')
 
         log_activity('admin_action', f'Cleared log file: {filename}')

@@ -416,8 +416,9 @@ def health():
         try:
             db.session.execute(db.text('SELECT 1'))
             status["database"] = {"status": "ok"}
-        except Exception as e:
-            status["database"] = {"status": "error", "message": str(e)}
+        except Exception:
+            app.logger.exception('Database health check failed')
+            status["database"] = {"status": "error", "message": "Database unavailable"}
             status["status"] = "degraded"
 
         # Check Redis status
@@ -426,8 +427,9 @@ def health():
                 r = redis.from_url(REDIS_URL, socket_timeout=2)
                 r.ping()
                 status["redis"] = {"status": "ok"}
-            except Exception as e:
-                status["redis"] = {"status": "error", "message": str(e)}
+            except Exception:
+                app.logger.exception('Redis health check failed')
+                status["redis"] = {"status": "error", "message": "Redis unavailable"}
                 status["status"] = "degraded"
         else:
             status["redis"] = {"status": "unavailable", "message": "Redis not configured"}
