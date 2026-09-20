@@ -6,6 +6,9 @@ on:
     - cron: '0 2 * * *'
   workflow_dispatch:  # Allow manual backup
 
+permissions:
+  contents: read
+
 jobs:
   backup:
     name: Backup Production Database

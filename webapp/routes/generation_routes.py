@@ -110,7 +110,7 @@ def api_v1_generate():
     except ValueError as e:
         # ValueError is typically a validation error (invalid params), safe to show
         current_app.logger.warning(f'Generation validation error: {e}')
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"error": "Invalid generation parameters."}), 400
     except Exception as e:
         current_app.logger.exception('Generation error')
         return jsonify({"error": "Failed to generate handwriting. Please check your parameters."}), 400
@@ -153,7 +153,7 @@ def api_v1_generate_svg():
         return Response(svg_text, mimetype="image/svg+xml")
     except ValueError as e:
         current_app.logger.warning(f'Generation validation error: {e}')
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"error": "Invalid generation parameters."}), 400
     except Exception as e:
         current_app.logger.exception('Generation error (SVG)')
         return jsonify({"error": "Failed to generate handwriting. Please check your parameters."}), 400
@@ -195,7 +195,7 @@ def generate_svg():
         return Response(svg_text, mimetype="image/svg+xml")
     except ValueError as e:
         current_app.logger.warning(f'Generation validation error (legacy): {e}')
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"error": "Invalid generation parameters."}), 400
     except Exception as e:
         current_app.logger.exception('Generation error (legacy)')
         return jsonify({"error": "Failed to generate handwriting. Please check your parameters."}), 400
